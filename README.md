@@ -1,2 +1,2 @@
-# alpaca
+# Alpaca
 Webpage credibility score computer
