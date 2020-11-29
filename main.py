@@ -1,6 +1,6 @@
-from scoring.credibility_evaluation import evaluate_website
-
 from urllib.parse import urlparse
+
+from scoring.credibility_evaluation import evaluate_website
 
 
 def start_service():
@@ -16,7 +16,7 @@ def handle_input():
     """
     while True:
         user_input = input("Enter address: ")
-        if user_input in ["exit", "quit", "Exit", "Quit", "EXIT", "QUIT"]:
+        if user_input.lower() in ["exit", "quit"]:
             break
 
         if user_input.__contains__(".") and not user_input.endswith("/"):

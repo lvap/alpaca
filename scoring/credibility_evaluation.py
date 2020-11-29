@@ -1,9 +1,7 @@
 import parsing.website_parser as parser
 from parsing.website_data import WebsiteData
-
-from scoring.grammar import evaluate_grammar
 from scoring.clickbait import evaluate_clickbait
-
+from scoring.grammar import evaluate_grammar
 
 # weights for the linear combination of individual signal scores
 EVALUATION_WEIGHTS = [0.5,  # grammar

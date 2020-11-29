@@ -1,6 +1,6 @@
-from parsing.website_data import WebsiteData
-
 import requests
+
+from parsing.website_data import WebsiteData
 
 
 def parse_data(url: str) -> WebsiteData:
