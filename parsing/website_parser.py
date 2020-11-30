@@ -14,6 +14,6 @@ def parse_data(url: str) -> WebsiteData:
         get = requests.head(url)
         if get.status_code >= 400:
             print(get)
-        return WebsiteData("", "", False, "")
+        return WebsiteData("", "", False, url)
     except ConnectionError:
         print("Cannot connect to website.")

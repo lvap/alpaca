@@ -1,7 +1,7 @@
 import parsing.website_parser as parser
 from parsing.website_data import WebsiteData
-from scoring.clickbait import evaluate_clickbait
-from scoring.grammar import evaluate_grammar
+from scoring.evaluator_clickbait import evaluate_clickbait
+from scoring.evaluator_grammar import evaluate_grammar
 
 # weights for the linear combination of individual signal scores
 EVALUATION_WEIGHTS = [0.5,  # grammar
@@ -9,7 +9,7 @@ EVALUATION_WEIGHTS = [0.5,  # grammar
 
 
 def _compute_scores(data: WebsiteData) -> list[float]:
-    """Collects the credibility scores from different signal evaluators given a website's information."""
+    """Given a website's information, collects corresponding credibility scores from different signal evaluators."""
     scores = [evaluate_grammar(data),
               evaluate_clickbait(data)]
     return scores
@@ -17,7 +17,7 @@ def _compute_scores(data: WebsiteData) -> list[float]:
 
 def evaluate_website(url: str) -> float:
     """
-    TODO documentation
+    todo documentation
 
     :param url:
     :return:
