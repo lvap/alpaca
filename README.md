@@ -1,2 +1,2 @@
 # Alpaca
-Webpage credibility score computer
+Website credibility evaluator

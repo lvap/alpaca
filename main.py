@@ -19,9 +19,6 @@ def handle_input():
         if user_input.lower() in ["exit", "quit"]:
             break
 
-        if user_input.__contains__(".") and not user_input.endswith("/"):
-            user_input += "/"
-
         if valid_address(user_input):
             score = evaluate_website(user_input)
             print("Final score: {:.3f}".format(score))
