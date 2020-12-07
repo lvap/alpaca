@@ -9,24 +9,32 @@ EVALUATION_WEIGHTS = [0.5,  # grammar
 
 
 def _compute_scores(data: WebsiteData) -> list[float]:
-    """Given a website's information, collects corresponding credibility scores from different signal evaluators."""
+    """Given a website's information, collects corresponding credibility scores from different signal evaluators.
+
+    :param data: All necessary parsed data from the website to be evaluated.
+    :return: A list of credibility scores for the website from all the evaluators. Values range from 0 (very low
+        credibility) to 1 (very high credibility). A value of -1 means that particular credibility score could not be
+        computed.
+    """
+
     scores = [evaluate_grammar(data),
               evaluate_clickbait(data)]
     return scores
 
 
 def evaluate_website(url: str) -> float:
-    """
-    todo documentation
+    """Scores a website's credibility from 0 to 1 by combining the credibility scores of different evaluators.
 
-    :param url:
-    :return:
+    :param url: URL of the website to be evaluated.
+    :return: A credibility score from 0 (very low credibility) to 1 (very high credibility).
+        Returns -1 if the website could not be evaluated.
     """
+
     try:
         data = parser.parse_data(url)
 
         scores = _compute_scores(data)
-        print(scores)
+        print("*** Individual scores: {}".format(scores))
 
         result = sum(score * weight for score, weight in zip(scores, EVALUATION_WEIGHTS))
         return result
