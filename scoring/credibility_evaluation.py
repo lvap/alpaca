@@ -30,15 +30,14 @@ def evaluate_website(url: str) -> float:
         Returns -1 if the website could not be evaluated.
     """
 
-    try:
-        data = parser.parse_data(url)
+    data = parser.parse_data(url)
 
-        scores = _compute_scores(data)
-        print("*** Individual scores: {}".format(scores))
-
-        result = sum(score * weight for score, weight in zip(scores, EVALUATION_WEIGHTS))
-        return result
-
-    except ConnectionError:
-        # website could not be parsed
+    if data.headline == "" or len(data.text) < 100:
+        print("Website parsing failed.")
         return -1.0
+
+    scores = _compute_scores(data)
+    print("*** Individual scores: {}".format(scores))
+
+    result = sum(score * weight for score, weight in zip(scores, EVALUATION_WEIGHTS))
+    return result

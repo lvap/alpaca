@@ -4,7 +4,7 @@ from scoring.credibility_evaluation import evaluate_website
 
 
 def start_service():
-    print("*** alpaca init")
+    print("*** alpaca init\n")
     handle_input()
 
 
@@ -21,7 +21,10 @@ def handle_input():
 
         if valid_address(user_input):
             score = evaluate_website(user_input)
-            print("Website score: {:.3f}".format(score))
+            if 0 <= score <= 1:
+                print("Website score: {:.3f}\n".format(score))
+            else:
+                print("Score could not be calculated.")
         else:
             print("Invalid address.")
 
