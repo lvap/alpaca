@@ -1,4 +1,5 @@
 import traceback
+
 import trafilatura
 from newspaper import Article
 
@@ -27,19 +28,33 @@ def _parse_using_trafilatura(url: str) -> WebsiteData:
         article.download()
         article.parse()
 
-        text = ""
         page = trafilatura.fetch_url(url)
+        if page is None:
+            print("*** Could not fetch webpage.")
+            return WebsiteData()
+
         paragraphs = trafilatura.extract(page, target_language="en", include_comments=False,
                                          include_tables=False).split("\n")
+
+        # remove title if the text begins with it
+        if paragraphs[0] == article.title:
+            paragraphs.pop(0)
+
+        # add full stop after subtitle
+        if paragraphs[0][len(paragraphs[0])-1] not in [".", "!", "?", ":", "”", "\"", "\'"]:
+            paragraphs[0] += "."
+
+        # remove short strings that are likely not part of the main text
+        text = ""
         for pg in paragraphs:
-            if len(pg) > 25:
+            if len(pg) > 40:
                 text += pg + " "
 
         print("*** Title: {}".format(article.title))
         print("*** Authors: {}".format(article.authors))
         print("\n*** Text: {}\n".format(text))
 
-        return WebsiteData(article.title, text, [], article.authors != [""], url)
+        return WebsiteData(article.title, text, article.authors != [""], url)
 
     except Exception:
         traceback.print_exc()
@@ -58,17 +73,27 @@ def _parse_using_newspaper(url: str) -> WebsiteData:
         article.download()
         article.parse()
 
-        text = ""
         paragraphs = article.text.split("\n")
+
+        # remove title if the text begins with it
+        if paragraphs[0] == article.title:
+            paragraphs.pop(0)
+
+        # add full stop for article subtitle
+        if paragraphs[0][len(paragraphs[0]) - 1] not in [".", "!", "?", ":", "”", "\"", "\'"]:
+            paragraphs[0] += "."
+
+        # remove short strings that are likely not part of the main text
+        text = ""
         for pg in paragraphs:
-            if len(pg) > 25:
+            if len(pg) > 60:
                 text += pg + " "
 
         print("*** Title: {}".format(article.title))
         print("*** Authors: {}".format(article.authors))
         print("\n*** Text: {}\n".format(text))
 
-        return WebsiteData(article.title, text, [], article.authors != [""], url)
+        return WebsiteData(article.title, text, article.authors != [""], url)
 
     except Exception:
         traceback.print_exc()
