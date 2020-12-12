@@ -15,18 +15,18 @@ def handle_input():
     """
 
     while True:
-        user_input = input("Enter address: ")
+        user_input = input("Enter website address: ")
         if user_input.lower() in ["exit", "quit"]:
             break
 
         if valid_address(user_input):
             score = evaluate_website(user_input)
             if 0 <= score <= 1:
-                print("Website score: {:.3f}\n".format(score))
+                print("Website score: {:.3f} for {}\n".format(score, user_input))
             else:
-                print("Score could not be calculated.")
+                print("Score could not be calculated.\n")
         else:
-            print("Invalid address.")
+            print("Invalid address.\n")
 
 
 def valid_address(user_input: str) -> bool:

@@ -5,93 +5,53 @@ from newspaper import Article
 
 from parsing.website_data import WebsiteData
 
+PARSER = "trafilatura"
+
 
 def parse_data(url: str) -> WebsiteData:
-    """Returns necessary website data for credibility evaluation given a URL.
+    """Returns data necessary for credibility evaluation given a webpage's URL.
+    Uses module specified in PARSER for text extraction.
 
     :param url: Location of the website that should be parsed.
     :return: The relevant data from the given website.
     """
 
-    return _parse_using_trafilatura(url)
-
-
-def _parse_using_trafilatura(url: str) -> WebsiteData:
-    """Extracts necessary website data for credibility evaluation using trafilatura for text extraction.
-
-        :param url: Location of the website that should be parsed.
-        :return: The relevant data from the given website.
-        """
+    global PARSER
 
     try:
         article = Article(url=url, language="en", fetch_images=False)
         article.download()
         article.parse()
 
-        page = trafilatura.fetch_url(url)
-        if page is None:
+        if article.html is None or article.html == "":
             print("*** Could not fetch webpage.")
             return WebsiteData()
 
-        paragraphs = trafilatura.extract(page, target_language="en", include_comments=False,
-                                         include_tables=False).split("\n")
+        if PARSER == "trafilatura":
+            paragraphs = trafilatura.extract(article.html, target_language="en", include_comments=False,
+                                             include_tables=False).split("\n")
+        elif PARSER == "newspaper":
+            paragraphs = article.text.split("\n")
+        else:
+            print("*** No text parser specified.")
+            return WebsiteData()
 
         # remove title if the text begins with it
         if paragraphs[0] == article.title:
             paragraphs.pop(0)
 
-        # add full stop after subtitle
-        if paragraphs[0][len(paragraphs[0])-1] not in [".", "!", "?", ":", "”", "\"", "\'"]:
-            paragraphs[0] += "."
-
-        # remove short strings that are likely not part of the main text
+        # concatenate paragraphs, removing short strings that are likely not part of the main text
+        # and adding full stops when a paragraph ends without one (likely sub titles or non-article text)
         text = ""
         for pg in paragraphs:
-            if len(pg) > 40:
-                text += pg + " "
+            if len(pg) > 50:
+                text += pg
+                text += ". " if pg[len(pg) - 1] not in [".", ";", "!", "?", ":", "”", "\"", "\'"] else " "
 
+        # debug/logging prints
         print("*** Title: {}".format(article.title))
         print("*** Authors: {}".format(article.authors))
-        print("\n*** Text: {}\n".format(text))
-
-        return WebsiteData(article.title, text, article.authors != [""], url)
-
-    except Exception:
-        traceback.print_exc()
-        return WebsiteData()
-
-
-def _parse_using_newspaper(url: str) -> WebsiteData:
-    """Extracts necessary website data for credibility evaluation using newspaper for text extraction.
-
-        :param url: Location of the website that should be parsed.
-        :return: The relevant data from the given website.
-        """
-
-    try:
-        article = Article(url=url, language="en", fetch_images=False)
-        article.download()
-        article.parse()
-
-        paragraphs = article.text.split("\n")
-
-        # remove title if the text begins with it
-        if paragraphs[0] == article.title:
-            paragraphs.pop(0)
-
-        # add full stop for article subtitle
-        if paragraphs[0][len(paragraphs[0]) - 1] not in [".", "!", "?", ":", "”", "\"", "\'"]:
-            paragraphs[0] += "."
-
-        # remove short strings that are likely not part of the main text
-        text = ""
-        for pg in paragraphs:
-            if len(pg) > 60:
-                text += pg + " "
-
-        print("*** Title: {}".format(article.title))
-        print("*** Authors: {}".format(article.authors))
-        print("\n*** Text: {}\n".format(text))
+        print("*** Text: {}".format(text[:200] + " [...] " + text[-200:]))
 
         return WebsiteData(article.title, text, article.authors != [""], url)
 
