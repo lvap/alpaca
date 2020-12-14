@@ -1,10 +1,12 @@
 import parsing.website_parser as parser
 from parsing.website_data import WebsiteData
+from scoring.evaluator_authors import evaluate_authors
 from scoring.evaluator_clickbait import evaluate_clickbait
 from scoring.evaluator_grammar import evaluate_grammar
 
 # weights for the linear combination of individual signal scores
-EVALUATION_WEIGHTS = [0.5,  # grammar
+EVALUATION_WEIGHTS = [0.3,  # grammar
+                      0.2,  # authors
                       0.5]  # clickbait
 
 
@@ -17,7 +19,9 @@ def _compute_scores(data: WebsiteData) -> list[float]:
         computed.
     """
 
+    # TODO multithreading/optimise performance?
     scores = [evaluate_grammar(data),
+              evaluate_authors(data),
               evaluate_clickbait(data)]
     return scores
 
@@ -32,12 +36,17 @@ def evaluate_website(url: str) -> float:
 
     data = parser.parse_data(url)
 
-    if data.headline == "" or len(data.text) < 100:
+    if data is None or data.headline == "" or len(data.text) < 100:
         print("Website parsing failed.")
         return -1.0
 
     scores = _compute_scores(data)
     print("*** Individual scores: {}".format(scores))
 
-    result = sum(score * weight for score, weight in zip(scores, EVALUATION_WEIGHTS))
-    return result
+    # multiply each score by its weight and sum up the results
+    final_score = sum(score * weight for score, weight in zip(scores, EVALUATION_WEIGHTS))
+
+    # scale final score by overall weight number
+    final_score /= sum(EVALUATION_WEIGHTS)
+
+    return final_score

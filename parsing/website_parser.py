@@ -23,12 +23,13 @@ def parse_data(url: str) -> WebsiteData:
         article.download()
         article.parse()
 
+        # TODO language detection (abort if not english)
         if article.html is None or article.html == "":
             print("*** Could not fetch webpage.")
             return WebsiteData()
 
         if PARSER == "trafilatura":
-            paragraphs = trafilatura.extract(article.html, target_language="en", include_comments=False,
+            paragraphs = trafilatura.extract(article.html, include_comments=False,
                                              include_tables=False).split("\n")
         elif PARSER == "newspaper":
             paragraphs = article.text.split("\n")
@@ -41,19 +42,16 @@ def parse_data(url: str) -> WebsiteData:
             paragraphs.pop(0)
 
         # concatenate paragraphs, removing short strings that are likely not part of the main text
-        # and adding full stops when a paragraph ends without one (likely sub titles or non-article text)
         text = ""
         for pg in paragraphs:
             if len(pg) > 50:
-                text += pg
-                text += ". " if pg[len(pg) - 1] not in [".", ";", "!", "?", ":", "”", "\"", "\'"] else " "
+                text += pg + " "
 
-        # debug/logging prints
         print("*** Title: {}".format(article.title))
         print("*** Authors: {}".format(article.authors))
         print("*** Text: {}".format(text[:200] + " [...] " + text[-200:]))
 
-        return WebsiteData(article.title, text, article.authors != [""], url)
+        return WebsiteData(article.title, text, article.authors, url)
 
     except Exception:
         traceback.print_exc()

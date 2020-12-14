@@ -3,16 +3,16 @@ class WebsiteData:
 
     :param headline: article title
     :param text: main article text
-    :param has_author: whether the site specifies an author
+    :param authors: article authors
     :param url: website URL
     """
 
     def __init__(self,
                  headline: str = "",
                  text: str = "",
-                 has_author: bool = False,
+                 authors: str = "",
                  url: str = ""):
         self.headline = headline
         self.text = text
-        self.has_author = has_author
+        self.authors = authors
         self.url = url
