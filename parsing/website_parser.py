@@ -23,10 +23,11 @@ def parse_data(url: str) -> WebsiteData:
         article.download()
         article.parse()
 
-        # TODO language detection (abort if not english)
         if article.html is None or article.html == "":
             print("*** Could not fetch webpage.")
             return WebsiteData()
+
+        # TODO language detection (abort if not english)
 
         if PARSER == "trafilatura":
             paragraphs = trafilatura.extract(article.html, include_comments=False,
@@ -51,7 +52,7 @@ def parse_data(url: str) -> WebsiteData:
         print("*** Authors: {}".format(article.authors))
         print("*** Text: {}".format(text[:200] + " [...] " + text[-200:]))
 
-        return WebsiteData(article.title, text, article.authors, url)
+        return WebsiteData(article.html, article.title, text, article.authors, url)
 
     except Exception:
         traceback.print_exc()
