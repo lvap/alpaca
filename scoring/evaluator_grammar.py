@@ -19,10 +19,11 @@ def evaluate_grammar(data: WebsiteData) -> float:
     # filter out irrelevant errors
     errors_to_ignore = 0
     for match in errors:
-        if (match.ruleId in ["EN_QUOTES", "DASH_RULE"]  # ignore use of improper quote or dash punctuation
-                or match.category == "REDUNDANCY"  # ignore redundancy style warnings
+        if (match.ruleId in ["EN_QUOTES", "DASH_RULE"]      # ignore use of improper quote or dash punctuation
+                or match.category == "REDUNDANCY"           # ignore redundancy style warnings
                 or "is British English" in match.message):  # ignore "misspelled" words in British English
             errors_to_ignore += 1
+        print(match)  # debug
 
     error_score = len(errors) - errors_to_ignore
     word_count = len(data.headline.split()) + len(data.text.split())
