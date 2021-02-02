@@ -23,10 +23,11 @@ def evaluate_grammar(data: WebsiteData) -> float:
                 or match.category == "REDUNDANCY"           # ignore redundancy style warnings
                 or "is British English" in match.message):  # ignore "misspelled" words in British English
             errors_to_ignore += 1
-        print(match)  # debug
+        print(match)
 
     error_score = len(errors) - errors_to_ignore
     word_count = len(data.headline.split()) + len(data.text.split())
+    # error score is 1 - (average errors per word)
     error_score = 1.0 - (error_score / word_count)
 
     print("*** grammar eval: {} errors ({} ignored) in {} words"

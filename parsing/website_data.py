@@ -12,7 +12,7 @@ class WebsiteData:
                  html: str = "",
                  headline: str = "",
                  text: str = "",
-                 authors: str = "",
+                 authors: list[str] = [],
                  url: str = ""):
         self.html = html
         self.headline = headline

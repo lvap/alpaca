@@ -43,10 +43,8 @@ def evaluate_website(url: str) -> float:
     scores = _compute_scores(data)
     print("*** Individual scores: {}".format(scores))
 
-    # multiply each score by its weight and sum up the results
+    # linear combination of individual scores
     final_score = sum(score * weight for score, weight in zip(scores, EVALUATION_WEIGHTS))
-
-    # scale final score by overall weight number
     final_score /= sum(EVALUATION_WEIGHTS)
 
     return final_score

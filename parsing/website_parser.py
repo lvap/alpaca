@@ -10,13 +10,11 @@ PARSER = "trafilatura"
 
 def parse_data(url: str) -> WebsiteData:
     """Returns data necessary for credibility evaluation given a webpage's URL.
-    Uses module specified in PARSER for text extraction.
+    Uses module specified in variable PARSER for text extraction.
 
     :param url: Location of the website that should be parsed.
     :return: The relevant data from the given website.
     """
-
-    global PARSER
 
     try:
         article = Article(url=url, language="en", fetch_images=False)
