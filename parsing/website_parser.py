@@ -39,19 +39,37 @@ def parse_data(url: str) -> WebsiteData:
         # remove title if the text begins with it
         if paragraphs[0] == article.title:
             paragraphs.pop(0)
+        # add period if article has subtitle without one
+        if not _has_ending_punctuation(paragraphs[0]):
+            paragraphs[0] += "."
 
-        # concatenate paragraphs, removing short strings that are likely not part of the main text
+        # concatenate paragraphs, removing short parts that are likely not part of the actual text
         text = ""
         for pg in paragraphs:
-            if len(pg) > 50:
-                text += pg + " "
+            if len(pg) > 150 or (len(pg) > 50 and _has_ending_punctuation(pg)):
+                text += pg + "\n"
 
         print("*** Title: {}".format(article.title))
         print("*** Authors: {}".format(article.authors))
-        print("*** Text: {}".format(text[:200] + " [...] " + text[-200:]))
+        print("*** Text: {}".format(text[:200] + " [...] " + text[-200:]).replace("\n", " "))
+        print("*** Text length: {}".format(len(text)))
 
-        return WebsiteData(article.html, article.title, text, article.authors, url)
+        return WebsiteData(article.html, article.title, text[:-1], article.authors, url)
 
     except Exception:
         traceback.print_exc()
         return WebsiteData()
+
+
+def _has_ending_punctuation(text: str) -> bool:
+    """ Checks whether the text ending contains proper punctuation.
+    Evaluates the last 3 characters of text to allow for parentheses and quotation marks.
+
+    :param text: A string to check for ending punctuation.
+    :return: True if the last three characters of text contain any of . ! ? : and False otherwise.
+    """
+
+    ending_punctuation = set(".!?:")
+    if any((char in ending_punctuation) for char in text[-3:]):
+        return True
+    return False

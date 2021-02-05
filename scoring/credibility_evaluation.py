@@ -1,13 +1,11 @@
 import parsing.website_parser as parser
 from parsing.website_data import WebsiteData
 from scoring.evaluator_authors import evaluate_authors
-from scoring.evaluator_clickbait import evaluate_clickbait
 from scoring.evaluator_grammar import evaluate_grammar
 
 # weights for the linear combination of individual signal scores
 EVALUATION_WEIGHTS = [0.3,  # grammar
-                      0.2,  # authors
-                      0.5]  # clickbait
+                      0.2]  # authors
 
 
 def _compute_scores(data: WebsiteData) -> list[float]:
@@ -21,8 +19,7 @@ def _compute_scores(data: WebsiteData) -> list[float]:
 
     # TODO multithreading/optimise performance?
     scores = [evaluate_grammar(data),
-              evaluate_authors(data),
-              evaluate_clickbait(data)]
+              evaluate_authors(data)]
     return scores
 
 
