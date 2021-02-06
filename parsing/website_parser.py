@@ -4,6 +4,7 @@ import trafilatura
 from newspaper import Article
 
 from parsing.website_data import WebsiteData
+from logger import log
 
 PARSER = "trafilatura"
 
@@ -22,7 +23,7 @@ def parse_data(url: str) -> WebsiteData:
         article.parse()
 
         if article.html is None or article.html == "":
-            print("*** Could not fetch webpage.")
+            log("*** Could not fetch webpage.")
             return WebsiteData()
 
         # TODO language detection (abort if not english)
@@ -33,26 +34,26 @@ def parse_data(url: str) -> WebsiteData:
         elif PARSER == "newspaper":
             paragraphs = article.text.split("\n")
         else:
-            print("*** No text parser specified.")
+            log("*** No text parser specified.")
             return WebsiteData()
 
         # remove title if the text begins with it
         if paragraphs[0] == article.title:
             paragraphs.pop(0)
         # add period if article has subtitle without one
-        if not _has_ending_punctuation(paragraphs[0]):
+        if not has_ending_punctuation(paragraphs[0]):
             paragraphs[0] += "."
 
         # concatenate paragraphs, removing short parts that are likely not part of the actual text
         text = ""
         for pg in paragraphs:
-            if len(pg) > 150 or (len(pg) > 50 and _has_ending_punctuation(pg)):
+            if len(pg) > 150 or (len(pg) > 50 and has_ending_punctuation(pg)):
                 text += pg + "\n"
 
-        print("*** Title: {}".format(article.title))
-        print("*** Authors: {}".format(article.authors))
-        print("*** Text: {}".format(text[:200] + " [...] " + text[-200:]).replace("\n", " "))
-        print("*** Text length: {}".format(len(text)))
+        log("*** Title: {}".format(article.title))
+        log("*** Authors: {}".format(article.authors))
+        log("*** Text: {}".format(text[:200] + " [...] " + text[-200:]).replace("\n", " "))
+        log("*** Text length: {}".format(len(text)))
 
         return WebsiteData(article.html, article.title, text[:-1], article.authors, url)
 
@@ -61,7 +62,7 @@ def parse_data(url: str) -> WebsiteData:
         return WebsiteData()
 
 
-def _has_ending_punctuation(text: str) -> bool:
+def has_ending_punctuation(text: str) -> bool:
     """ Checks whether the text ending contains proper punctuation.
     Evaluates the last 3 characters of text to allow for parentheses and quotation marks.
 

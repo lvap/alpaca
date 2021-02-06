@@ -1,10 +1,11 @@
 from urllib.parse import urlparse
 
 from scoring.credibility_evaluation import evaluate_website
+from logger import log
 
 
 def start_service():
-    print("*** alpaca init\n")
+    log("*** alpaca init\n")
     handle_input()
 
 

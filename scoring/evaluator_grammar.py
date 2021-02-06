@@ -1,5 +1,6 @@
 import language_tool_python as ltp
 
+from logger import log
 from parsing.website_data import WebsiteData
 
 
@@ -16,7 +17,7 @@ def evaluate_grammar(data: WebsiteData) -> float:
     matches = tool.check(data.headline)
     matches_to_ignore = 0
     # ignore error for missing punctuation at title ending
-    if matches[len(matches)-1].ruleId == "PUNCTUATION_PARAGRAPH_END":
+    if matches and matches[len(matches) - 1].ruleId == "PUNCTUATION_PARAGRAPH_END":
         matches_to_ignore += 1
         matches.pop()
     matches += tool.check(data.text)
@@ -32,17 +33,18 @@ def evaluate_grammar(data: WebsiteData) -> float:
             if match.matchedText in unknown_words:
                 matches_to_ignore += 1
             else:
+                # log(match)
                 unknown_words.append(match.matchedText)
-                print(match)
         else:
-            print(match)
+            # log(match)
+            continue
 
     # final error score is 1 - (average errors per word), minimum 0
     error_score = len(matches) - matches_to_ignore
     word_count = len(data.headline.split()) + len(data.text.split())
     error_score = 1.0 - (error_score / word_count)
 
-    print("*** grammar eval: {} errors ({} ignored) in {} words"
-          .format(len(matches) - matches_to_ignore, matches_to_ignore, word_count))
+    log("*** Grammar & spelling: {} errors in {} words ({} ignored)"
+        .format(len(matches) - matches_to_ignore, word_count, matches_to_ignore))
 
     return error_score if error_score >= 0.0 else 0.0

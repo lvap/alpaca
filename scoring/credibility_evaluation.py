@@ -1,11 +1,14 @@
 import parsing.website_parser as parser
+from logger import log
 from parsing.website_data import WebsiteData
 from scoring.evaluator_authors import evaluate_authors
 from scoring.evaluator_grammar import evaluate_grammar
+from scoring.evaluator_readability import evaluate_readability
 
 # weights for the linear combination of individual signal scores
 EVALUATION_WEIGHTS = [0.3,  # grammar
-                      0.2]  # authors
+                      0.2,  # authors
+                      1.0]  # readability
 
 
 def _compute_scores(data: WebsiteData) -> list[float]:
@@ -19,7 +22,8 @@ def _compute_scores(data: WebsiteData) -> list[float]:
 
     # TODO multithreading/optimise performance?
     scores = [evaluate_grammar(data),
-              evaluate_authors(data)]
+              evaluate_authors(data),
+              evaluate_readability(data)]
     return scores
 
 
@@ -33,12 +37,12 @@ def evaluate_website(url: str) -> float:
 
     data = parser.parse_data(url)
 
-    if data is None or data.headline == "" or len(data.text) < 100:
+    if data is None or data.headline == "" or data.text == "":
         print("Website parsing failed.")
         return -1.0
 
     scores = _compute_scores(data)
-    print("*** Individual scores: {}".format(scores))
+    log("*** Individual scores: {}".format(scores))
 
     # linear combination of individual scores
     final_score = sum(score * weight for score, weight in zip(scores, EVALUATION_WEIGHTS))
