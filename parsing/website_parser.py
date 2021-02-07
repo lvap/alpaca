@@ -52,9 +52,9 @@ def parse_data(url: str) -> WebsiteData:
                 text += pg + "\n"
 
         log("*** Title: {}".format(article.title))
-        log("*** Authors: {}".format(article.authors))
+        log("*** Author(s): {}".format(article.authors))
         log("*** Text: {}".format(text[:200] + " [...] " + text[-200:]).replace("\n", " "))
-        log("*** Text length: {}".format(len(text)))
+        log("*** Text length: {} symbols".format(len(text)))
 
         return WebsiteData(article.html, article.title, text[:-1], article.authors, url)
 

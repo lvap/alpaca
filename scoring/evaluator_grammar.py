@@ -3,6 +3,9 @@ import language_tool_python as ltp
 from logger import log
 from parsing.website_data import WebsiteData
 
+# toggle some file-specific logging messages
+LOGGING_ENABLED = False
+
 
 def evaluate_grammar(data: WebsiteData) -> float:
     """Evaluates credibility of the webpage by analysing the headline's and text body's language correctness.
@@ -33,11 +36,10 @@ def evaluate_grammar(data: WebsiteData) -> float:
             if match.matchedText in unknown_words:
                 matches_to_ignore += 1
             else:
-                # log(match)
+                log(match, LOGGING_ENABLED)
                 unknown_words.append(match.matchedText)
         else:
-            # log(match)
-            continue
+            log(match, LOGGING_ENABLED)
 
     # final error score is 1 - (average errors per word), minimum 0
     error_score = len(matches) - matches_to_ignore
