@@ -44,7 +44,7 @@ def evaluate_grammar(data: WebsiteData) -> float:
     word_count = len(data.headline.split()) + len(data.text.split())
     error_score = 1.0 - (error_score / word_count)
 
-    log("*** Grammar & spelling: {} errors in {} words ({} ignored)"
+    log("*** {} errors in {} words ({} errors ignored)"
         .format(len(matches) - matches_to_ignore, word_count, matches_to_ignore))
 
     return error_score if error_score >= 0.0 else 0.0

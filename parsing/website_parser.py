@@ -29,6 +29,7 @@ def parse_data(url: str) -> WebsiteData:
         # TODO language detection (abort if not english)
 
         if PARSER == "trafilatura":
+            # TODO disable external logging?
             paragraphs = trafilatura.extract(article.html, include_comments=False,
                                              include_tables=False).split("\n")
         elif PARSER == "newspaper":
@@ -47,7 +48,7 @@ def parse_data(url: str) -> WebsiteData:
         # concatenate paragraphs, removing short parts that are likely not part of the actual text
         text = ""
         for pg in paragraphs:
-            if len(pg) > 150 or (len(pg) > 50 and has_ending_punctuation(pg)):
+            if len(pg) > 125 or has_ending_punctuation(pg):
                 text += pg + "\n"
 
         log("*** Title: {}".format(article.title))
