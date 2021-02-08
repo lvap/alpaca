@@ -1,4 +1,5 @@
-import nltk
+import nltk.data
+import re
 
 import _readability as readability
 from logger import log
@@ -18,9 +19,10 @@ def evaluate_readability(data: WebsiteData) -> float:
     and 1 indicating hard understandability (high text complexity).
     """
 
-    headline_period = "" if has_ending_punctuation(data.headline) else ". "
-    # TODO is \n replacement necessary?
-    full_text = (data.headline + headline_period + data.text).replace("\n", " ")
+    headline_ending = " " if has_ending_punctuation(data.headline) else ". "
+    # replace characters that are problematic for nltk.tokenize
+    full_text = re.sub("[“‟„”«»❝❞⹂〝〞〟＂]", "\"",
+                       re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", data.headline + headline_ending + data.text))
     sent_tokeniser = nltk.data.load('tokenizers/punkt/english.pickle')
     tokens = sent_tokeniser.tokenize(full_text, realign_boundaries=True)
     log("*** {} sentence tokens".format(len(tokens)), LOGGING_ENABLED)
@@ -52,7 +54,7 @@ def evaluate_readability(data: WebsiteData) -> float:
                 metrics["readability grades"]["ARI"],
                 metrics["readability grades"]["Coleman-Liau"],))
 
-    # preliminary scoring: highest credibility for complex text, equivalent to  11th-grade reading level
+    # preliminary scoring: assign highest credibility for complex text, equivalent to  11th-grade reading level
     # Flesch-Kincaid grade level score range 1-17, 11-17 best
     # Flesch reading ease score range 1-100, 1-50 best
     # Gunning-Fog score range 1-17, 11-17 best

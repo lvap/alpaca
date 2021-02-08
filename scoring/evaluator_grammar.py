@@ -43,6 +43,7 @@ def evaluate_grammar(data: WebsiteData) -> float:
 
     # final error score is 1 - (average errors per word), minimum 0
     error_score = len(matches) - matches_to_ignore
+    # TODO compare word_count to words counted by readability module
     word_count = len(data.headline.split()) + len(data.text.split())
     error_score = 1.0 - (error_score / word_count)
 
