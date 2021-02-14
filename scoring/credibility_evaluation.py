@@ -42,6 +42,10 @@ def evaluate_website(url: str) -> float:
         return -1.0
 
     scores = _compute_scores(data)
+    if scores is None or len(scores) is not len(EVALUATION_WEIGHTS):
+        print("Computation of sub-scores failed.")
+        return -1.0
+
     log("*** Individual scores: {}".format([round(score, 3) for score in scores]))
 
     # linear combination of individual scores

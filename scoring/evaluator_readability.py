@@ -31,14 +31,13 @@ def evaluate_readability(data: WebsiteData) -> float:
     metrics = readability.getmeasures(tokens, lang="en")
     paragraph_count = data.text.count("\n") + 1
 
-    # TODO check which words precisely count as different (eg isn't = 1 or 2 words?)
     log("*** Text properties: "
         "{} char | {} syll | {} word | {} pargr | "
         "{:.3f} char_p_w | {:.3f} syll_p_w | {:.3f} word_p_s | {:.3f} sent_p_p | "
         "{} wrd_typ | {} long_wrd | {} compl_wrd"
         .format(metrics["sentence info"]["characters"],  # alphanumeric symbols and hyphens (-)
                 metrics["sentence info"]["syllables"],
-                metrics["sentence info"]["words"],  # strings of alphanumerics and hyphens
+                metrics["sentence info"]["words"],  # strings of alphanumerics and hyphens (isn't = 2 words)
                 paragraph_count,
                 metrics["sentence info"]["characters_per_word"],
                 metrics["sentence info"]["syll_per_word"],

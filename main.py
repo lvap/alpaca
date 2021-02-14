@@ -5,7 +5,7 @@ from logger import log
 
 
 def start_service():
-    log("*** alpaca init\n")
+    log("*** alpaca init")
     handle_input()
 
 
@@ -23,11 +23,11 @@ def handle_input():
         if valid_address(user_input):
             score = evaluate_website(user_input)
             if 0 <= score <= 1:
-                print("Website score: {:.3f} for {}\n".format(score, user_input))
+                print("Website score: {:.3f} for {}".format(score, user_input))
             else:
-                print("Score could not be calculated.\n")
+                print("Score could not be calculated.")
         else:
-            print("Invalid address.\n")
+            print("Invalid address.")
 
 
 def valid_address(user_input: str) -> bool:

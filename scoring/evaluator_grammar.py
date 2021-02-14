@@ -14,7 +14,8 @@ def evaluate_grammar(data: WebsiteData) -> float:
 
     :param data: Parsed website data necessary for credibility evaluation.
     :return: Value between 0 and 1 to represent how many spelling or grammar errors were encountered on the page,
-        scaled to overall word count. 1 means no errors, 0 means at least as many errors as words.
+        scaled to overall word count. Specifically, the returned score is max(1 - average errors per word, 0).
+        1 means no errors, 0 means at least as many errors as words.
     """
 
     tool = ltp.LanguageTool("en-US")
@@ -43,9 +44,8 @@ def evaluate_grammar(data: WebsiteData) -> float:
         else:
             log(match, LOGGING_ENABLED)
 
-    # final error score is 1 - (average errors per word), minimum 0
     error_score = len(matches) - matches_to_ignore
-    # TODO check word count correctness
+    # words = strings bounded by whitespaces, excluding strings consisting of a single non-alphanumeric character
     word_count = len(data.headline.split()) + len(data.text.split()) - (len(re.findall(r"\s\W\s", data.headline))
                                                                         + len(re.findall(r"\s\W\s", data.text)))
     error_score = 1.0 - (error_score / word_count)
