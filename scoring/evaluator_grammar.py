@@ -1,3 +1,5 @@
+import re
+
 import language_tool_python as ltp
 
 from logger import log
@@ -43,8 +45,9 @@ def evaluate_grammar(data: WebsiteData) -> float:
 
     # final error score is 1 - (average errors per word), minimum 0
     error_score = len(matches) - matches_to_ignore
-    # TODO compare word_count to words counted by readability module
-    word_count = len(data.headline.split()) + len(data.text.split())
+    # TODO check word count correctness
+    word_count = len(data.headline.split()) + len(data.text.split()) - (len(re.findall(r"\s\W\s", data.headline))
+                                                                        + len(re.findall(r"\s\W\s", data.text)))
     error_score = 1.0 - (error_score / word_count)
 
     log("*** {} errors in {} words ({} errors ignored)"

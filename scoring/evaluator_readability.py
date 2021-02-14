@@ -1,5 +1,6 @@
-import nltk.data
 import re
+
+import nltk.data
 
 import _readability as readability
 from logger import log
@@ -19,7 +20,7 @@ def evaluate_readability(data: WebsiteData) -> float:
     and 1 indicating hard understandability (high text complexity).
     """
 
-    headline_ending = " " if has_ending_punctuation(data.headline) else ". "
+    headline_ending = "\n" if has_ending_punctuation(data.headline) else ".\n"
     # replace characters that are problematic for nltk.tokenize
     full_text = re.sub("[“‟„”«»❝❞⹂〝〞〟＂]", "\"",
                        re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", data.headline + headline_ending + data.text))
@@ -30,18 +31,19 @@ def evaluate_readability(data: WebsiteData) -> float:
     metrics = readability.getmeasures(tokens, lang="en")
     paragraph_count = data.text.count("\n") + 1
 
+    # TODO check which words precisely count as different (eg isn't = 1 or 2 words?)
     log("*** Text properties: "
         "{} char | {} syll | {} word | {} pargr | "
         "{:.3f} char_p_w | {:.3f} syll_p_w | {:.3f} word_p_s | {:.3f} sent_p_p | "
         "{} wrd_typ | {} long_wrd | {} compl_wrd"
-        .format(metrics["sentence info"]["characters"],
+        .format(metrics["sentence info"]["characters"],  # alphanumeric symbols and hyphens (-)
                 metrics["sentence info"]["syllables"],
-                metrics["sentence info"]["words"],
+                metrics["sentence info"]["words"],  # strings of alphanumerics and hyphens
                 paragraph_count,
                 metrics["sentence info"]["characters_per_word"],
                 metrics["sentence info"]["syll_per_word"],
                 metrics["sentence info"]["words_per_sentence"],
-                metrics["sentence info"]["sentences"]/paragraph_count,
+                metrics["sentence info"]["sentences"] / paragraph_count,
                 metrics["sentence info"]["wordtypes"],
                 metrics["sentence info"]["long_words"],
                 metrics["sentence info"]["complex_words"]), LOGGING_ENABLED)
@@ -52,7 +54,7 @@ def evaluate_readability(data: WebsiteData) -> float:
                 metrics["readability grades"]["GunningFogIndex"],
                 metrics["readability grades"]["SMOGIndex"],
                 metrics["readability grades"]["ARI"],
-                metrics["readability grades"]["Coleman-Liau"],))
+                metrics["readability grades"]["Coleman-Liau"], ))
 
     # preliminary scoring: assign highest credibility for complex text, equivalent to  11th-grade reading level
     # Flesch-Kincaid grade level score range 1-17, 11-17 best
