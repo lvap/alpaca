@@ -48,14 +48,15 @@ def parse_data(url: str) -> WebsiteData:
         # concatenate paragraphs, removing short parts that are likely not part of the actual text
         text = ""
         for pg in paragraphs:
-            if len(pg) > 125 or (len(pg) > 50 and has_ending_punctuation(pg)):
+            if len(pg) > 125 or (len(pg) > 40 and has_ending_punctuation(pg)):
                 text += pg + "\n"
 
         log("*** Title: {}".format(article.title))
-        log("*** Author(s): {}".format(article.authors))
+        log("*** Authors: {}".format(article.authors))
         log("*** Text: {}".format(text[:200] + " [...] " + text[-200:]).replace("\n", " "))
         log("*** Text length: {} symbols".format(len(text) - 1))
 
+        # TODO maybe improve author(s) detection
         return WebsiteData(article.html, article.title, text[:-1], article.authors, url)
 
     except Exception:

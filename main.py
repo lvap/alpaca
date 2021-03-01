@@ -3,9 +3,12 @@ from urllib.parse import urlparse
 from scoring.credibility_evaluation import evaluate_website
 from logger import log
 
+# toggle some file-specific logging messages
+LOGGING_ENABLED = True
+
 
 def start_service():
-    log("*** alpaca init")
+    log("*** alpaca init", LOGGING_ENABLED)
     handle_input()
 
 
@@ -16,14 +19,15 @@ def handle_input():
     """
 
     while True:
-        user_input = input("Enter website address: ")
+        user_input = input("\nEnter webpage address: ")
         if user_input.lower() in ["exit", "quit"]:
+            log("*** alpaca end", LOGGING_ENABLED)
             break
 
         if valid_address(user_input):
             score = evaluate_website(user_input)
             if 0 <= score <= 1:
-                print("Website score: {:.3f} for {}".format(score, user_input))
+                print("Webpage score: {:.3f} for {}".format(score, user_input))
             else:
                 print("Score could not be calculated.")
         else:
