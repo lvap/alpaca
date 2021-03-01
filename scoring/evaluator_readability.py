@@ -4,18 +4,18 @@ import nltk.data
 
 import _readability as readability
 from logger import log
-from parsing.website_data import WebsiteData
-from parsing.website_parser import has_ending_punctuation
+from parsing.webpage_data import WebpageData
+from parsing.webpage_parser import has_ending_punctuation
 
 # toggle some file-specific logging messages
 LOGGING_ENABLED = True
 
 
-def evaluate_readability(data: WebsiteData) -> float:
-    """Evaluates the website's readability by computing the Flesch-Kincaid grade level, Flesch reading ease,
+def evaluate_readability(data: WebpageData) -> float:
+    """Evaluates the webpage's readability by computing the Flesch-Kincaid grade level, Flesch reading ease,
     Gunning-Fog, SMOG, ARI and Coleman-Liau scores of its headline and main text.
 
-    :param data: Parsed website data necessary for credibility evaluation.
+    :param data: Parsed webpage data necessary for credibility evaluation.
     :return: Combined readability score between 0 and 1, 0 indicating easy understandability (low text complexity)
     and 1 indicating hard understandability (high text complexity).
     """

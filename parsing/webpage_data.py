@@ -1,11 +1,11 @@
-class WebsiteData:
-    """Holds parsed website information.
+class WebpageData:
+    """Holds parsed webpage information.
 
-    :param html: The complete website as html object.
+    :param html: The complete webpage as html object.
     :param headline: The article/page title.
-    :param text: The website's main text body.
+    :param text: The webpage's main text body.
     :param authors: The article authors.
-    :param url: The website's URL.
+    :param url: The webpage's URL.
     """
 
     def __init__(self,

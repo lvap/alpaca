@@ -4,17 +4,17 @@ import trafilatura
 from newspaper import Article
 
 from logger import log
-from parsing.website_data import WebsiteData
+from parsing.webpage_data import WebpageData
 
 PARSER = "trafilatura"
 
 
-def parse_data(url: str) -> WebsiteData:
+def parse_data(url: str) -> WebpageData:
     """Returns data necessary for credibility evaluation given a webpage's URL.
     Uses module specified in variable PARSER for text extraction.
 
-    :param url: Location of the website that should be parsed.
-    :return: The relevant data from the given website.
+    :param url: Location of the webpage that should be parsed.
+    :return: The relevant data from the given webpage.
     """
 
     try:
@@ -24,7 +24,7 @@ def parse_data(url: str) -> WebsiteData:
 
         if article.html is None or article.html == "":
             log("*** Could not fetch webpage.")
-            return WebsiteData()
+            return WebpageData()
 
         # TODO language detection (abort if not english)
 
@@ -36,7 +36,7 @@ def parse_data(url: str) -> WebsiteData:
             paragraphs = article.text.split("\n")
         else:
             log("*** No text parser specified.")
-            return WebsiteData()
+            return WebpageData()
 
         # remove title if the text begins with it
         if paragraphs[0] == article.title:
@@ -57,11 +57,11 @@ def parse_data(url: str) -> WebsiteData:
         log("*** Text length: {} symbols".format(len(text) - 1))
 
         # TODO maybe improve author(s) detection
-        return WebsiteData(article.html, article.title, text[:-1], article.authors, url)
+        return WebpageData(article.html, article.title, text[:-1], article.authors, url)
 
     except Exception:
         traceback.print_exc()
-        return WebsiteData()
+        return WebpageData()
 
 
 def has_ending_punctuation(text: str) -> bool:

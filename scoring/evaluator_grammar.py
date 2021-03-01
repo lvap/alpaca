@@ -3,16 +3,16 @@ import re
 import language_tool_python as ltp
 
 from logger import log
-from parsing.website_data import WebsiteData
+from parsing.webpage_data import WebpageData
 
 # toggle some file-specific logging messages
 LOGGING_ENABLED = False
 
 
-def evaluate_grammar(data: WebsiteData) -> float:
+def evaluate_grammar(data: WebpageData) -> float:
     """Evaluates credibility of the webpage by analysing the headline's and text body's language correctness.
 
-    :param data: Parsed website data necessary for credibility evaluation.
+    :param data: Parsed webpage data necessary for credibility evaluation.
     :return: Value between 0 and 1 to represent how many spelling or grammar errors were encountered on the page,
         scaled to overall word count. Specifically, the returned score is max(1 - average errors per word, 0).
         1 means no errors, 0 means at least as many errors as words.
