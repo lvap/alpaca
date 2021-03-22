@@ -50,7 +50,7 @@ def evaluate_grammar(data: WebpageData) -> float:
                                                                         + len(re.findall(r"\s\W\s", data.text)))
     error_score = 1.0 - (error_score / word_count)
 
-    log("*** {} errors in {} words ({} errors ignored)"
+    log("*** [Grammar] {} errors in {} words ({} errors ignored)"
         .format(len(matches) - matches_to_ignore, word_count, matches_to_ignore))
 
-    return error_score if error_score >= 0.0 else 0.0
+    return max(error_score, 0.0)

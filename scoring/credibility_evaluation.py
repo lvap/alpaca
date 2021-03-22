@@ -2,15 +2,19 @@ import parsing.webpage_parser as parser
 from logger import log
 from parsing.webpage_data import WebpageData
 from scoring.evaluator_authors import evaluate_authors
+# from scoring.evaluator_clickbait import evaluate_clickbait
 from scoring.evaluator_grammar import evaluate_grammar
 from scoring.evaluator_readability import evaluate_readability
-from scoring.evaluator_clickbait import evaluate_clickbait
+from scoring.evaluator_tonality import evaluate_punctuation, evaluate_capitalisation
 
 # weights for the linear combination of individual signal scores
-EVALUATION_WEIGHTS = {"grammar": 0.3,
-                      "authors": 0.2,
+EVALUATION_WEIGHTS = {"authors": 0.25,
+                      "grammar": 0.25,
+                      "tonality_punctuation": 0.3,
+                      "tonality_capitalisation": 0.3,
                       "readability": 1.0,
-                      "clickbait": 0.0}
+                      # "clickbait": 0.0,
+                      }
 
 
 def _compute_scores(data: WebpageData) -> dict[str, float]:
@@ -23,10 +27,13 @@ def _compute_scores(data: WebpageData) -> dict[str, float]:
     """
 
     # TODO multithreading/optimise performance?
-    scores = {"grammar": evaluate_grammar(data),
-              "authors": evaluate_authors(data),
+    scores = {"authors": evaluate_authors(data),
+              "grammar": evaluate_grammar(data),
+              "tonality_punctuation": evaluate_punctuation(data),
+              "tonality_capitalisation": evaluate_capitalisation(data),
               "readability": evaluate_readability(data),
-              "clickbait": evaluate_clickbait(data)}
+              # "clickbait": evaluate_clickbait(data),
+              }
     return scores
 
 
@@ -49,10 +56,13 @@ def evaluate_webpage(url: str) -> float:
         print("Computation of sub-scores failed.")
         return -1.0
 
-    log("*** Individual scores: {}".format([round(score, 3) for score in scores.values()]))
+    scores_to_print = ""
+    for score_name, score in scores.items():
+        scores_to_print += score_name + " {} | ".format(round(score, 3))
+    log("*** Individual scores: " + scores_to_print[:-2])
 
     # linear combination of individual scores
-    final_score = sum(scores.get(signal) * EVALUATION_WEIGHTS.get(signal) for signal in scores.keys())
+    final_score = sum(scores[signal] * EVALUATION_WEIGHTS[signal] for signal in scores.keys())
     final_score /= sum(EVALUATION_WEIGHTS.values())
 
     return final_score
