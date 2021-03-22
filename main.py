@@ -8,7 +8,7 @@ LOGGING_ENABLED = True
 
 
 def start_service():
-    log("*** alpaca init", LOGGING_ENABLED)
+    log("[Main] Alpaca init", LOGGING_ENABLED)
     handle_input()
 
 
@@ -21,7 +21,7 @@ def handle_input():
     while True:
         user_input = input("\nEnter webpage address: ")
         if user_input.lower() in ["exit", "quit"]:
-            log("*** alpaca end", LOGGING_ENABLED)
+            log("[Main] Alpaca end", LOGGING_ENABLED)
             break
         if valid_address(user_input):
             score = evaluate_webpage(user_input)
@@ -29,7 +29,7 @@ def handle_input():
                 print("Webpage score: {:.3f} for {}".format(score, user_input))
             else:
                 print("Score could not be calculated.")
-                log("*** Error code {}".format(score))
+                log("[Main] Error code {}".format(score))
         else:
             print("Invalid address.")
 

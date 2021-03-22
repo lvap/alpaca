@@ -8,8 +8,8 @@ from scoring.evaluator_readability import evaluate_readability
 from scoring.evaluator_tonality import evaluate_punctuation, evaluate_capitalisation
 
 # weights for the linear combination of individual signal scores
-EVALUATION_WEIGHTS = {"authors": 0.25,
-                      "grammar": 0.25,
+EVALUATION_WEIGHTS = {"authors": 0.2,
+                      "grammar": 0.3,
                       "tonality_punctuation": 0.3,
                       "tonality_capitalisation": 0.3,
                       "readability": 1.0,
@@ -56,11 +56,10 @@ def evaluate_webpage(url: str) -> float:
         print("Computation of sub-scores failed.")
         return -1.0
 
-    scores_to_print = ""
-    for score_name, score in scores.items():
-        scores_to_print += score_name + " {} | ".format(round(score, 3))
-    log("*** Individual scores: " + scores_to_print[:-2])
+    log("[Evaluation] Individual scores: {}".format(
+        [score_name + " {}".format(round(score, 3)) for score_name, score in scores.items()]))
 
+    # TODO better formula to emphasise low scores
     # linear combination of individual scores
     final_score = sum(scores[signal] * EVALUATION_WEIGHTS[signal] for signal in scores.keys())
     final_score /= sum(EVALUATION_WEIGHTS.values())

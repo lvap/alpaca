@@ -6,6 +6,10 @@ from newspaper import Article
 from logger import log
 from parsing.webpage_data import WebpageData
 
+# toggle some file-specific logging messages
+LOGGING_ENABLED = False
+
+# parser used for text extraction from html data
 PARSER = "trafilatura"
 
 
@@ -23,7 +27,7 @@ def parse_data(url: str) -> WebpageData:
         article.parse()
 
         if article.html is None or article.html == "":
-            log("*** Could not fetch webpage.")
+            log("[Parsing] Could not fetch webpage.")
             return WebpageData()
 
         # TODO language detection (abort if not english)
@@ -35,7 +39,7 @@ def parse_data(url: str) -> WebpageData:
         elif PARSER == "newspaper":
             paragraphs = article.text.split("\n")
         else:
-            log("*** No text parser specified.")
+            log("[Parsing] No text parser specified.")
             return WebpageData()
 
         # remove title if the text begins with it
@@ -51,10 +55,12 @@ def parse_data(url: str) -> WebpageData:
             if len(pg) > 125 or (len(pg) > 40 and has_ending_punctuation(pg)):
                 text += pg + "\n"
 
-        log("*** Title: {}".format(article.title))
-        log("*** Authors: {}".format(article.authors))
-        log("*** Text: {}".format(text[:200] + " [...] " + text[-200:]).replace("\n", " "))
-        log("*** Text length: {} symbols".format(len(text) - 1))
+        log("[Parsing] Title: {}".format(article.title))
+        log("[Parsing] Authors: {}".format(article.authors))
+        log("[Parsing] Text length: {} symbols".format(len(text) - 1))
+        log("[Parsing] Text: {}".format(text[:200] + " [...] " + text[-200:]).replace("\n", " "),
+            not LOGGING_ENABLED)
+        log("[Parsing] Full text: {}".format(text), LOGGING_ENABLED)
 
         # TODO maybe improve author(s) detection
         return WebpageData(article.html, article.title, text[:-1], article.authors, url)

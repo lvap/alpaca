@@ -26,12 +26,12 @@ def evaluate_readability(data: WebpageData) -> float:
                        re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", data.headline + headline_ending + data.text))
     sent_tokeniser = nltk.data.load('tokenizers/punkt/english.pickle')
     tokens = sent_tokeniser.tokenize(full_text, realign_boundaries=True)
-    log("*** [Readability] {} sentence tokens".format(len(tokens)), LOGGING_ENABLED)
+    log("[Readability] {} sentence tokens".format(len(tokens)), LOGGING_ENABLED)
 
     metrics = readability.getmeasures(tokens, lang="en")
     paragraph_count = data.text.count("\n") + 1
 
-    log("*** [Readability] Text properties: "
+    log("[Readability] Text properties: "
         "{} char | {} syll | {} word | {} pargr | "
         "{:.3f} char_p_w | {:.3f} syll_p_w | {:.3f} word_p_s | {:.3f} sent_p_p | "
         "{} wrd_typ | {} long_wrd | {} compl_wrd"
@@ -46,7 +46,7 @@ def evaluate_readability(data: WebpageData) -> float:
                 metrics["sentence info"]["wordtypes"],
                 metrics["sentence info"]["long_words"],
                 metrics["sentence info"]["complex_words"]), LOGGING_ENABLED)
-    log("*** [Readability] Readability metrics: "
+    log("[Readability] Readability metrics: "
         "Fle-Kin grade {:.3f} | Fle reading ease {:.3f} | Gun-Fog {:.3f} | SMOG {:.3f} | ARI {:.3f} | Col-Liau {:.3f}"
         .format(metrics["readability grades"]["Kincaid"],
                 metrics["readability grades"]["FleschReadingEase"],
@@ -71,7 +71,7 @@ def evaluate_readability(data: WebpageData) -> float:
 
     for index, score in enumerate(readability_scores):
         readability_scores[index] = max(min(score, 1.0), 0.0)
-    log("*** [Readability] Readability scores: {}".format([round(score, 3) for score in readability_scores]),
+    log("[Readability] Readability scores: {}".format([round(score, 3) for score in readability_scores]),
         LOGGING_ENABLED)
 
     final_score = 1.0 - (sum(readability_scores) / len(readability_scores))
