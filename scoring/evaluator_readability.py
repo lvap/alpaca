@@ -20,6 +20,8 @@ def evaluate_readability(data: WebpageData) -> float:
     and 1 indicating hard understandability (high text complexity).
     """
 
+    # TODO perhaps include average sentence length, total text length in score?
+
     headline_ending = "\n" if has_ending_punctuation(data.headline) else ".\n"
     # replace characters that are problematic for nltk.tokenize
     full_text = re.sub("[“‟„”«»❝❞⹂〝〞〟＂]", "\"",

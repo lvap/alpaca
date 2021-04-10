@@ -6,16 +6,16 @@ from logger import log
 # toggle some file-specific logging messages
 LOGGING_ENABLED = False
 
-# TODO proper limits on punctuation usage/all caps?
+# TODO rework limits - want to always penalise for occurences, and give minimum score much sooner
 # sub-scores for title occurrences go from this number to 0 linearly. must be positive
 # (ie this amount or more gives a score of 0, half this amount gives 0.5)
 MAX_EXCLAMATION_MARKS_TITLE = 1
-MAX_QUESTION_MARKS_TITLE = 2
+MAX_QUESTION_MARKS_TITLE = 1
 MAX_ALL_CAPS_TITLE = 1
 # acceptable levels of occurrences per sentence to still get maximum score
-EXCLAMATION_MARK_LIMIT_TEXT = 0.0
-QUESTION_MARK_LIMIT_TEXT = 0.05
-ALL_CAPS_LIMIT_TEXT = 0.01
+EXCLAMATION_MARK_LIMIT_TEXT = 0
+QUESTION_MARK_LIMIT_TEXT = 0
+ALL_CAPS_LIMIT_TEXT = 0
 
 
 def evaluate_punctuation(data: WebpageData) -> float:
@@ -27,6 +27,7 @@ def evaluate_punctuation(data: WebpageData) -> float:
         usage of question/exclamation marks).
     """
 
+    # TODO possibly penalise multiple question/exclamation marks in title
     headline_score = 1.0
     headline_score -= (1.0 / MAX_EXCLAMATION_MARKS_TITLE) * data.headline.count("!")
     headline_score -= (1.0 / MAX_QUESTION_MARKS_TITLE) * data.headline.count("?")
@@ -36,7 +37,7 @@ def evaluate_punctuation(data: WebpageData) -> float:
     question_marks = 0
     sentences = 0
     for punctuation in re.findall("[!?.]", data.text):
-        # TODO possibly penalise multiple question/exclamation marks after another
+        # TODO possibly penalise multiple question/exclamation marks after another in text
         sentences += 1
         if punctuation == "!":
             exclamation_marks += 1
@@ -51,9 +52,9 @@ def evaluate_punctuation(data: WebpageData) -> float:
     log("[Tonality] Text punctuation metrics: Question marks {} | Exclamation marks {}".
         format(round(question_score, 3), round(exclamation_score, 3)), LOGGING_ENABLED)
 
+    # TODO perhaps weight question/exclamation marks separately in the score instead of just using the worse metric
     text_score = max(question_score, exclamation_score)
-    text_score = max(min(text_score, 1.0), 0.0)
-    text_score = 1.0 - text_score
+    text_score = 1.0 - max(min(text_score, 1.0), 0.0)
 
     return (headline_score + 2.0 * text_score) / 3.0
 
@@ -112,7 +113,6 @@ def evaluate_capitalisation(data: WebpageData) -> float:
     word_count = len(data.text.split()) - len(re.findall(r"\s.\s", data.text))
     text_score = (text_score - ALL_CAPS_LIMIT_TEXT * word_count) / (word_count - ALL_CAPS_LIMIT_TEXT * word_count)
     log("[Tonality] Text all caps metric: {}".format(text_score), LOGGING_ENABLED)
-    text_score = max(min(text_score, 1.0), 0.0)
-    text_score = 1.0 - text_score
+    text_score = 1.0 - max(min(text_score, 1.0), 0.0)
 
     return (headline_score + 2.0 * text_score) / 3.0 if not headline_capitalised else text_score
