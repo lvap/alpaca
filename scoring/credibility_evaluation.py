@@ -1,3 +1,5 @@
+from functools import reduce
+
 import parsing.webpage_parser as parser
 from logger import log
 from parsing.webpage_data import WebpageData
@@ -5,16 +7,22 @@ from scoring.evaluator_authors import evaluate_authors
 # from scoring.evaluator_clickbait import evaluate_clickbait
 from scoring.evaluator_grammar import evaluate_grammar
 from scoring.evaluator_readability import evaluate_readability
-from scoring.evaluator_tonality import evaluate_punctuation, evaluate_capitalisation
+from scoring.evaluator_tonality import evaluate_exclamation_marks, evaluate_question_marks, evaluate_capitalisation
+from scoring.evaluator_url import evaluate_domain_ending
 
 # weights for the linear combination of individual signal scores
 EVALUATION_WEIGHTS = {"authors": 0.2,
+                      "url_domain_ending": 0.2,
                       "grammar": 0.3,
-                      "tonality_punctuation": 0.3,
+                      "tonality_question_marks": 0.2,
+                      "tonality_exclamation_marks": 0.3,
                       "tonality_capitalisation": 0.3,
-                      "readability": 1.0,
-                      # "clickbait": 0.0,
+                      "readability": 1,
+                      # "clickbait": 0,
                       }
+
+# variable to check  for legal length of score dictionary
+mandatory_entries = 0
 
 
 def _compute_scores(data: WebpageData) -> dict[str, float]:
@@ -29,11 +37,19 @@ def _compute_scores(data: WebpageData) -> dict[str, float]:
     # TODO multithreading/optimise performance?
     scores = {"authors": evaluate_authors(data),
               "grammar": evaluate_grammar(data),
-              "tonality_punctuation": evaluate_punctuation(data),
+              "tonality_question_marks": evaluate_question_marks(data),
+              "tonality_exclamation_marks": evaluate_exclamation_marks(data),
               "tonality_capitalisation": evaluate_capitalisation(data),
               "readability": evaluate_readability(data),
               # "clickbait": evaluate_clickbait(data),
               }
+
+    global mandatory_entries
+    mandatory_entries = len(scores)
+
+    if url_score := evaluate_domain_ending(data) > 0:
+        scores["url_domain_ending"] = url_score
+
     return scores
 
 
@@ -46,22 +62,23 @@ def evaluate_webpage(url: str) -> float:
     """
 
     data = parser.parse_data(url)
-
     if data is None or data.headline == "" or data.text == "":
         print("Webpage parsing failed.")
-        return -1.0
+        return -1
 
     scores = _compute_scores(data)
-    if scores is None or len(scores) is not len(EVALUATION_WEIGHTS):
+    # check for legal scores
+    if (scores is None or not mandatory_entries <= len(scores) <= len(EVALUATION_WEIGHTS)
+            or not all(0 <= score <= 1 for score in scores.values())):
         print("Computation of sub-scores failed.")
-        return -1.0
+        log(scores)
+        return -2
 
     log("[Evaluation] Individual scores: {}".format(
         [score_name + " {}".format(round(score, 3)) for score_name, score in scores.items()]))
 
-    # TODO better formula to emphasise low scores
+    # TODO better formula to emphasise low scores?
     # linear combination of individual scores
     final_score = sum(scores[signal] * EVALUATION_WEIGHTS[signal] for signal in scores.keys())
-    final_score /= sum(EVALUATION_WEIGHTS.values())
-
-    return final_score
+    weight_sum = sum(EVALUATION_WEIGHTS[signal] for signal in scores.keys())
+    return final_score / weight_sum

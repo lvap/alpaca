@@ -20,7 +20,7 @@ def evaluate_readability(data: WebpageData) -> float:
     and 1 indicating hard understandability (high text complexity).
     """
 
-    # TODO perhaps include total words, words per sentence in score?
+    # TODO perhaps include total words and/or words per sentence in score?
 
     headline_ending = "\n" if has_ending_punctuation(data.headline) else ".\n"
     # replace characters that are problematic for nltk.tokenize
@@ -64,15 +64,15 @@ def evaluate_readability(data: WebpageData) -> float:
     # SMOG score range 5-22, 16-22 best
     # ARI score range 1-14, 11-14 best
     # Coleman-Liau score range 1-17, 11-17 best
-    readability_scores = [(11.0 - metrics["readability grades"]["Kincaid"]) / 10.0,
-                          1.0 - ((100.0 - metrics["readability grades"]["FleschReadingEase"]) / 50.0),
-                          (11.0 - metrics["readability grades"]["GunningFogIndex"]) / 10.0,
-                          (16.0 - metrics["readability grades"]["SMOGIndex"]) / 11.0,
-                          (11.0 - metrics["readability grades"]["ARI"]) / 10.0,
-                          (11.0 - metrics["readability grades"]["Coleman-Liau"]) / 10.0]
+    readability_scores = [(11 - metrics["readability grades"]["Kincaid"]) / 10,
+                          1 - ((100 - metrics["readability grades"]["FleschReadingEase"]) / 50),
+                          (11 - metrics["readability grades"]["GunningFogIndex"]) / 10,
+                          (16 - metrics["readability grades"]["SMOGIndex"]) / 11,
+                          (11 - metrics["readability grades"]["ARI"]) / 10,
+                          (11 - metrics["readability grades"]["Coleman-Liau"]) / 10]
 
     for index, score in enumerate(readability_scores):
-        readability_scores[index] = 1 - max(min(score, 1.0), 0.0)
+        readability_scores[index] = 1 - max(min(score, 1), 0)
     log("[Readability] Readability scores: {}".format([round(score, 3) for score in readability_scores]))
 
     return sum(readability_scores) / len(readability_scores)

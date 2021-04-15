@@ -20,16 +20,19 @@ def handle_input():
 
     while True:
         user_input = input("\nEnter webpage address: ")
+
         if user_input.lower() in ["exit", "quit"]:
             log("[Main] Alpaca end", LOGGING_ENABLED)
             break
+
         if valid_address(user_input):
             score = evaluate_webpage(user_input)
             if 0 <= score <= 1:
                 print("Webpage score: {:.3f} for {}".format(score, user_input))
             else:
                 print("Score could not be calculated.")
-                log("[Main] Error code {}".format(score))
+                log("[Main] Illegal error score {}".format(score))
+
         else:
             print("Invalid address.")
 

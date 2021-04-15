@@ -9,52 +9,65 @@ LOGGING_ENABLED = True
 # give lowest sub-score if ratio of question/exclamation marks to sentences reaches this number
 QUESTION_MARKS_LIMIT = 0.1
 EXCLAMATION_MARKS_LIMIT = 0.05
-# give lowest score if number of all-capitalised words reaches this threshold
+# give lowest score if number of all-capitalised words reaches this threshold (absolute)
 ALL_CAPS_MAX_TITLE = 2
 ALL_CAPS_MAX_TEXT = 10
 
 
-def evaluate_punctuation(data: WebpageData) -> float:
-    """Evaluates credibility of the webpage by analysing punctuation of its headline and text.
-    Currently evaluates usage of question and exclamation marks and computes score using global variables above.
+def evaluate_question_marks(data: WebpageData) -> float:
+    """Evaluates webpage credibility by analysing punctuation used in its headline and text.
+    Examines usage of question marks and computes score using global variables above.
 
     :param data: Parsed webpage data necessary for credibility evaluation.
-    :return: 1 for very high credibility (low usage of question/exclamation marks), 0 for very low credibility (high
-        usage of question/exclamation marks).
+    :return: 1 for very high credibility (low usage of question marks), 0 for very low credibility (high
+        usage of question marks).
     """
 
-    # TODO possibly penalise multiple question/exclamation marks in title
-    question_marks_title = 0.0 if data.headline.__contains__("?") else 1.0
-    exclamation_marks_title = 0.0 if data.headline.__contains__("!") else 1.0
-    log("[Tonality] Title punctuation scores: Question marks {} | Exclamation marks {}".
-        format(round(question_marks_title, 3), round(exclamation_marks_title, 3)), LOGGING_ENABLED)
+    # TODO possibly penalise multiple question marks in title, or directly after another in text
+    question_score_title = 0 if "?" in data.headline else 1
 
     question_marks = 0
-    exclamation_marks = 0
     sentences = 0
     for punctuation in re.findall("[!?.]", data.text):
-        # TODO possibly penalise multiple question/exclamation marks after another in text
         sentences += 1
         if punctuation == "?":
             question_marks += 1
-        elif punctuation == "!":
+
+    question_score_text = question_marks / sentences
+    log("[Tonality] Question marks per sentence: {}".format(round(question_score_text, 3)), LOGGING_ENABLED)
+
+    question_score_text = 1 - min(question_score_text * (1 / QUESTION_MARKS_LIMIT), 1)
+    return (question_score_title + 2 * question_score_text) / 3
+
+
+def evaluate_exclamation_marks(data: WebpageData) -> float:
+    """Evaluates webpage credibility by analysing punctuation used in its headline and text.
+    Examines usage of exclamation marks and computes score using global variables above.
+
+    :param data: Parsed webpage data necessary for credibility evaluation.
+    :return: 1 for very high credibility (low usage of exclamation marks), 0 for very low credibility (high
+        usage of exclamation marks).
+    """
+
+    # TODO possibly penalise multiple exclamation marks in title, or directly after another in text
+    exclamation_score_title = 0 if "!" in data.headline else 1
+
+    exclamation_marks = 0
+    sentences = 0
+    for punctuation in re.findall("[!?.]", data.text):
+        sentences += 1
+        if punctuation == "!":
             exclamation_marks += 1
 
-    question_score = question_marks / sentences
-    exclamation_score = exclamation_marks / sentences
-    log("[Tonality] Text punctuation per sentence: Question marks {} | Exclamation marks {}".
-        format(round(question_score, 3), round(exclamation_score, 3)), LOGGING_ENABLED)
+    exclamation_score_text = exclamation_marks / sentences
+    log("[Tonality] Exclamation marks per sentence: {}".format(round(exclamation_score_text, 3)), LOGGING_ENABLED)
 
-    question_score = 1 - min(question_score * (1 / QUESTION_MARKS_LIMIT), 1)
-    exclamation_score = 1 - min(exclamation_score * (1 / EXCLAMATION_MARKS_LIMIT), 1)
-    log("[Tonality] Text punctuation scores: Question marks {} | Exclamation marks {}".
-        format(round(question_score, 3), round(exclamation_score, 3)), LOGGING_ENABLED)
-
-    return (min(question_marks_title, exclamation_marks_title) + min(question_score, exclamation_score)) / 2
+    exclamation_score_text = 1 - min(exclamation_score_text * (1 / EXCLAMATION_MARKS_LIMIT), 1)
+    return (exclamation_score_title + 2 * exclamation_score_text) / 3
 
 
 def evaluate_capitalisation(data: WebpageData) -> float:
-    """Evaluates credibility of the webpage by analysing usage of all capitalised words in its headline and text.
+    """Evaluates webpage by analysing usage of all capitalised words in its headline and text.
     Penalises capitalised words in accordance to the global variables above.
 
     :param data: Parsed webpage data necessary for credibility evaluation.
@@ -62,13 +75,14 @@ def evaluate_capitalisation(data: WebpageData) -> float:
         capitalised words).
     """
 
-    # TODO implement better check to avoid matching acronyms/initialisms, or score text based on length?
+    # TODO implement better check to avoid matching acronyms/initialisms (alternatively score text based on length)?
     headline_matches = {}
     text_matches = {}
     headline_capitalised = False  # check whether entire headline is capitalised
+    all_caps = re.compile("\b[A-Z]+\b")
 
     if data.headline.upper() is not data.headline:
-        for word in re.findall(r"\b[A-Z]+\b", data.headline):
+        for word in all_caps.findall(data.headline):
             if len(word) >= 2:
                 if word in headline_matches:
                     headline_matches[word] = False
@@ -77,7 +91,7 @@ def evaluate_capitalisation(data: WebpageData) -> float:
     else:
         headline_capitalised = True
 
-    for word in re.findall(r"\b[A-Z]+\b", data.text):
+    for word in all_caps.findall(data.text):
         if len(word) >= 2:
             if word in headline_matches or word in text_matches:
                 headline_matches[word] = False

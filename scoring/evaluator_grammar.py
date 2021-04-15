@@ -48,9 +48,9 @@ def evaluate_grammar(data: WebpageData) -> float:
     # words = strings bounded by whitespaces, excluding strings consisting of a single non-alphanumeric character
     word_count = len(data.headline.split()) + len(data.text.split()) - (len(re.findall(r"\s\W\s", data.headline))
                                                                         + len(re.findall(r"\s\W\s", data.text)))
-    error_score = 1.0 - (error_score / word_count)
+    error_score = 1 - (error_score / word_count)
 
     log("[Grammar] {} errors in {} words ({} errors ignored)"
         .format(len(matches) - matches_to_ignore, word_count, matches_to_ignore))
 
-    return max(error_score, 0.0)
+    return max(error_score, 0)

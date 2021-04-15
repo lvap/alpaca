@@ -9,5 +9,5 @@ def evaluate_authors(data: WebpageData) -> float:
     """
 
     if data.authors is None or data.authors == [] or data.authors[0] == "":
-        return 0.0
-    return 1.0
+        return 0
+    return 1
