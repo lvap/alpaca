@@ -8,6 +8,6 @@ def evaluate_authors(data: WebpageData) -> float:
     :return: 1 if the webpage specifies authors, 0 otherwise.
     """
 
-    if data.authors is None or data.authors == [] or data.authors[0] == "":
+    if not data.authors or data.authors[0] == "":
         return 0
     return 1

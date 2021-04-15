@@ -1,5 +1,6 @@
-from parsing.webpage_data import WebpageData
 import re
+
+from parsing.webpage_data import WebpageData
 
 
 def evaluate_domain_ending(data: WebpageData) -> float:
@@ -9,8 +10,6 @@ def evaluate_domain_ending(data: WebpageData) -> float:
     :return: 1 if the domain ending is .org or .gov, 0 otherwise.
     """
 
-    if re.search(r"\.gov[./]", data.url) is not None:
-        return 1
-    if re.search(r"\.org[./]", data.url) is not None:
+    if re.search(r"\.gov[./]", data.url) or re.search(r"\.org[./]", data.url):
         return 1
     return 0

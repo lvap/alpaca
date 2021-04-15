@@ -4,12 +4,12 @@ from parsing.webpage_data import WebpageData
 from logger import log
 
 # toggle some file-specific logging messages
-LOGGING_ENABLED = True
+LOGGING_ENABLED = False
 
-# give lowest sub-score if ratio of question/exclamation marks to sentences reaches this number
+# punctuation score is linear in the ratio of punctuation to sentences from 0 (best score) to this limit (worst)
 QUESTION_MARKS_LIMIT = 0.1
 EXCLAMATION_MARKS_LIMIT = 0.05
-# give lowest score if number of all-capitalised words reaches this threshold (absolute)
+# capitalisation score is linear from 0 occurrences (best score) to this threshold (worst)
 ALL_CAPS_MAX_TITLE = 2
 ALL_CAPS_MAX_TEXT = 10
 
@@ -79,7 +79,7 @@ def evaluate_capitalisation(data: WebpageData) -> float:
     headline_matches = {}
     text_matches = {}
     headline_capitalised = False  # check whether entire headline is capitalised
-    all_caps = re.compile("\b[A-Z]+\b")
+    all_caps = re.compile(r"\b[A-Z]+\b")
 
     if data.headline.upper() is not data.headline:
         for word in all_caps.findall(data.headline):

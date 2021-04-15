@@ -1,5 +1,3 @@
-from functools import reduce
-
 import parsing.webpage_parser as parser
 from logger import log
 from parsing.webpage_data import WebpageData
@@ -9,6 +7,7 @@ from scoring.evaluator_grammar import evaluate_grammar
 from scoring.evaluator_readability import evaluate_readability
 from scoring.evaluator_tonality import evaluate_exclamation_marks, evaluate_question_marks, evaluate_capitalisation
 from scoring.evaluator_url import evaluate_domain_ending
+from scoring.evaluator_vocabulary import evaluate_profanity
 
 # weights for the linear combination of individual signal scores
 EVALUATION_WEIGHTS = {"authors": 0.2,
@@ -18,6 +17,7 @@ EVALUATION_WEIGHTS = {"authors": 0.2,
                       "tonality_exclamation_marks": 0.3,
                       "tonality_capitalisation": 0.3,
                       "readability": 1,
+                      "vocabulary_profanity": 0.5,
                       # "clickbait": 0,
                       }
 
@@ -47,8 +47,10 @@ def _compute_scores(data: WebpageData) -> dict[str, float]:
     global mandatory_entries
     mandatory_entries = len(scores)
 
-    if url_score := evaluate_domain_ending(data) > 0:
+    if (url_score := evaluate_domain_ending(data)) == 1:
         scores["url_domain_ending"] = url_score
+    if (profanity_score := evaluate_profanity(data)) < 1:
+        scores["vocabulary_profanity"] = profanity_score
 
     return scores
 
