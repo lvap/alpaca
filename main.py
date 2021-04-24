@@ -13,9 +13,8 @@ def start_service():
 
 
 def handle_input():
-    """Waits for user input strings, verifies that they're valid web addresses
-    and in that case initiates the scoring process for the webpage.
-    Ends with user input "exit" or "quit".
+    """Waits for user input, then initiates the scoring process if input is a valid webpage address.
+    Prints the calculated credibility score for the webpage. Ends on input "exit" or "quit".
     """
 
     while True:
@@ -38,11 +37,7 @@ def handle_input():
 
 
 def valid_address(user_input: str) -> bool:
-    """Checks whether the given string is a valid http or https URL.
-
-    :param user_input: String to be checked for valid http(s) URL syntax.
-    :return: True if user_input is a valid http(s) URL, False otherwise.
-    """
+    """Returns true if the given string is a valid http or https URL."""
 
     try:
         result = urlparse(user_input)

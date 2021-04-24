@@ -4,9 +4,6 @@ from pathlib import Path
 from parsing.webpage_data import WebpageData
 from logger import log
 
-# toggle some file-specific logging messages
-LOGGING_ENABLED = False
-
 # profanity score is linear from 0 occurrences (best score) to this threshold (worst)
 MAX_PROFANITY = 3
 # relative path (from parent) to file containing strings to match for profanity evaluation

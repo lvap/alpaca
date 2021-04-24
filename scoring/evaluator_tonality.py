@@ -15,8 +15,7 @@ ALL_CAPS_MAX_TEXT = 10
 
 
 def evaluate_question_marks(data: WebpageData) -> float:
-    """Evaluates webpage credibility by analysing punctuation used in its headline and text.
-    Examines usage of question marks and computes score using global variables above.
+    """Evaluates webpage credibility focusing on question mark usage.
 
     :param data: Parsed webpage data necessary for credibility evaluation.
     :return: 1 for very high credibility (low usage of question marks), 0 for very low credibility (high

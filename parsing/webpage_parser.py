@@ -71,7 +71,7 @@ def parse_data(url: str) -> WebpageData:
 
 
 def has_ending_punctuation(text: str) -> bool:
-    """ Checks whether the text ending contains proper punctuation.
+    """Checks whether the text ending contains proper punctuation.
     Evaluates the last 3 characters of text to allow for parentheses and quotation marks.
 
     :param text: A string to check for ending punctuation.

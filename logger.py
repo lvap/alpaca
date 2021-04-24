@@ -2,6 +2,6 @@
 DEBUG = True
 
 
-def log(s, enabled=True):
+def log(message, enabled=True):
     if DEBUG and enabled:
-        print(s)
+        print(message)
