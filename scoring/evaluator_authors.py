@@ -2,12 +2,8 @@ from parsing.webpage_data import WebpageData
 
 
 def evaluate_authors(data: WebpageData) -> float:
-    """Evaluates credibility of the webpage by analysing the authors.
+    """Verifies whether the webpage specifies one or more authors. Returns 1 if it does, 0 otherwise."""
 
-    :param data: Parsed webpage data necessary for credibility evaluation.
-    :return: 1 if the webpage specifies authors, 0 otherwise.
-    """
-
-    if not data.authors or data.authors[0] == "":
+    if not data.authors or all((author == "") for author in data.authors):
         return 0
     return 1

@@ -14,11 +14,10 @@ PARSER = "trafilatura"
 
 
 def parse_data(url: str) -> WebpageData:
-    """Returns data necessary for credibility evaluation given a webpage's URL.
-    Uses module specified in variable PARSER for text extraction.
+    """Extracts data necessary for credibility evaluation given a webpage's URL.
 
-    :param url: Location of the webpage that should be parsed.
-    :return: The relevant data from the given webpage.
+    Fetches HTML data, then parses article text, headline and author(s) from HTML.
+    Uses module specified in *PARSER* for text extraction.
     """
 
     try:
@@ -71,14 +70,8 @@ def parse_data(url: str) -> WebpageData:
 
 
 def has_ending_punctuation(text: str) -> bool:
-    """Checks whether the text ending contains proper punctuation.
-    Evaluates the last 3 characters of text to allow for parentheses and quotation marks.
-
-    :param text: A string to check for ending punctuation.
-    :return: True if the last three characters of text contain any of . ! ? : and False otherwise.
-    """
+    """Checks whether the text ending (last three characters) contains any of . ! ? :"""
 
     ending_punctuation = set(".!?:")
-    if any((char in ending_punctuation) for char in text[-3:]):
-        return True
-    return False
+    # evaluate the last 3 characters of text to allow for parentheses and quotation marks
+    return any((char in ending_punctuation) for char in text[-3:])

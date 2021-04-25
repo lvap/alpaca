@@ -1,3 +1,5 @@
+import re
+
 import parsing.webpage_parser as parser
 from logger import log
 from parsing.webpage_data import WebpageData
@@ -26,12 +28,12 @@ mandatory_entries = 0
 
 
 def _compute_scores(data: WebpageData) -> dict[str, float]:
-    """Given a webpage's information, collects corresponding credibility scores from different signal evaluators.
+    """Given data for a webpage, collects corresponding credibility scores from different evaluators.
 
     :param data: All necessary parsed data from the webpage to be evaluated.
-    :return: A list of credibility scores for the webpage from all the evaluators. Values range from 0 (very low
-        credibility) to 1 (very high credibility). A value of -1 means that particular credibility score could not be
-        computed.
+    :return: A dictionary of credibility scores for the webpage from all the signal evaluators.
+        Values range from 0 (very low credibility) to 1 (very high credibility).
+        A negative value means that the particular credibility score could not be computed.
     """
 
     # TODO multithreading/optimise performance?
@@ -48,19 +50,26 @@ def _compute_scores(data: WebpageData) -> dict[str, float]:
     global mandatory_entries
     mandatory_entries = len(scores)
 
-    # tweak weights/add scores given certain signal results
-    if scores["clickbait"] < 1:
+    if scores["clickbait"] == 0:
+        # higher impact on score if headline is clickbait than if it is not
         evaluation_weights["clickbait"] = 1
+
     if (url_score := evaluate_domain_ending(data)) == 1:
+        # domain ending evaluator can only improve score
         scores["url_domain_ending"] = url_score
-    if (profanity_score := evaluate_profanity(data)) < 1:
+
+    if 0 <= (profanity_score := evaluate_profanity(data)) < 1:
+        # profanity evaluator can only decrease score
         scores["vocabulary_profanity"] = profanity_score
 
     return scores
 
 
 def evaluate_webpage(url: str) -> float:
-    """Scores a webpage's credibility from 0 to 1 by combining the credibility scores of different evaluators.
+    """Scores a webpage's credibility by combining the credibility scores of different evaluators.
+
+    Obtains the webpage data from parser, retrieves the signal sub-scores, validates the results and then generates an
+    overall webpage credibility score via linear combination of the sub-scores using the *evaluation_weights* dict.
 
     :param url: URL of the webpage to be evaluated.
     :return: A credibility score from 0 (very low credibility) to 1 (very high credibility).
@@ -68,12 +77,15 @@ def evaluate_webpage(url: str) -> float:
     """
 
     data = parser.parse_data(url)
-    if data is None or data.headline == "" or data.text == "":
+
+    # check for valid data
+    if data is None or not re.search(r"\b\w+\b", data.headline) or len(data.text) < 50:
         print("Webpage parsing failed.")
         return -1
 
     scores = _compute_scores(data)
-    # check for legal scores
+
+    # check for valid scores
     if (scores is None or not mandatory_entries <= len(scores) <= len(evaluation_weights)
             or not all(0 <= score <= 1 for score in scores.values())):
         print("Computation of sub-scores failed.")
@@ -84,7 +96,7 @@ def evaluate_webpage(url: str) -> float:
         [score_name + " {}".format(round(score, 3)) for score_name, score in scores.items()]))
 
     # TODO better formula to emphasise low scores?
-    # linear combination of individual scores
+    # linear combination of sub-scores
     final_score = sum(scores[signal] * evaluation_weights[signal] for signal in scores.keys())
     weight_sum = sum(evaluation_weights[signal] for signal in scores.keys())
     return final_score / weight_sum

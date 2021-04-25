@@ -12,12 +12,13 @@ LOGGING_ENABLED = False
 
 
 def evaluate_readability(data: WebpageData) -> float:
-    """Evaluates the webpage's readability by computing the Flesch-Kincaid grade level, Flesch reading ease,
-    Gunning-Fog, SMOG, ARI and Coleman-Liau scores of its headline and main text.
+    """Evaluates the readability of a webpage..
 
-    :param data: Parsed webpage data necessary for credibility evaluation.
+    Computes and combines (with equal weight) the Flesch-Kincaid grade level, Flesch reading ease,
+    Gunning-Fog, SMOG, ARI and Coleman-Liau scores of the webpage headline and main text.
+
     :return: Combined readability score between 0 and 1, 0 indicating easy understandability (low text complexity)
-    and 1 indicating hard understandability (high text complexity).
+        and 1 indicating hard understandability (high text complexity).
     """
 
     # TODO perhaps include total words and/or words per sentence in score?

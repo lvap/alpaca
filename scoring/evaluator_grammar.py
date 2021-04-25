@@ -10,12 +10,13 @@ LOGGING_ENABLED = False
 
 
 def evaluate_grammar(data: WebpageData) -> float:
-    """Evaluates credibility of the webpage by analysing the headline's and text body's language correctness.
+    """Evaluates a webpage's language correctness.
 
-    :param data: Parsed webpage data necessary for credibility evaluation.
-    :return: Value between 0 and 1 to represent how many spelling or grammar errors were encountered on the page,
-        scaled to overall word count. Specifically, the returned score is max(1 - average errors per word, 0).
-        1 means no errors, 0 means at least as many errors as words.
+    Determines how many spelling or grammar errors were encountered on the page and scales this value
+    by overall word count. Specifically, the returned score is max(1 - average errors per word, 0).
+    1 means no errors, 0 means at least as many errors as words.
+
+    :return: Value between 0 (high amount of errors) and 1 (no errors).
     """
 
     tool = ltp.LanguageTool("en-US")

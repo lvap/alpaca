@@ -9,12 +9,12 @@ LOGGING_ENABLED = True
 
 def start_service():
     log("[Main] Alpaca init", LOGGING_ENABLED)
-    handle_input()
+    _handle_input()
 
 
-def handle_input():
-    """Waits for user input, then initiates the scoring process if input is a valid webpage address.
-    Prints the calculated credibility score for the webpage. Ends on input "exit" or "quit".
+def _handle_input():
+    """Waits for and handles user input. If a valid webpage URL is submitted, retrieves and prints the webpage's
+    credibility score. Exits on input **exit** or **quit**.
     """
 
     while True:
@@ -37,7 +37,7 @@ def handle_input():
 
 
 def valid_address(user_input: str) -> bool:
-    """Returns true if the given string is a valid http or https URL."""
+    """Returns True if the given string is a valid http or https URL, False otherwise."""
 
     try:
         result = urlparse(user_input)

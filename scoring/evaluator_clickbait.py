@@ -1,42 +1,49 @@
 import pickle
 import re
 import string
+import traceback
 import warnings
 from pathlib import Path
 
-import nltk
+# import nltk
 from nltk.corpus import stopwords
 from scipy import sparse
 
 from logger import log
 from parsing.webpage_data import WebpageData
 
-warnings.filterwarnings('ignore')
-# nltk.download("stopwords")
-
 # toggle some file-specific logging messages
 LOGGING_ENABLED = False
 
+warnings.filterwarnings('ignore')
+
 
 def evaluate_clickbait(data: WebpageData) -> float:
-    """TODO documentation
+    """Determines whether a webpage's headline is clickbait.
 
-    :param data:
-    :return:
+    :return: 1 if the headline is not clickbait, 0 if it is. Returns -1 if an error occurs during classification.
     """
 
-    return 0 if classify_clickbait(data.headline) else 1
+    try:
+        return 0 if classify_clickbait(data.headline) else 1
+
+    except Exception:
+        traceback.print_exc()
+        return -1
 
 
 def classify_clickbait(headline: str) -> bool:
-    """Clickbait classifier by Alison Salerno (https://github.com/AlisonSalerno/clickbait_detector).
-    Return true if submitted headline is clickbait, false otherwise."""
+    """Clickbait classifier by Alison Salerno https://github.com/AlisonSalerno/clickbait_detector
+
+    :return: True if submitted headline is clickbait, False otherwise.
+    """
 
     model_path = (Path(__file__).parent / "../files/nbmodel.pkl").resolve()
     tfidf_path = (Path(__file__).parent / "../files/tfidf.pkl").resolve()
 
     # loading pickled model and tfidf vectorizer
     model = pickle.load(open(model_path, "rb"))
+    # nltk.download("stopwords")
     stopwords_list = stopwords.words("english")
     vectorizer = pickle.load(open(tfidf_path, "rb"))
 

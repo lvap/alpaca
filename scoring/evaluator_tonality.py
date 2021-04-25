@@ -6,20 +6,21 @@ from logger import log
 # toggle some file-specific logging messages
 LOGGING_ENABLED = False
 
-# punctuation score is linear in the ratio of punctuation to sentences from 0 (best score) to this limit (worst)
+# modify punctuation scores gradient given these upper limits
 QUESTION_MARKS_LIMIT = 0.1
 EXCLAMATION_MARKS_LIMIT = 0.05
-# capitalisation score is linear from 0 occurrences (best score) to this threshold (worst)
+# modify capitalisation score gradient given these upper limits
 ALL_CAPS_MAX_TITLE = 2
 ALL_CAPS_MAX_TEXT = 10
 
 
 def evaluate_question_marks(data: WebpageData) -> float:
-    """Evaluates webpage credibility focusing on question mark usage.
+    """Evaluates webpage question mark usage.
 
-    :param data: Parsed webpage data necessary for credibility evaluation.
-    :return: 1 for very high credibility (low usage of question marks), 0 for very low credibility (high
-        usage of question marks).
+    Returned score is linear in the ratio of question marks to sentences from 0 (low question mark usage,
+    best score => 1) to *QUESTION_MARKS_LIMIT* (high usage, worst score => 0).
+
+    :return: 1 for low usage of question marks, 0 for high usage of question marks.
     """
 
     # TODO possibly penalise multiple question marks in title, or directly after another in text
@@ -40,12 +41,12 @@ def evaluate_question_marks(data: WebpageData) -> float:
 
 
 def evaluate_exclamation_marks(data: WebpageData) -> float:
-    """Evaluates webpage credibility by analysing punctuation used in its headline and text.
-    Examines usage of exclamation marks and computes score using global variables above.
+    """Evaluates webpage exclamation mark usage.
 
-    :param data: Parsed webpage data necessary for credibility evaluation.
-    :return: 1 for very high credibility (low usage of exclamation marks), 0 for very low credibility (high
-        usage of exclamation marks).
+    Returned score is linear in the ratio of exclamation marks to sentences from 0 (low exclamation mark usage,
+    best score => 1) to *EXCLAMATION_MARKS_LIMIT* (high usage, worst score => 0).
+
+    :return: 1 for low usage of exclamation marks, 0 for high usage of exclamation marks.
     """
 
     # TODO possibly penalise multiple exclamation marks in title, or directly after another in text
@@ -66,18 +67,18 @@ def evaluate_exclamation_marks(data: WebpageData) -> float:
 
 
 def evaluate_capitalisation(data: WebpageData) -> float:
-    """Evaluates webpage by analysing usage of all capitalised words in its headline and text.
-    Penalises capitalised words in accordance to the global variables above.
+    """Evaluates webpage usage of all-capitalised words.
 
-    :param data: Parsed webpage data necessary for credibility evaluation.
-    :return: 1 for very high credibility (low number of capitalise words), 0 for very low credibility (high number of
-        capitalised words).
+    Capitalisation score is linear from 0 occurrences (best score => 1) to *ALL_CAPS_MAX_TITLE* and *ALL_CAPS_MAX_TEXT*
+    occurrences (worst score => 0).
+
+    :return: 1 for low number of all-capitalised words, 0 for high number of capitalised words.
     """
 
     # TODO implement better check to avoid matching acronyms/initialisms (alternatively score text based on length)?
     headline_matches = {}
     text_matches = {}
-    headline_capitalised = False  # check whether entire headline is capitalised
+    headline_capitalised = False
     all_caps = re.compile(r"\b[A-Z]+\b")
 
     if data.headline.upper() is not data.headline:
@@ -88,6 +89,7 @@ def evaluate_capitalisation(data: WebpageData) -> float:
                 else:
                     headline_matches[word] = True
     else:
+        # entire headline is capitalised
         headline_capitalised = True
 
     for word in all_caps.findall(data.text):

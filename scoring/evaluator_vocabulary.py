@@ -4,23 +4,27 @@ from pathlib import Path
 from parsing.webpage_data import WebpageData
 from logger import log
 
-# profanity score is linear from 0 occurrences (best score) to this threshold (worst)
+# modify profanity score gradient given this upper limit
 MAX_PROFANITY = 3
-# relative path (from parent) to file containing strings to match for profanity evaluation
-PROFANITY_LIST_PATH = "../files/profanity.txt"
 
 
 def evaluate_profanity(data: WebpageData) -> float:
-    """Evaluates credibility of the webpage by checking the article headline and text for profanity.
-    Relies on external file containing profanity strings according to path variable above.
-    Additionally assumes all profanity in said file is lower case (check is case-insensitive).
+    """Evaluates webpage by checking for occurrences of profanity.
 
-    :param data: Parsed webpage data necessary for credibility evaluation.
-    :return: 1 for low profanity, 0 for high profanity as determined by global variable above.
+    Combines and checks webpage headline and text. Profanity score is linear from 0 occurrences (best score => 1) to
+    *MAX_PROFANITY* occurrences (worst score => 0).
+
+    :return: 1 for low profanity, 0 for high profanity.
     """
 
-    filepath = (Path(__file__).parent / PROFANITY_LIST_PATH).resolve()
+    # TODO clean up profanity file
+    # file contains profanity strings, one word per line
+    # assumes all profanity in file is lower case as lookup uses lower-case text (check is case-insensitive)
+    profanity_list_path = "../files/profanity.txt"
+    filepath = (Path(__file__).parent / profanity_list_path).resolve()
+
     fulltext = data.headline.lower() + " " + data.text.lower()
+
     match_count = 0
     with open(filepath, "r") as profanity_words:
         for line in profanity_words.readlines():
