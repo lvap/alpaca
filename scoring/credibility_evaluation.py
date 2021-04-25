@@ -1,4 +1,5 @@
 import re
+from typing import NamedTuple, Callable
 
 import parsing.webpage_parser as parser
 from logger import log
@@ -11,60 +12,33 @@ from scoring.evaluator_tonality import evaluate_exclamation_marks, evaluate_ques
 from scoring.evaluator_url import evaluate_domain_ending
 from scoring.evaluator_vocabulary import evaluate_profanity
 
-# weights for the linear combination of signal sub-scores
-evaluation_weights = {"authors": 0.2,
-                      "url_domain_ending": 0.2,
-                      "grammar": 0.3,
-                      "tonality_question_marks": 0.2,
-                      "tonality_exclamation_marks": 0.3,
-                      "tonality_capitalisation": 0.3,
-                      "readability": 1,
-                      "vocabulary_profanity": 0.5,
-                      "clickbait": 0.3,
-                      }
 
-# variable to check  for legal length of score dictionary
-mandatory_entries = 0
+class CredibilitySignal(NamedTuple):
+    """Represents a credibility signal, including its evaluator function and weight towards the overall webpage score.
 
-
-def _compute_scores(data: WebpageData) -> dict[str, float]:
-    """Given data for a webpage, collects corresponding credibility scores from different evaluators.
-
-    :param data: All necessary parsed data from the webpage to be evaluated.
-    :return: A dictionary of credibility scores for the webpage from all the signal evaluators.
-        Values range from 0 (very low credibility) to 1 (very high credibility).
-        A negative value means that the particular credibility score could not be computed.
+    :param weight: Default weight to be used when combining different sub-scores into the overall webpage score.
+    :param evaluator: Returns signal sub-score given some webpage data.
+    :param alt_weight: Alternate weight to be used if alt_condition evaluates to True.
+    :param alt_condition: If True for this signal's sub-score as input, use alternate weight instead of weight
     """
+    weight: float
+    evaluator: Callable[[WebpageData], float]
+    alt_weight: float
+    alt_condition: Callable[[float], bool]
 
-    # TODO multithreading/optimise performance?
-    # compute signal sub-scores
-    scores = {"authors": evaluate_authors(data),
-              "grammar": evaluate_grammar(data),
-              "tonality_question_marks": evaluate_question_marks(data),
-              "tonality_exclamation_marks": evaluate_exclamation_marks(data),
-              "tonality_capitalisation": evaluate_capitalisation(data),
-              "readability": evaluate_readability(data),
-              "clickbait": evaluate_clickbait(data),
-              }
 
-    global mandatory_entries
-    mandatory_entries = len(scores)
-
-    # TODO improve optional inclusion of sub-scores and notation of alternative weights
-
-    if scores["clickbait"] == 0:
-        # higher impact on score if headline is clickbait than if it is not
-        evaluation_weights["clickbait"] = 1
-
-    if (url_score := evaluate_domain_ending(data)) == 1:
-        # domain ending evaluator can only improve score
-        scores["url_domain_ending"] = url_score
-
-    if 0 <= (profanity_score := evaluate_profanity(data)) < 1:
-        # profanity evaluator can only decrease score
-        scores["vocabulary_profanity"] = profanity_score
-
-    return scores
+# holds signal evaluator methods and weights for linear combination into final score
+evaluation_signals = {
+    "authors":                      CredibilitySignal(0.2, evaluate_authors, 0, lambda score: False),
+    "url_domain_ending":            CredibilitySignal(0.0, evaluate_domain_ending, 0.2, lambda score: score == 1),
+    "grammar":                      CredibilitySignal(0.3, evaluate_grammar, 0, lambda score: False),
+    "tonality_question_marks":      CredibilitySignal(0.2, evaluate_question_marks, 0, lambda score: False),
+    "tonality_exclamation_marks":   CredibilitySignal(0.3, evaluate_exclamation_marks, 0, lambda score: False),
+    "tonality_capitalisation":      CredibilitySignal(0.3, evaluate_capitalisation, 0, lambda score: False),
+    "readability":                  CredibilitySignal(1.0, evaluate_readability, 0, lambda score: False),
+    "vocabulary_profanity":         CredibilitySignal(0.0, evaluate_profanity, 1, lambda score: score < 1),
+    "clickbait":                    CredibilitySignal(0.3, evaluate_clickbait, 1, lambda score: score < 1),
+}
 
 
 def evaluate_webpage(url: str) -> float:
@@ -85,19 +59,26 @@ def evaluate_webpage(url: str) -> float:
         print("Webpage parsing failed.")
         return -1
 
-    scores = _compute_scores(data)
+    scores = {}
+    weight_sum = 0
+    final_score = 0
+
+    # compute sub-scores and sum up overall score via linear combination
+    for signal_name, signal in evaluation_signals.items():
+        score = signal.evaluator(data)
+        scores[signal_name] = score
+        weight = signal.weight if not signal.alt_condition(score) else signal.alt_weight
+        final_score += score * weight
+        weight_sum += weight
 
     # check for valid scores
-    if (scores is None or not mandatory_entries <= len(scores) <= len(evaluation_weights)
+    if (scores is None or len(scores) != len(evaluation_signals)
             or not all(0 <= score <= 1 for score in scores.values())):
         print("Computation of sub-scores failed.")
         log(scores)
         return -2
 
-    log("[Evaluation] Individual scores: {}".format(
-        [score_name + " {}".format(round(score, 3)) for score_name, score in scores.items()]))
+    log("[Evaluation] Individual sub-scores: {}".format(
+        [signal_name + " {}".format(round(score, 3)) for signal_name, score in scores.items()]))
 
-    # linear combination of sub-scores
-    final_score = sum(scores[signal] * evaluation_weights[signal] for signal in scores.keys())
-    weight_sum = sum(evaluation_weights[signal] for signal in scores.keys())
     return final_score / weight_sum
