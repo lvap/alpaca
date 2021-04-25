@@ -11,7 +11,7 @@ from scoring.evaluator_tonality import evaluate_exclamation_marks, evaluate_ques
 from scoring.evaluator_url import evaluate_domain_ending
 from scoring.evaluator_vocabulary import evaluate_profanity
 
-# weights for the linear combination of individual signal scores
+# weights for the linear combination of signal sub-scores
 evaluation_weights = {"authors": 0.2,
                       "url_domain_ending": 0.2,
                       "grammar": 0.3,
@@ -49,6 +49,8 @@ def _compute_scores(data: WebpageData) -> dict[str, float]:
 
     global mandatory_entries
     mandatory_entries = len(scores)
+
+    # TODO improve optional inclusion of sub-scores and notation of alternative weights
 
     if scores["clickbait"] == 0:
         # higher impact on score if headline is clickbait than if it is not
@@ -95,7 +97,6 @@ def evaluate_webpage(url: str) -> float:
     log("[Evaluation] Individual scores: {}".format(
         [score_name + " {}".format(round(score, 3)) for score_name, score in scores.items()]))
 
-    # TODO better formula to emphasise low scores?
     # linear combination of sub-scores
     final_score = sum(scores[signal] * evaluation_weights[signal] for signal in scores.keys())
     weight_sum = sum(evaluation_weights[signal] for signal in scores.keys())

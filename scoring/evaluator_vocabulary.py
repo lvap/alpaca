@@ -17,7 +17,7 @@ def evaluate_profanity(data: WebpageData) -> float:
     :return: 1 for low profanity, 0 for high profanity.
     """
 
-    # TODO clean up profanity file
+    # FIXME clean up profanity file
     # file contains profanity strings, one word per line
     # assumes all profanity in file is lower case as lookup uses lower-case text (check is case-insensitive)
     profanity_list_path = "../files/profanity.txt"

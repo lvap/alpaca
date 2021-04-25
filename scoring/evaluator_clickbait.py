@@ -5,7 +5,7 @@ import traceback
 import warnings
 from pathlib import Path
 
-# import nltk
+import nltk
 from nltk.corpus import stopwords
 from scipy import sparse
 
@@ -14,8 +14,6 @@ from parsing.webpage_data import WebpageData
 
 # toggle some file-specific logging messages
 LOGGING_ENABLED = False
-
-warnings.filterwarnings('ignore')
 
 
 def evaluate_clickbait(data: WebpageData) -> float:
@@ -38,29 +36,34 @@ def classify_clickbait(headline: str) -> bool:
     :return: True if submitted headline is clickbait, False otherwise.
     """
 
-    model_path = (Path(__file__).parent / "../files/nbmodel.pkl").resolve()
-    tfidf_path = (Path(__file__).parent / "../files/tfidf.pkl").resolve()
-
-    # loading pickled model and tfidf vectorizer
-    model = pickle.load(open(model_path, "rb"))
-    # nltk.download("stopwords")
-    stopwords_list = stopwords.words("english")
-    vectorizer = pickle.load(open(tfidf_path, "rb"))
-
     cleaned_headline = clean_text(headline)
     headline_words = len(cleaned_headline.split())
     question = contains_question(cleaned_headline)
     exclamation = contains_exclamation(cleaned_headline)
     starts_with_num = starts_with_number(cleaned_headline)
 
-    log("[Clickbait] Cleaned headline: " + cleaned_headline, LOGGING_ENABLED)
+    # nltk.download("stopwords")
 
-    vectorizer_input = [cleaned_headline]
-    vectorized = vectorizer.transform(vectorizer_input)
-    final = sparse.hstack([question, exclamation, starts_with_num, headline_words, vectorized])
-    result = model.predict(final)
+    # TODO perhaps turn this into a service/object to avoid reloading model/tfidf every call
+    model_path = (Path(__file__).parent / "../files/nbmodel.pkl").resolve()
+    tfidf_path = (Path(__file__).parent / "../files/tfidf.pkl").resolve()
 
-    return result == 1
+    with warnings.catch_warnings():
+        warnings.filterwarnings('ignore')
+
+        # loading pickled model and tfidf vectorizer
+        model = pickle.load(open(model_path, "rb"))
+        stopwords_list = stopwords.words("english")
+        vectorizer = pickle.load(open(tfidf_path, "rb"))
+
+        log("[Clickbait] Cleaned headline: " + cleaned_headline, LOGGING_ENABLED)
+
+        vectorizer_input = [cleaned_headline]
+        vectorized = vectorizer.transform(vectorizer_input)
+        final = sparse.hstack([question, exclamation, starts_with_num, headline_words, vectorized])
+        result = model.predict(final)
+
+        return result == 1
 
 
 def clean_text(text: str) -> str:
