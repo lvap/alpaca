@@ -1,2 +1,2 @@
 # Alpaca
-Content-focused website credibility evaluator
+Content-focused webpage credibility evaluator
