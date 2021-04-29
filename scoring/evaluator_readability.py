@@ -31,32 +31,32 @@ def evaluate_readability(data: WebpageData) -> float:
     tokens = sent_tokeniser.tokenize(full_text, realign_boundaries=True)
     log("[Readability] {} sentence tokens".format(len(tokens)), LOGGING_ENABLED)
 
-    metrics = readability.getmeasures(tokens, lang="en")
+    read_metrics = readability.getmeasures(tokens, lang="en")
     paragraph_count = data.text.count("\n") + 1
 
     log("[Readability] Text properties: "
         "{} char | {} syll | {} word | {} pargr | "
         "{:.3f} char_p_w | {:.3f} syll_p_w | {:.3f} word_p_s | {:.3f} sent_p_p | "
         "{} wrd_typ | {} long_wrd | {} compl_wrd"
-        .format(metrics["sentence info"]["characters"],  # alphanumeric symbols and hyphens (-)
-                metrics["sentence info"]["syllables"],
-                metrics["sentence info"]["words"],  # strings of alphanumerics and hyphens (isn't = 2 words)
+        .format(read_metrics["sentence info"]["characters"],  # alphanumeric symbols and hyphens (-)
+                read_metrics["sentence info"]["syllables"],
+                read_metrics["sentence info"]["words"],  # strings of alphanumerics and hyphens (isn't = 2 words)
                 paragraph_count,
-                metrics["sentence info"]["characters_per_word"],
-                metrics["sentence info"]["syll_per_word"],
-                metrics["sentence info"]["words_per_sentence"],
-                metrics["sentence info"]["sentences"] / paragraph_count,
-                metrics["sentence info"]["wordtypes"],
-                metrics["sentence info"]["long_words"],
-                metrics["sentence info"]["complex_words"]), LOGGING_ENABLED)
-    log("[Readability] Readability metrics: "
+                read_metrics["sentence info"]["characters_per_word"],
+                read_metrics["sentence info"]["syll_per_word"],
+                read_metrics["sentence info"]["words_per_sentence"],
+                read_metrics["sentence info"]["sentences"] / paragraph_count,
+                read_metrics["sentence info"]["wordtypes"],
+                read_metrics["sentence info"]["long_words"],
+                read_metrics["sentence info"]["complex_words"]), LOGGING_ENABLED)
+    log("[Readability] Readability grades: "
         "Fle-Kin grade {:.3f} | Fle reading ease {:.3f} | Gun-Fog {:.3f} | SMOG {:.3f} | ARI {:.3f} | Col-Liau {:.3f}"
-        .format(metrics["readability grades"]["Kincaid"],
-                metrics["readability grades"]["FleschReadingEase"],
-                metrics["readability grades"]["GunningFogIndex"],
-                metrics["readability grades"]["SMOGIndex"],
-                metrics["readability grades"]["ARI"],
-                metrics["readability grades"]["Coleman-Liau"]), LOGGING_ENABLED)
+        .format(read_metrics["readability grades"]["Kincaid"],
+                read_metrics["readability grades"]["FleschReadingEase"],
+                read_metrics["readability grades"]["GunningFogIndex"],
+                read_metrics["readability grades"]["SMOGIndex"],
+                read_metrics["readability grades"]["ARI"],
+                read_metrics["readability grades"]["Coleman-Liau"]), LOGGING_ENABLED)
 
     # preliminary scoring: assign highest credibility for complex text, equivalent to  11th-grade reading level
     # Flesch-Kincaid grade level score range 1-17, 11-17 best
@@ -65,12 +65,12 @@ def evaluate_readability(data: WebpageData) -> float:
     # SMOG score range 5-22, 16-22 best
     # ARI score range 1-14, 11-14 best
     # Coleman-Liau score range 1-17, 11-17 best
-    readability_scores = [(11 - metrics["readability grades"]["Kincaid"]) / 10,
-                          1 - ((100 - metrics["readability grades"]["FleschReadingEase"]) / 50),
-                          (11 - metrics["readability grades"]["GunningFogIndex"]) / 10,
-                          (16 - metrics["readability grades"]["SMOGIndex"]) / 11,
-                          (11 - metrics["readability grades"]["ARI"]) / 10,
-                          (11 - metrics["readability grades"]["Coleman-Liau"]) / 10]
+    readability_scores = [(11 - read_metrics["readability grades"]["Kincaid"]) / 10,
+                          1 - ((100 - read_metrics["readability grades"]["FleschReadingEase"]) / 50),
+                          (11 - read_metrics["readability grades"]["GunningFogIndex"]) / 10,
+                          (16 - read_metrics["readability grades"]["SMOGIndex"]) / 11,
+                          (11 - read_metrics["readability grades"]["ARI"]) / 10,
+                          (11 - read_metrics["readability grades"]["Coleman-Liau"]) / 10]
 
     for index, score in enumerate(readability_scores):
         readability_scores[index] = 1 - max(min(score, 1), 0)

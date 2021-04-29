@@ -1,8 +1,8 @@
 import re
 from pathlib import Path
 
-from parsing.webpage_data import WebpageData
 from logger import log
+from parsing.webpage_data import WebpageData
 
 # modify profanity score gradient given this upper limit
 MAX_PROFANITY = 3
@@ -17,9 +17,7 @@ def evaluate_profanity(data: WebpageData) -> float:
     :return: 1 for low profanity, 0 for high profanity.
     """
 
-    # FIXME clean up profanity file
-    # file contains profanity strings, one word per line
-    # assumes all profanity in file is lower case as lookup uses lower-case text (check is case-insensitive)
+    # file assumed to contain profanity strings, one word/slur per line, lower case (check is case-insensitive)
     profanity_list_path = "../files/profanity.txt"
     filepath = (Path(__file__).parent / profanity_list_path).resolve()
 
@@ -28,7 +26,7 @@ def evaluate_profanity(data: WebpageData) -> float:
     match_count = 0
     with open(filepath, "r") as profanity_words:
         for line in profanity_words.readlines():
-            if match := re.findall(r"\b"+line.strip()+r"\b", fulltext):
+            if match := re.findall(r"\b" + line.strip() + r"\b", fulltext):
                 match_count += len(match)
                 log("[Vocabulary] Profanity list match: {}".format(match))
 

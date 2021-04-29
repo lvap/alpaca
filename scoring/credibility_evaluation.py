@@ -14,10 +14,10 @@ from scoring.evaluator_vocabulary import evaluate_profanity
 
 
 class CredibilitySignal(NamedTuple):
-    """Represents a credibility signal, including its evaluator function and weight towards the overall webpage score.
+    """A webpage credibility signal, including its evaluator function and weight towards the overall page score.
 
     :param weight: Default weight to be used when combining different sub-scores into the overall webpage score.
-    :param evaluator: Returns signal sub-score given some webpage data.
+    :param evaluator: Function that returns the signal sub-score given some webpage data.
     :param alt_weight: Alternate weight to be used if alt_condition evaluates to True.
     :param alt_condition: If True for this signal's sub-score as input, use alternate weight instead of weight
     """
@@ -27,7 +27,7 @@ class CredibilitySignal(NamedTuple):
     alt_condition: Callable[[float], bool]
 
 
-# holds signal evaluator methods and weights for linear combination into final score
+# holds signal evaluator functions and weights for linear combination into final score + alternate weights w/ conditions
 evaluation_signals = {
     "authors":                      CredibilitySignal(0.2, evaluate_authors, -1, lambda score: False),
     "url_domain_ending":            CredibilitySignal(0.0, evaluate_domain_ending, 0.2, lambda score: score == 1),
@@ -37,7 +37,7 @@ evaluation_signals = {
     "tonality_capitalisation":      CredibilitySignal(0.3, evaluate_capitalisation, -1, lambda score: False),
     "readability":                  CredibilitySignal(1.0, evaluate_readability, -1, lambda score: False),
     "vocabulary_profanity":         CredibilitySignal(0.0, evaluate_profanity, 1, lambda score: score < 1),
-    "clickbait":                    CredibilitySignal(0.3, evaluate_clickbait, 1, lambda score: score == 0),
+    "clickbait":                    CredibilitySignal(0.3, evaluate_clickbait, 1, lambda score: score < 1),
 }
 
 
