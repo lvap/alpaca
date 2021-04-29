@@ -32,12 +32,12 @@ evaluation_signals = {
     "authors":                      CredibilitySignal(0.2, evaluate_authors, -1, lambda score: False),
     "url_domain_ending":            CredibilitySignal(0.0, evaluate_domain_ending, 0.2, lambda score: score == 1),
     "grammar":                      CredibilitySignal(0.3, evaluate_grammar, -1, lambda score: False),
-    "tonality_question_marks":      CredibilitySignal(0.2, evaluate_question_marks, -1, lambda score: False),
-    "tonality_exclamation_marks":   CredibilitySignal(0.3, evaluate_exclamation_marks, -1, lambda score: False),
+    "tonality_question_marks":      CredibilitySignal(0.2, evaluate_question_marks, 0.3, lambda score: score == 0),
+    "tonality_exclamation_marks":   CredibilitySignal(0.3, evaluate_exclamation_marks, 0.5, lambda score: score == 0),
     "tonality_capitalisation":      CredibilitySignal(0.3, evaluate_capitalisation, -1, lambda score: False),
     "readability":                  CredibilitySignal(1.0, evaluate_readability, -1, lambda score: False),
     "vocabulary_profanity":         CredibilitySignal(0.0, evaluate_profanity, 1, lambda score: score < 1),
-    "clickbait":                    CredibilitySignal(0.3, evaluate_clickbait, 1, lambda score: score < 1),
+    "clickbait":                    CredibilitySignal(0.3, evaluate_clickbait, 1, lambda score: score == 0),
 }
 
 
