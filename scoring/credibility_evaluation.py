@@ -44,7 +44,7 @@ evaluation_signals = {
     "vocabulary_profanity":         CredibilitySignal(evaluate_profanity,
                                                       lambda score: 0 if score == 1 else 1),
     "clickbait":                    CredibilitySignal(evaluate_clickbait,
-                                                      lambda score: 0.3 if score > 0 else 1),
+                                                      lambda score: 0.3 if score > 0 else 0.8),
 }
 
 
