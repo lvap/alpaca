@@ -14,30 +14,37 @@ from scoring.evaluator_vocabulary import evaluate_profanity
 
 
 class CredibilitySignal(NamedTuple):
-    """A webpage credibility signal, including its evaluator function and weight towards the overall page score.
+    """A webpage credibility signal, including its evaluator and weight functions.
 
-    :param weight: Default weight to be used when combining different sub-scores into the overall webpage score.
-    :param evaluator: Function that returns the signal sub-score given some webpage data.
-    :param alt_weight: Alternate weight to be used if alt_condition evaluates to True.
-    :param alt_condition: If True for this signal's sub-score as input, use alternate weight instead of weight
+    :param evaluator: Returns the signal sub-score given some webpage data.
+    :param weight_func: Returns weight to be used for this signal when combining all sub-scores into the overall webpage
+    score, takes own sub-score as input.
     """
-    weight: float
     evaluator: Callable[[WebpageData], float]
-    alt_weight: float
-    alt_condition: Callable[[float], bool]
+    weight_func: Callable[[float], float]
 
 
-# holds signal evaluator functions and weights for linear combination into final score + alternate weights w/ conditions
+# TODO perhaps increased weight for low sub-scores?
+# holds credibility signals: signal evaluator and weight functions
 evaluation_signals = {
-    "authors":                      CredibilitySignal(0.2, evaluate_authors, -1, lambda score: False),
-    "url_domain_ending":            CredibilitySignal(0.0, evaluate_domain_ending, 0.2, lambda score: score == 1),
-    "grammar":                      CredibilitySignal(0.3, evaluate_grammar, -1, lambda score: False),
-    "tonality_question_marks":      CredibilitySignal(0.2, evaluate_question_marks, 0.3, lambda score: score == 0),
-    "tonality_exclamation_marks":   CredibilitySignal(0.3, evaluate_exclamation_marks, 0.5, lambda score: score == 0),
-    "tonality_capitalisation":      CredibilitySignal(0.3, evaluate_capitalisation, -1, lambda score: False),
-    "readability":                  CredibilitySignal(1.0, evaluate_readability, -1, lambda score: False),
-    "vocabulary_profanity":         CredibilitySignal(0.0, evaluate_profanity, 1, lambda score: score < 1),
-    "clickbait":                    CredibilitySignal(0.3, evaluate_clickbait, 1, lambda score: score == 0),
+    "authors":                      CredibilitySignal(evaluate_authors,
+                                                      lambda score: 0.3),
+    "url_domain_ending":            CredibilitySignal(evaluate_domain_ending,
+                                                      lambda score: 0.2 if score == 1 else 0),
+    "grammar":                      CredibilitySignal(evaluate_grammar,
+                                                      lambda score: 0.3),
+    "tonality_question_marks":      CredibilitySignal(evaluate_question_marks,
+                                                      lambda score: 0.2 if score > 0 else 0.3),
+    "tonality_exclamation_marks":   CredibilitySignal(evaluate_exclamation_marks,
+                                                      lambda score: 0.3 if score > 0 else 0.45),
+    "tonality_capitalisation":      CredibilitySignal(evaluate_capitalisation,
+                                                      lambda score: 0.3),
+    "readability":                  CredibilitySignal(evaluate_readability,
+                                                      lambda score: 1),
+    "vocabulary_profanity":         CredibilitySignal(evaluate_profanity,
+                                                      lambda score: 0 if score == 1 else 1),
+    "clickbait":                    CredibilitySignal(evaluate_clickbait,
+                                                      lambda score: 0.3 if score > 0 else 1),
 }
 
 
@@ -67,7 +74,7 @@ def evaluate_webpage(url: str) -> float:
     for signal_name, signal in evaluation_signals.items():
         score = signal.evaluator(data)
         scores[signal_name] = score
-        weight = signal.weight if not signal.alt_condition(score) else signal.alt_weight
+        weight = signal.weight_func(score)
         final_score += score * weight
         weight_sum += weight
 

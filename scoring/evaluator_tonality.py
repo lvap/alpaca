@@ -7,7 +7,7 @@ from logger import log
 LOGGING_ENABLED = False
 
 # modify punctuation scores gradient given these upper limits
-QUESTION_MARKS_LIMIT = 0.1
+QUESTION_MARKS_LIMIT = 0.15
 EXCLAMATION_MARKS_LIMIT = 0.05
 # modify capitalisation score gradient given these upper limits
 ALL_CAPS_MAX_TITLE = 2
@@ -135,8 +135,7 @@ def evaluate_capitalisation(data: WebpageData) -> float:
     text_score = 1 - (text_score / ALL_CAPS_MAX_TEXT)
     text_score = max(text_score, 0)
 
-    if all_cap_words_title or all_cap_words_text:
-        log("[Tonality] All capitalised words: Title {} | Text {}".format(all_cap_words_title, all_cap_words_text),
-            LOGGING_ENABLED)
+    log("[Tonality] All capitalised words: Title {} | Text {}".format(all_cap_words_title, all_cap_words_text),
+        all_cap_words_title or all_cap_words_text)
 
     return (headline_score + text_score) / 2 if not headline_capitalised else text_score

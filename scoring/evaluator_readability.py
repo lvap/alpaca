@@ -76,4 +76,5 @@ def evaluate_readability(data: WebpageData) -> float:
         readability_scores[index] = 1 - max(min(score, 1), 0)
     log("[Readability] Readability scores: {}".format([round(score, 3) for score in readability_scores]))
 
+    # TODO use median instead of average?
     return sum(readability_scores) / len(readability_scores)
