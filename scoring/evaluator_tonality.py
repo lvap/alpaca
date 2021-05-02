@@ -17,9 +17,9 @@ ALL_CAPS_MAX_TEXT = 10
 def evaluate_question_marks(data: WebpageData) -> float:
     """Evaluates webpage question mark usage.
 
-    Returned score is linear in the ratio of question marks to sentences from 0 (low question mark usage,
-    best score => 1) to *QUESTION_MARKS_LIMIT* (high usage, worst score => 0). Returns 0 if headline or text include
-    double question marks ("??").
+    Returned score is linear from 0 question marks per sentence (no question mark usage, best score => 1) to
+    *QUESTION_MARKS_LIMIT* question marks per sentence (high usage, worst score => 0). Returns 0 if headline or
+    text include double question marks ("??").
 
     :return: 1 for low usage of question marks, 0 for high usage of question marks.
     """
@@ -48,9 +48,9 @@ def evaluate_question_marks(data: WebpageData) -> float:
 def evaluate_exclamation_marks(data: WebpageData) -> float:
     """Evaluates webpage exclamation mark usage.
 
-    Returned score is linear in the ratio of exclamation marks to sentences from 0 (low exclamation mark usage,
-    best score => 1) to *EXCLAMATION_MARKS_LIMIT* (high usage, worst score => 0). Returns 0 if headline or text include
-    double exclamation marks ("!!").
+    Returned score is linear from 0 exclamation marks per sentence (no exclamation mark usage, best score => 1) to
+    *EXCLAMATION_MARKS_LIMIT* exclamation marks per sentence (high usage, worst score => 0). Returns 0 if headline or
+    text include double exclamation marks ("!!").
 
     :return: 1 for low usage of exclamation marks, 0 for high usage of exclamation marks.
     """

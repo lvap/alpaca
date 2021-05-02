@@ -1,7 +1,6 @@
-from urllib.parse import urlparse
-
-from scoring.credibility_evaluation import evaluate_webpage
 from logger import log
+from parsing.webpage_parser import valid_address
+from scoring.credibility_evaluation import evaluate_webpage
 
 # toggle some file-specific logging messages
 LOGGING_ENABLED = True
@@ -30,20 +29,10 @@ def _handle_input():
                 print("Webpage score: {:.3f} for {}".format(score, user_input))
             else:
                 print("Score could not be calculated.")
-                log("[Main] Illegal error score {}".format(score))
+                log("[Main] Invalid score {}".format(score))
 
         else:
             print("Invalid address.")
-
-
-def valid_address(user_input: str) -> bool:
-    """Returns True if the given string is a valid http or https URL, False otherwise."""
-
-    try:
-        result = urlparse(user_input)
-        return all([result.scheme, result.netloc, result.path]) and result.scheme in ["http", "https"]
-    except ValueError:
-        return False
 
 
 if __name__ == "__main__":

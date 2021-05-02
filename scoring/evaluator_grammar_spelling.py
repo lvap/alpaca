@@ -8,15 +8,18 @@ from parsing.webpage_data import WebpageData
 # toggle some file-specific logging messages
 LOGGING_ENABLED = False
 
+# modify grammar/spelling error score gradient given this upper limit
+ERROR_LIMIT = 0.2
 
-def evaluate_grammar(data: WebpageData) -> float:
+
+def evaluate_grammar_spelling(data: WebpageData) -> float:
     """Evaluates a webpage's language correctness.
 
     Determines how many spelling or grammar errors were encountered on the page and scales this value
-    by overall word count. Specifically, the returned score is max(1 - average errors per word, 0).
-    1 means no errors, 0 means at least as many errors as words.
+    by overall word count. Specifically, the returned score is linear from 0 errors per word (no errors,
+    best score => 1) to *ERRORS_LIMIT* errors per word (large amount of errors, worst score => 0).
 
-    :return: Value between 0 (high amount of errors) and 1 (no errors).
+    :return: Value between 0 (large amount of errors) and 1 (no errors).
     """
 
     tool = ltp.LanguageTool("en-US")
@@ -49,9 +52,9 @@ def evaluate_grammar(data: WebpageData) -> float:
     # words = strings bounded by whitespaces, excluding strings consisting of a single non-alphanumeric character
     word_count = len(data.headline.split()) + len(data.text.split()) - (len(re.findall(r"\s\W\s", data.headline))
                                                                         + len(re.findall(r"\s\W\s", data.text)))
-    error_score = 1 - (error_score / word_count)
+    error_score = 1 - (error_score / (word_count * ERROR_LIMIT))
 
-    log("[Grammar] {} errors in {} words ({} errors ignored)"
-        .format(len(matches) - matches_to_ignore, word_count, matches_to_ignore))
+    log("[Grammar/Spelling] {} errors in {} words ({} errors ignored), {} errors per word"
+        .format(len(matches) - matches_to_ignore, word_count, matches_to_ignore, round(error_score / word_count, 3)))
 
     return max(error_score, 0)

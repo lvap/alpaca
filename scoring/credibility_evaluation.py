@@ -6,7 +6,8 @@ from logger import log
 from parsing.webpage_data import WebpageData
 from scoring.evaluator_authors import evaluate_authors
 from scoring.evaluator_clickbait import evaluate_clickbait
-from scoring.evaluator_grammar import evaluate_grammar
+from scoring.evaluator_grammar_spelling import evaluate_grammar_spelling
+from scoring.evaluator_links import evaluate_links_external
 from scoring.evaluator_readability import evaluate_readability
 from scoring.evaluator_tonality import evaluate_exclamation_marks, evaluate_question_marks, evaluate_capitalisation
 from scoring.evaluator_url import evaluate_domain_ending
@@ -16,7 +17,7 @@ from scoring.evaluator_vocabulary import evaluate_profanity
 class CredibilitySignal(NamedTuple):
     """A webpage credibility signal, including its evaluator and weight functions.
 
-    :param evaluator: Returns the signal sub-score given some webpage data.
+    :param evaluator: Returns the signal sub-score given some webpage data. Between 0 - 1 unless extended_score is True
     :param weight_func: Returns weight to be used for this signal when combining all sub-scores into the overall webpage
     score, takes own sub-score as input.
     """
@@ -31,20 +32,22 @@ evaluation_signals = {
                                                       lambda score: 0.3),
     "url_domain_ending":            CredibilitySignal(evaluate_domain_ending,
                                                       lambda score: 0.2 if score == 1 else 0),
-    "grammar":                      CredibilitySignal(evaluate_grammar,
-                                                      lambda score: 0.3),
+    "grammar_spelling":             CredibilitySignal(evaluate_grammar_spelling,
+                                                      lambda score: 0.3 if score > 0.8 else 0.45),
     "tonality_question_marks":      CredibilitySignal(evaluate_question_marks,
-                                                      lambda score: 0.2 if score > 0 else 0.3),
+                                                      lambda score: 0.1 if score > 0.8 else 0.2 if score > 0 else 0.3),
     "tonality_exclamation_marks":   CredibilitySignal(evaluate_exclamation_marks,
-                                                      lambda score: 0.3 if score > 0 else 0.45),
+                                                      lambda score: 0.2 if score > 0.8 else 0.3 if score > 0 else 0.45),
     "tonality_capitalisation":      CredibilitySignal(evaluate_capitalisation,
-                                                      lambda score: 0.3),
+                                                      lambda score: 0 if score > 0.8 else 0.3),
     "readability":                  CredibilitySignal(evaluate_readability,
                                                       lambda score: 1),
     "vocabulary_profanity":         CredibilitySignal(evaluate_profanity,
                                                       lambda score: 0 if score == 1 else 1),
     "clickbait":                    CredibilitySignal(evaluate_clickbait,
-                                                      lambda score: 0.3 if score > 0 else 0.8),
+                                                      lambda score: 0.3 if score > 0 else 0.6),
+    "links_external":               CredibilitySignal(evaluate_links_external,
+                                                      lambda score: 0.3 if score == 0 or score == 1 else 0)
 }
 
 
@@ -71,11 +74,12 @@ def evaluate_webpage(url: str) -> float:
     final_score = 0
 
     # compute sub-scores and sum up overall score via linear combination
+    # TODO possibly parellelise different signal evaluation calls to improve performance
     for signal_name, signal in evaluation_signals.items():
-        score = signal.evaluator(data)
-        scores[signal_name] = score
-        weight = signal.weight_func(score)
-        final_score += score * weight
+        subscore = signal.evaluator(data)
+        weight = signal.weight_func(subscore)
+        scores[signal_name] = subscore
+        final_score += subscore * weight
         weight_sum += weight
 
     # check for valid scores

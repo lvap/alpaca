@@ -1,4 +1,5 @@
 import traceback
+from urllib.parse import urlparse
 
 import trafilatura
 from newspaper import Article
@@ -41,6 +42,8 @@ def parse_data(url: str) -> WebpageData:
             log("[Parsing] No text parser specified.")
             return WebpageData()
 
+        # FIXME improve authors detection (eg theguardian.com, bbc.com)
+
         # remove title if the text begins with it
         if paragraphs[0] == article.title:
             paragraphs.pop(0)
@@ -61,7 +64,6 @@ def parse_data(url: str) -> WebpageData:
             not LOGGING_ENABLED)
         log("[Parsing] Full text: {}".format(text), LOGGING_ENABLED)
 
-        # TODO maybe improve author(s) detection
         return WebpageData(article.html, article.title, text[:-1], article.authors, url)
 
     except Exception:
@@ -75,3 +77,13 @@ def has_ending_punctuation(text: str) -> bool:
     ending_punctuation = set(".!?:")
     # evaluate the last 3 characters of text to allow for parentheses and quotation marks
     return any((char in ending_punctuation) for char in text[-3:])
+
+
+def valid_address(user_input: str) -> bool:
+    """Returns True if the given string is a valid http or https URL, False otherwise."""
+
+    try:
+        result = urlparse(user_input)
+        return all([result.scheme, result.netloc, result.path]) and result.scheme in ["http", "https"]
+    except ValueError:
+        return False

@@ -21,8 +21,6 @@ def evaluate_readability(data: WebpageData) -> float:
         and 1 indicating hard understandability (high text complexity).
     """
 
-    # TODO perhaps include total words and/or words per sentence in score?
-
     headline_ending = "\n" if has_ending_punctuation(data.headline) else ".\n"
     # replace characters that are problematic for nltk.tokenize
     full_text = re.sub("[“‟„”«»❝❞⹂〝〞〟＂]", "\"",
@@ -58,6 +56,8 @@ def evaluate_readability(data: WebpageData) -> float:
                 read_metrics["readability grades"]["ARI"],
                 read_metrics["readability grades"]["Coleman-Liau"]), LOGGING_ENABLED)
 
+    # FIXME incorporate total words, sentence length and paragraph length minimums in score
+
     # preliminary scoring: assign highest credibility for complex text, equivalent to  11th-grade reading level
     # Flesch-Kincaid grade level score range 1-17, 11-17 best
     # Flesch reading ease score range 1-100, 1-50 best
@@ -76,6 +76,6 @@ def evaluate_readability(data: WebpageData) -> float:
         readability_scores[index] = 1 - max(min(score, 1), 0)
     log("[Readability] Readability scores: {}".format([round(score, 3) for score in readability_scores]))
 
-    # return sum(readability_scores) / len(readability_scores)
+    # lower median
     readability_scores.sort()
-    return readability_scores[2]  # median
+    return readability_scores[2]
