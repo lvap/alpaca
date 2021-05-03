@@ -35,7 +35,7 @@ evaluation_signals = {
     "grammar_spelling":             CredibilitySignal(evaluate_grammar_spelling,
                                                       lambda score: 0.3 if score > 0.8 else 0.45),
     "tonality_question_marks":      CredibilitySignal(evaluate_question_marks,
-                                                      lambda score: 0.1 if score > 0.8 else 0.2 if score > 0 else 0.3),
+                                                      lambda score: 0.2 if score > 0 else 0.3),
     "tonality_exclamation_marks":   CredibilitySignal(evaluate_exclamation_marks,
                                                       lambda score: 0.2 if score > 0.8 else 0.3 if score > 0 else 0.45),
     "tonality_capitalisation":      CredibilitySignal(evaluate_capitalisation,

@@ -1,7 +1,9 @@
+import json
 import traceback
 from urllib.parse import urlparse
 
 import trafilatura
+from bs4 import BeautifulSoup
 from newspaper import Article
 
 from logger import log
@@ -42,7 +44,9 @@ def parse_data(url: str) -> WebpageData:
             log("[Parsing] No text parser specified.")
             return WebpageData()
 
-        # FIXME improve authors detection (eg theguardian.com, bbc.com)
+        authors = article.authors
+        if not authors:
+            authors = extract_authors(article.html)
 
         # remove title if the text begins with it
         if paragraphs[0] == article.title:
@@ -58,13 +62,13 @@ def parse_data(url: str) -> WebpageData:
                 text += pg + "\n"
 
         log("[Parsing] Title: {}".format(article.title))
-        log("[Parsing] Authors: {}".format(article.authors))
+        log("[Parsing] Authors: {}".format(authors))
         log("[Parsing] Text length: {} symbols".format(len(text) - 1))
         log("[Parsing] Text: {}".format(text[:200] + " [...] " + text[-200:]).replace("\n", " "),
             not LOGGING_ENABLED)
         log("[Parsing] Full text: {}".format(text), LOGGING_ENABLED)
 
-        return WebpageData(article.html, article.title, text[:-1], article.authors, url)
+        return WebpageData(article.html, article.title, text[:-1], authors, url)
 
     except Exception:
         traceback.print_exc()
@@ -87,3 +91,24 @@ def valid_address(user_input: str) -> bool:
         return all([result.scheme, result.netloc, result.path]) and result.scheme in ["http", "https"]
     except ValueError:
         return False
+
+
+def extract_authors(html: str) -> list[str]:
+    """Extracts web article author(s) for specific html site structures."""
+
+    authors = []
+    soup = BeautifulSoup(html, "html.parser")
+
+    # BBC.com
+    page_dict = json.loads("".join(soup.find("script", {"type": "application/ld+json"}).contents))
+    if page_dict and type(page_dict) is dict:
+        authors.extend(
+            [value.get("name") for (key, value) in page_dict.items() if key == "author" and value.get("name")])
+
+    # theguardian.com
+    authors.extend(
+        [meta_author.get("content") for meta_author in soup.findAll("meta", attrs={"property": "article:author"})
+         if meta_author.get("content")])
+
+    log("[Parsing] {} additional author(s) detected".format(len(authors)), LOGGING_ENABLED and authors)
+    return authors
