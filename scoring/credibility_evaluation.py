@@ -8,7 +8,7 @@ from scoring.evaluator_authors import evaluate_authors
 from scoring.evaluator_clickbait import evaluate_clickbait
 from scoring.evaluator_grammar_spelling import evaluate_grammar_spelling
 from scoring.evaluator_links import evaluate_links_external
-from scoring.evaluator_readability import evaluate_readability
+from scoring.evaluator_readability import evaluate_readability_grades, evaluate_text_lengths
 from scoring.evaluator_tonality import evaluate_exclamation_marks, evaluate_question_marks, evaluate_capitalisation
 from scoring.evaluator_url import evaluate_domain_ending
 from scoring.evaluator_vocabulary import evaluate_profanity
@@ -40,12 +40,14 @@ evaluation_signals = {
                                                       lambda score: 0.2 if score > 0.8 else 0.3 if score > 0 else 0.45),
     "tonality_capitalisation":      CredibilitySignal(evaluate_capitalisation,
                                                       lambda score: 0 if score > 0.8 else 0.3),
-    "readability":                  CredibilitySignal(evaluate_readability,
+    "readability_grades":           CredibilitySignal(evaluate_readability_grades,
                                                       lambda score: 1),
+    "readability_text_lengths":     CredibilitySignal(evaluate_text_lengths,
+                                                      lambda score: 0.8),
     "vocabulary_profanity":         CredibilitySignal(evaluate_profanity,
                                                       lambda score: 0 if score == 1 else 1),
     "clickbait":                    CredibilitySignal(evaluate_clickbait,
-                                                      lambda score: 0.3 if score > 0 else 0.6),
+                                                      lambda score: 0.3 if score > 0 else 0.8),
     "links_external":               CredibilitySignal(evaluate_links_external,
                                                       lambda score: 0.3 if score == 0 or score == 1 else 0)
 }
@@ -90,6 +92,6 @@ def evaluate_webpage(url: str) -> float:
         return -2
 
     log("[Evaluation] Individual sub-scores: {}".format(
-        [signal_name + " {}".format(round(score, 3)) for signal_name, score in scores.items()]))
+        [signal_name + " {:.3f}".format(score) for signal_name, score in scores.items()]))
 
     return final_score / weight_sum

@@ -8,16 +8,24 @@ from parsing.webpage_data import WebpageData
 from parsing.webpage_parser import has_ending_punctuation
 
 # toggle some file-specific logging messages
-LOGGING_ENABLED = False
+LOGGING_ENABLED = True
+
+# modify readability text length score (words/sentences/paragraphs sub-score gradients) given these upper limits
+WORDS_LIMIT_LOWER = 300
+WORDS_LIMIT_UPPER = 900
+SENTENCE_LIMIT_LOWER = 10
+SENTENCE_LIMIT_UPPER = 25
+PARAGRAPH_LIMIT_LOWER = 1
+PARAGRAPH_LIMIT_UPPER = 3
 
 
-def evaluate_readability(data: WebpageData) -> float:
-    """Evaluates the readability of a webpage..
+def evaluate_readability_grades(data: WebpageData) -> float:
+    """Evaluates the readability of a webpage by averaging several common readability grades.
 
     Computes and combines (with equal weight) the Flesch-Kincaid grade level, Flesch reading ease,
     Gunning-Fog, SMOG, ARI and Coleman-Liau scores of the webpage headline and main text.
 
-    :return: Combined readability score between 0 and 1, 0 indicating easy understandability (low text complexity)
+    :return: Combined readability score between 0 and 1, with 0 indicating easy understandability (low text complexity)
         and 1 indicating hard understandability (high text complexity).
     """
 
@@ -27,18 +35,18 @@ def evaluate_readability(data: WebpageData) -> float:
                        re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", data.headline + headline_ending + data.text))
     sent_tokeniser = nltk.data.load('tokenizers/punkt/english.pickle')
     tokens = sent_tokeniser.tokenize(full_text, realign_boundaries=True)
-    log("[Readability] {} sentence tokens".format(len(tokens)), LOGGING_ENABLED)
 
     read_metrics = readability.getmeasures(tokens, lang="en")
     paragraph_count = data.text.count("\n") + 1
 
     log("[Readability] Text properties: "
-        "{} char | {} syll | {} word | {} pargr | "
-        "{:.3f} char_p_w | {:.3f} syll_p_w | {:.3f} word_p_s | {:.3f} sent_p_p | "
-        "{} wrd_typ | {} long_wrd | {} compl_wrd"
+        "{} characters | {} syllables | {} words | {} sentences | {} paragraphs | "
+        "{:.3f} characters_p_w | {:.3f} syllables_p_w | {:.3f} words_p_s | {:.3f} sentences_p_p | "
+        "{} word types | {} long words | {} complex words"
         .format(read_metrics["sentence info"]["characters"],  # alphanumeric symbols and hyphens (-)
                 read_metrics["sentence info"]["syllables"],
                 read_metrics["sentence info"]["words"],  # strings of alphanumerics and hyphens (isn't = 2 words)
+                read_metrics["sentence info"]["sentences"],
                 paragraph_count,
                 read_metrics["sentence info"]["characters_per_word"],
                 read_metrics["sentence info"]["syll_per_word"],
@@ -48,15 +56,14 @@ def evaluate_readability(data: WebpageData) -> float:
                 read_metrics["sentence info"]["long_words"],
                 read_metrics["sentence info"]["complex_words"]), LOGGING_ENABLED)
     log("[Readability] Readability grades: "
-        "Fle-Kin grade {:.3f} | Fle reading ease {:.3f} | Gun-Fog {:.3f} | SMOG {:.3f} | ARI {:.3f} | Col-Liau {:.3f}"
+        "Flesch-Kincaid grade {:.3f} | Flesch reading ease {:.3f} | "
+        "Gunning-Fog {:.3f} | SMOG {:.3f} | ARI {:.3f} | Coleman-Liau {:.3f}"
         .format(read_metrics["readability grades"]["Kincaid"],
                 read_metrics["readability grades"]["FleschReadingEase"],
                 read_metrics["readability grades"]["GunningFogIndex"],
                 read_metrics["readability grades"]["SMOGIndex"],
                 read_metrics["readability grades"]["ARI"],
                 read_metrics["readability grades"]["Coleman-Liau"]), LOGGING_ENABLED)
-
-    # FIXME incorporate total words, sentence length and paragraph length minimums in score
 
     # preliminary scoring: assign highest credibility for complex text, equivalent to  11th-grade reading level
     # Flesch-Kincaid grade level score range 1-17, 11-17 best
@@ -79,3 +86,41 @@ def evaluate_readability(data: WebpageData) -> float:
     # lower median
     readability_scores.sort()
     return readability_scores[2]
+
+
+def evaluate_text_lengths(data: WebpageData) -> float:
+    """Evaluates the absolute number of words & average sentence and paragraph length of a webpage's text.
+
+    Computes subscores for overall word count, average sentence length  and paragraph length. The subscores are linear
+    from at or below *LIMIT_LOWER* (very short text/sentences/paragraphs, worst score => 1) to at or above *LIMIT_UPPER*
+    (long text/sentences/paragraphs, best score => 1). The three scores are averaged into the returned overall score,
+    with text length (word count) being double-weighted. Returns 0 if no sentence-ending punctuation is detected.
+
+    :return: Combined score for number of words & average sentence and paragraph length between 0 and 1, with 0
+    indicating very short texts with short sentences and paragraphs and 1 indicating long texts/sentences/paragraphs.
+    """
+
+    # words = strings bounded by whitespaces + 1, excluding strings consisting of a single non-alphanumeric character
+    word_count = data.text.count(" ") + 1 - len(re.findall(r"\s\W\s", data.text))
+    word_score = (word_count - WORDS_LIMIT_LOWER) / (WORDS_LIMIT_UPPER - WORDS_LIMIT_LOWER)
+    word_score = min(max(word_score, 0), 1)
+
+    # sentences = occurrences of (one or multiple) !?.
+    sentence_count = len(re.findall("[!?.]+", data.text))  # FIXME use tokenizer instead (eg Dr. = 1 sentence)
+    if sentence_count == 0:
+        log("[Readability] No sentences detected.")
+        return 0
+    sentence_length = word_count / sentence_count
+    sentence_score = (sentence_length - SENTENCE_LIMIT_LOWER) / (SENTENCE_LIMIT_UPPER - SENTENCE_LIMIT_LOWER)
+    sentence_score = min(max(sentence_score, 0), 1)
+
+    paragraph_length = sentence_count / (data.text.count("\n") + 1)
+    paragraph_score = (paragraph_length - PARAGRAPH_LIMIT_LOWER) / (PARAGRAPH_LIMIT_UPPER - PARAGRAPH_LIMIT_LOWER)
+    paragraph_score = min(max(paragraph_score, 0), 1)
+
+    log("[Readability] {} words (subscore {:.3f}) | {:.3f} average sentence length (subscore {:.3f}) | "
+        "{:.3f} average paragraph length (subscore {:.3f})".format(
+            word_count, word_score, sentence_length, sentence_score, paragraph_length, paragraph_score),
+        LOGGING_ENABLED)
+
+    return (2 * word_score + sentence_score + paragraph_score) / 4

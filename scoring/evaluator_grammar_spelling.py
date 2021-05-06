@@ -49,12 +49,12 @@ def evaluate_grammar_spelling(data: WebpageData) -> float:
             log(match, LOGGING_ENABLED)
 
     error_score = len(matches) - matches_to_ignore
-    # words = strings bounded by whitespaces, excluding strings consisting of a single non-alphanumeric character
-    word_count = len(data.headline.split()) + len(data.text.split()) - (len(re.findall(r"\s\W\s", data.headline))
+    # words = strings bounded by whitespaces + 1, excluding strings consisting of a single non-alphanumeric character
+    word_count = data.headline.count(" ") + data.text.count(" ") + 2 - (len(re.findall(r"\s\W\s", data.headline))
                                                                         + len(re.findall(r"\s\W\s", data.text)))
     error_score = 1 - (error_score / (word_count * ERROR_LIMIT))
 
-    log("[Grammar/Spelling] {} errors in {} words ({} errors ignored), {} errors per word"
-        .format(len(matches) - matches_to_ignore, word_count, matches_to_ignore, round(error_score / word_count, 3)))
+    log("[Grammar/Spelling] {} errors in {} words ({} errors ignored), {:.3f} errors per word"
+        .format(len(matches) - matches_to_ignore, word_count, matches_to_ignore, error_score / word_count))
 
     return max(error_score, 0)

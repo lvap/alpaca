@@ -32,14 +32,14 @@ def evaluate_question_marks(data: WebpageData) -> float:
     question_score_title = 0 if "?" in data.headline else 1
 
     question_marks = 0
-    sentences = 0
+    sentences = 0  # FIXME use tokenizer instead (eg Dr. = 1 sentence)
     for punctuation in re.findall("[!?.]", data.text):
         sentences += 1
         if punctuation == "?":
             question_marks += 1
 
     question_score_text = question_marks / sentences
-    log("[Tonality] Question marks per sentence: {}".format(round(question_score_text, 3)), LOGGING_ENABLED)
+    log("[Tonality] Question marks per sentence: {:.3f}".format(question_score_text), LOGGING_ENABLED)
 
     question_score_text = 1 - min(question_score_text * (1 / QUESTION_MARKS_LIMIT), 1)
     return (question_score_title + 2 * question_score_text) / 3
@@ -63,14 +63,14 @@ def evaluate_exclamation_marks(data: WebpageData) -> float:
     exclamation_score_title = 0 if "!" in data.headline else 1
 
     exclamation_marks = 0
-    sentences = 0
+    sentences = 0  # FIXME use tokenizer instead (eg Dr. = 1 sentence)
     for punctuation in re.findall("[!?.]", data.text):
         sentences += 1
         if punctuation == "!":
             exclamation_marks += 1
 
     exclamation_score_text = exclamation_marks / sentences
-    log("[Tonality] Exclamation marks per sentence: {}".format(round(exclamation_score_text, 3)), LOGGING_ENABLED)
+    log("[Tonality] Exclamation marks per sentence: {:.3f}".format(exclamation_score_text), LOGGING_ENABLED)
 
     exclamation_score_text = 1 - min(exclamation_score_text * (1 / EXCLAMATION_MARKS_LIMIT), 1)
     return (exclamation_score_title + 2 * exclamation_score_text) / 3
