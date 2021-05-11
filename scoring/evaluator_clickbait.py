@@ -15,6 +15,8 @@ from parsing.webpage_data import WebpageData
 # toggle some file-specific logging messages
 LOGGING_ENABLED = False
 
+# nltk.download("stopwords")
+
 
 def evaluate_clickbait(data: WebpageData) -> float:
     """Determines whether a webpage's headline is clickbait.
@@ -36,15 +38,14 @@ def classify_clickbait(headline: str) -> bool:
     :return: True if submitted headline is clickbait, False otherwise.
     """
 
+    # TODO perhaps turn this into a service/object to avoid reloading model/tfidf every call
+
     cleaned_headline = clean_text(headline)
     headline_words = len(cleaned_headline.split())
     question = contains_question(cleaned_headline)
     exclamation = contains_exclamation(cleaned_headline)
     starts_with_num = starts_with_number(cleaned_headline)
 
-    # nltk.download("stopwords")
-
-    # TODO perhaps turn this into a service/object to avoid reloading model/tfidf every call
     model_path = (Path(__file__).parent / "../files/nbmodel.pkl").resolve()
     tfidf_path = (Path(__file__).parent / "../files/tfidf.pkl").resolve()
 

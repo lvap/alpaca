@@ -100,10 +100,11 @@ def extract_authors(html: str) -> list[str]:
     soup = BeautifulSoup(html, "html.parser")
 
     # BBC.com
-    page_dict = json.loads("".join(soup.find("script", {"type": "application/ld+json"}).contents))
-    if page_dict and type(page_dict) is dict:
-        authors.extend(
-            [value.get("name") for (key, value) in page_dict.items() if key == "author" and value.get("name")])
+    if matches := soup.find("script", {"type": "application/ld+json"}):
+        page_dict = json.loads("".join(matches.contents))
+        if page_dict and type(page_dict) is dict:
+            authors.extend(
+                [value.get("name") for (key, value) in page_dict.items() if key == "author" and value.get("name")])
 
     # theguardian.com
     authors.extend(
