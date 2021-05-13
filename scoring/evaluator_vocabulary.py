@@ -17,6 +17,8 @@ def evaluate_profanity(data: WebpageData) -> float:
     :return: 1 for low profanity, 0 for high profanity.
     """
 
+    # TODO improve lookup performance by searching in sorted profanity list
+
     # file assumed to contain profanity strings, one word/slur per line, lower case (check is case-insensitive)
     profanity_list_path = "../files/profanity.txt"
     filepath = (Path(__file__).parent / profanity_list_path).resolve()

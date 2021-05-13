@@ -37,8 +37,8 @@ def evaluate_links_external(data: WebpageData) -> float:
                 link_domain = link_domain[4:]
 
             # check whether url is external and link text appears in article text
-            if (not local_domain.endswith(link_domain) and not link_domain.endswith(local_domain)
-                    and link.text in data.text):
+            if (not local_domain == link_domain and not local_domain.endswith("." + link_domain)
+                    and not link_domain.endswith("." + local_domain) and link.text in data.text):
                 links[link_url] = link.text
 
     log("[Links] External links: {} found".format(len(links)), not LOGGING_ENABLED)
