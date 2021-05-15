@@ -33,7 +33,7 @@ def evaluate_polarity(data: WebpageData) -> float:
 
     combined_score = (score_vader + score_spacy) / 2
 
-    log("[Sentiment] Article polarity: Average {} | SpaCy {} | VADER {}".format(
+    log("[Sentiment] Article polarity: Average {:.3f} | SpaCy {:.3f} | VADER {}".format(
         combined_score, polarity_spacy, polarity_vader), LOGGING_ENABLED)
 
     # scale combined score in interval [0.5, 1]
@@ -50,6 +50,6 @@ def evaluate_subjectivity(data: WebpageData) -> float:
     doc = nlp(data.headline + headline_ending + data.text)
     subjectivity = doc._.subjectivity
 
-    log("[Sentiment] Article subjectivity: {}".format(subjectivity), LOGGING_ENABLED)
+    log("[Sentiment] Article subjectivity: {:.3f}".format(subjectivity), LOGGING_ENABLED)
 
     return 1 - subjectivity

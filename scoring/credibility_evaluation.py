@@ -10,9 +10,10 @@ from scoring.evaluator_grammar_spelling import evaluate_grammar_spelling
 from scoring.evaluator_links import evaluate_links_external
 from scoring.evaluator_readability import evaluate_readability_grades, evaluate_text_lengths
 from scoring.evaluator_sentiment import evaluate_polarity, evaluate_subjectivity
+from scoring.evaluator_sentiment_2 import evaluate_sentiment2
 from scoring.evaluator_tonality import evaluate_exclamation_marks, evaluate_question_marks, evaluate_capitalisation
 from scoring.evaluator_url import evaluate_domain_ending
-from scoring.evaluator_vocabulary import evaluate_profanity
+from scoring.evaluator_vocabulary import evaluate_profanity, evaluate_emotional_words
 
 
 class CredibilitySignal(NamedTuple):
@@ -20,7 +21,7 @@ class CredibilitySignal(NamedTuple):
 
     :param evaluator: Returns the signal sub-score given some webpage data. Between 0 - 1 unless extended_score is True
     :param weight_func: Returns weight to be used for this signal when combining all sub-scores into the overall webpage
-    score, takes own sub-score as input.
+        score, takes own sub-score as input.
     """
     evaluator: Callable[[WebpageData], float]
     weight_func: Callable[[float], float]
@@ -46,6 +47,8 @@ evaluation_signals = {
                                                       lambda score: 0.8),
     "vocabulary_profanity":         CredibilitySignal(evaluate_profanity,
                                                       lambda score: 0 if score == 1 else 1),
+    "vocabulary_emotional_words":   CredibilitySignal(evaluate_emotional_words,
+                                                      lambda score: 0.8),
     "clickbait":                    CredibilitySignal(evaluate_clickbait,
                                                       lambda score: 0.3 if score > 0 else 0.8),
     "links_external":               CredibilitySignal(evaluate_links_external,
@@ -53,7 +56,8 @@ evaluation_signals = {
     "sentiment_polarity":           CredibilitySignal(evaluate_polarity,
                                                       lambda score: 0.8),
     "sentiment_subjectivity":       CredibilitySignal(evaluate_subjectivity,
-                                                      lambda score: 0.8)
+                                                      lambda score: 0.8),
+    # "sentiment_2":                  CredibilitySignal(evaluate_sentiment2, lambda score: 0)
 }
 
 

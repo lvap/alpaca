@@ -1,11 +1,18 @@
 import re
 from pathlib import Path
 
+import pandas as pd
+
 from logger import log
 from parsing.webpage_data import WebpageData
 
+# toggle some file-specific logging messages
+LOGGING_ENABLED = True
+
 # modify profanity score gradient given this upper limit
 MAX_PROFANITY = 3
+# multiplier for emotion intensity per words ratio to modify final emotionality score
+EMOTION_INTENSITY_MULTIPLIER = 2
 
 
 def evaluate_profanity(data: WebpageData) -> float:
@@ -17,20 +24,69 @@ def evaluate_profanity(data: WebpageData) -> float:
     :return: 1 for low profanity, 0 for high profanity.
     """
 
-    # TODO improve lookup performance by searching in sorted profanity list
-
-    # file assumed to contain profanity strings, one word/slur per line, lower case (check is case-insensitive)
+    # file containing profanity/slurs, one entry per line
     profanity_list_path = "../files/profanity.txt"
     filepath = (Path(__file__).parent / profanity_list_path).resolve()
 
     fulltext = data.headline.lower() + " " + data.text.lower()
+    profanity_matches = {}
 
-    match_count = 0
     with open(filepath, "r") as profanity_words:
         for line in profanity_words.readlines():
             if match := re.findall(r"\b" + line.strip() + r"\b", fulltext):
-                match_count += len(match)
-                log("[Vocabulary] Profanity list match: {}".format(match))
+                if match[0] in profanity_matches:
+                    profanity_matches[match[0]] += len(match)
+                else:
+                    profanity_matches[match[0]] = len(match)
 
+    log("[Vocabulary] Profanity matches: {}".format(
+        ["{} ({}x)".format(slur, occurrences) for slur, occurrences in profanity_matches.items()]), profanity_matches)
+
+    match_count = sum(profanity_matches.values())
     score = match_count * (1 / MAX_PROFANITY)
     return 1 - min(score, 1)
+
+
+def evaluate_emotional_words(data: WebpageData) -> float:
+    """TODO documentation"""
+
+    # file containing words & their degree of association with 8 emotions, one entry per line
+    emotion_list_path = "../files/emotion_intensity_list.csv"
+    filepath = (Path(__file__).parent / emotion_list_path).resolve()
+    emotional_words = pd.read_csv(filepath, sep=";")
+
+    fulltext = data.headline.lower() + " " + data.text.lower()
+    df_size = len(emotional_words)
+    word_count = 0
+
+    emotionality_results = {"anger":        {"count": 0, "intensity": 0},
+                            "anticipation": {"count": 0, "intensity": 0},
+                            "disgust":      {"count": 0, "intensity": 0},
+                            "fear":         {"count": 0, "intensity": 0},
+                            "sadness":      {"count": 0, "intensity": 0},
+                            "joy":          {"count": 0, "intensity": 0},
+                            "surprise":     {"count": 0, "intensity": 0},
+                            "trust":        {"count": 0, "intensity": 0}}
+
+    # lookup all words from article in emotional words list
+    for article_word in re.findall("[a-z]+", fulltext):
+        word_count += 1
+        match = emotional_words["word"].searchsorted(article_word)
+        if match < df_size and emotional_words.iat[match, 0] == article_word:
+            # get emotion intensity data for a word match
+            for emotion, emotion_intensity in emotional_words.iloc[match, 1:].items():
+                if emotion_intensity > 0:
+                    emotionality_results[emotion]["count"] += 1
+                    emotionality_results[emotion]["intensity"] += emotion_intensity
+
+    total_emotion_count = sum(emotion_stats["count"] for emotion_stats in emotionality_results.values())
+    total_emotion_intensity = sum(emotion_stats["intensity"] for emotion_stats in emotionality_results.values())
+
+    log("[Vocabulary] Emotionality results: {}".format(
+        ["{}: {} words, {:.3f} intensity".format(emotion, emotion_stats["count"], emotion_stats["intensity"])
+         for emotion, emotion_stats in emotionality_results.items()]), LOGGING_ENABLED)
+    log("[Vocabulary] Emotionality overall: {} words | {:.3f} intensity sum | {:.3f} intensity per word".format(
+        total_emotion_count, total_emotion_intensity, total_emotion_intensity / word_count), LOGGING_ENABLED)
+
+    emotion_score = (total_emotion_intensity * EMOTION_INTENSITY_MULTIPLIER) / word_count
+    return max(1 - emotion_score, 0)
