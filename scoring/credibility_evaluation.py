@@ -10,7 +10,7 @@ from scoring.evaluator_grammar_spelling import evaluate_grammar_spelling
 from scoring.evaluator_links import evaluate_links_external
 from scoring.evaluator_readability import evaluate_readability_grades, evaluate_text_lengths
 from scoring.evaluator_sentiment import evaluate_polarity, evaluate_subjectivity
-from scoring.evaluator_sentiment_2 import evaluate_sentiment2
+# from scoring.evaluator_sentiment_2 import evaluate_sentiment2
 from scoring.evaluator_tonality import evaluate_exclamation_marks, evaluate_question_marks, evaluate_capitalisation
 from scoring.evaluator_url import evaluate_domain_ending
 from scoring.evaluator_vocabulary import evaluate_profanity, evaluate_emotional_words

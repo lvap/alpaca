@@ -21,7 +21,7 @@ def evaluate_profanity(data: WebpageData) -> float:
     Combines and checks webpage headline and text. Profanity score is linear from 0 occurrences (best score => 1) to
     *MAX_PROFANITY* occurrences (worst score => 0).
 
-    :return: 1 for low profanity, 0 for high profanity.
+    :return: Value between 1 (low profanity) and 0 (high profanity).
     """
 
     # file containing profanity/slurs, one entry per line
@@ -48,9 +48,20 @@ def evaluate_profanity(data: WebpageData) -> float:
 
 
 def evaluate_emotional_words(data: WebpageData) -> float:
-    """TODO documentation"""
+    """Evaluates the vocabulary used by the webpage for its emotionality.
+
+    Compares all words in the headline and text against a list of emotional words with specified emotion intensity
+    values. Sums up all intensity values for any matches, scales the total sum by word count. Final score is linear
+    between 0 (worst score, words have on average at least 1 / *EMOTION_INTENSITY_MULTIPLIER* emotion intensity) and 1
+    (best score, words have 0 emotion intensity on average).
+
+    :return: Value between 0 (high emotionality) and 1 (low emotionality).
+    """
+
+    # TODO maybe limit scoring to some subset of emotions
 
     # file containing words & their degree of association with 8 emotions, one entry per line
+    # using emotion intensity lexicon by Saif M. Mohammad https://saifmohammad.com/WebPages/AffectIntensity.htm
     emotion_list_path = "../files/emotion_intensity_list.csv"
     filepath = (Path(__file__).parent / emotion_list_path).resolve()
     emotional_words = pd.read_csv(filepath, sep=";")
