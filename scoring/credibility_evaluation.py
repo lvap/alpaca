@@ -1,4 +1,3 @@
-import re
 from typing import NamedTuple, Callable
 
 import parsing.webpage_parser as parser
@@ -27,7 +26,7 @@ class CredibilitySignal(NamedTuple):
     weight_func: Callable[[float], float]
 
 
-# holds credibility signals: signal evaluator and weight functions
+# holds credibility signals with signal evaluator and weight functions
 evaluation_signals = {
     "authors":                      CredibilitySignal(evaluate_authors,
                                                       lambda score: 0.3),
@@ -72,11 +71,11 @@ def evaluate_webpage(url: str) -> float:
         Returns -1 if the webpage could not be parsed, and -2 if it could not be evaluated.
     """
 
-    data = parser.parse_data(url)
+    page_data = parser.parse_data(url)
 
     # check for valid data
-    if data is None or not re.search(r"\b\w+\b", data.headline) or len(data.text) < 50:
-        print("Webpage parsing failed.")
+    if not page_data or not page_data.url or not page_data.html or len(page_data.text) < 50:
+        print("Webpage parsing failed")
         return -1
 
     scores = {}
@@ -84,19 +83,17 @@ def evaluate_webpage(url: str) -> float:
     final_score = 0
 
     # compute sub-scores and sum up overall score via linear combination
-    # TODO possibly parellelise different signal evaluation calls to improve performance
+    # TODO possibly parellelise the signal evaluation calls to improve performance
     for signal_name, signal in evaluation_signals.items():
-        subscore = signal.evaluator(data)
+        subscore = signal.evaluator(page_data)
         weight = signal.weight_func(subscore)
         scores[signal_name] = subscore
         final_score += subscore * weight
         weight_sum += weight
 
     # check for valid scores
-    if (scores is None or len(scores) != len(evaluation_signals)
-            or not all(0 <= score <= 1 for score in scores.values())):
-        print("Computation of sub-scores failed.")
-        log(scores)
+    if not scores or len(scores) != len(evaluation_signals) or not all(0 <= score <= 1 for score in scores.values()):
+        log("[Evaluation] Error computing sub-scores: {}".format(scores))
         return -2
 
     log("[Evaluation] Individual sub-scores: {}".format(

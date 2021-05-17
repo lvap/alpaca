@@ -42,7 +42,7 @@ def evaluate_question_marks(data: WebpageData) -> float:
     log("[Tonality] Question marks per sentence: {:.3f}".format(question_score_text), LOGGING_ENABLED)
 
     question_score_text = 1 - min(question_score_text * (1 / QUESTION_MARKS_LIMIT), 1)
-    return (question_score_title + 2 * question_score_text) / 3
+    return (question_score_title + 2 * question_score_text) / 3 if data.headline else question_score_text
 
 
 def evaluate_exclamation_marks(data: WebpageData) -> float:
@@ -73,7 +73,7 @@ def evaluate_exclamation_marks(data: WebpageData) -> float:
     log("[Tonality] Exclamation marks per sentence: {:.3f}".format(exclamation_score_text), LOGGING_ENABLED)
 
     exclamation_score_text = 1 - min(exclamation_score_text * (1 / EXCLAMATION_MARKS_LIMIT), 1)
-    return (exclamation_score_title + 2 * exclamation_score_text) / 3
+    return (exclamation_score_title + 2 * exclamation_score_text) / 3 if data.headline else exclamation_score_text
 
 
 def evaluate_capitalisation(data: WebpageData) -> float:
@@ -102,7 +102,7 @@ def evaluate_capitalisation(data: WebpageData) -> float:
                 else:
                     headline_matches[word] = True
     else:
-        # entire headline is capitalised
+        # entire headline is capitalised (or empty)
         headline_capitalised = True
 
     # collect all-cap words in text

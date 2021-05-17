@@ -1,5 +1,6 @@
+import io
 import json
-import traceback
+import logging
 from urllib.parse import urlparse
 
 import trafilatura
@@ -20,34 +21,60 @@ def parse_data(url: str) -> WebpageData:
     """Extracts data necessary for credibility evaluation given a webpage's URL.
 
     Fetches HTML data, then parses article text, headline and author(s) from HTML.
-    Uses module specified in *PARSER* for text extraction.
+    Uses module specified in *PARSER* for text extraction. Webpage is assumed to be in English.
     """
 
-    try:
-        article = Article(url=url, language="en", fetch_images=False)
-        article.download()
-        article.parse()
+    article = Article(url, language="en", fetch_images=False)
+    article.download()
+    article.parse()
 
-        if article.html is None or article.html == "":
-            log("[Parsing] Could not fetch webpage.")
-            return WebpageData()
+    if not article.html:
+        log("[Parsing] Could not parse webpage html")
+        return WebpageData()
 
-        # TODO language detection (abort if not english)
+    text = _parse_text(article)
 
-        if PARSER == "trafilatura":
-            # TODO disable external logging?
-            paragraphs = trafilatura.extract(article.html, include_comments=False,
-                                             include_tables=False).split("\n")
-        elif PARSER == "newspaper":
-            paragraphs = article.text.split("\n")
-        else:
-            log("[Parsing] No text parser specified.")
-            return WebpageData()
+    if not text:
+        log("[Parsing] Could not parse webpage text")
+        return WebpageData()
 
-        authors = article.authors
-        if not authors:
-            authors = extract_authors(article.html)
+    authors = article.authors
+    if not authors:
+        authors = extract_authors(article.html)
 
+    log("[Parsing] Title: {}".format(article.title))
+    log("[Parsing] Authors: {}".format(authors))
+    log("[Parsing] Text length: {} symbols".format(len(text) - 1))
+    log("[Parsing] Text: {}".format(text[:200] + " [...] " + text[-200:]).replace("\n", " "), not LOGGING_ENABLED)
+    log("[Parsing] Full text: {}".format(text), LOGGING_ENABLED)
+
+    return WebpageData(article.html, article.title, text[:-1], authors, url)
+
+
+def _parse_text(article: Article) -> str:
+    """Parse text from an article using parser *PARSER*. Conducts some basic text cleanup.
+
+    :raise ValueError: If the text parser is unspecified or not recognised.
+    """
+
+    if PARSER == "trafilatura":
+        # redirect external logging to our own logger
+        buf = io.StringIO()
+        buf_handler = logging.StreamHandler(buf)
+        logger = logging.getLogger("trafilatura")
+        logger.propagate = False
+        logger.addHandler(buf_handler)
+        text = trafilatura.extract(article.html, include_comments=False, target_language="en", include_tables=False)
+        for message in buf.getvalue().strip().split("\n"):
+            log("[Trafilatura] " + message, LOGGING_ENABLED and message)
+
+    elif PARSER == "newspaper":
+        text = article.text
+    else:
+        raise ValueError("No text parser specified")
+
+    if text:
+        paragraphs = text.split("\n")
         # remove title if the text begins with it
         if paragraphs[0] == article.title:
             paragraphs.pop(0)
@@ -61,18 +88,7 @@ def parse_data(url: str) -> WebpageData:
             if len(pg) > 125 or (len(pg) > 40 and has_ending_punctuation(pg)):
                 text += pg + "\n"
 
-        log("[Parsing] Title: {}".format(article.title))
-        log("[Parsing] Authors: {}".format(authors))
-        log("[Parsing] Text length: {} symbols".format(len(text) - 1))
-        log("[Parsing] Text: {}".format(text[:200] + " [...] " + text[-200:]).replace("\n", " "),
-            not LOGGING_ENABLED)
-        log("[Parsing] Full text: {}".format(text), LOGGING_ENABLED)
-
-        return WebpageData(article.html, article.title, text[:-1], authors, url)
-
-    except Exception:
-        traceback.print_exc()
-        return WebpageData()
+    return text
 
 
 def has_ending_punctuation(text: str) -> bool:

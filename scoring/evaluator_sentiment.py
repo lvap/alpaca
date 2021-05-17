@@ -18,14 +18,14 @@ def evaluate_polarity(data: WebpageData) -> float:
 
     Performs sentiment analysis to determine a webpage's positivity/negativity score between -1 and 1, then looks at the
     absolute value as indicator of "extremism"/"emotionality". Final score is linear from 0 (absolute polarity is 1)
-    to 1 (absolute polarity is below *POLARITY_MINIMUM*). Uses average of spaCy and VADER sentiment analysis.
+    to 1 (absolute polarity is at most *POLARITY_MINIMUM*). Uses average of spaCy and VADER sentiment analysis.
 
     :return: Value between 0 (extreme polarity) and 1 (relatively low polarity).
     """
 
     # TODO decide on the better-performing sentiment analysis tool as indicator of credibility
 
-    headline_ending = " " if has_ending_punctuation(data.headline) else ". "
+    headline_ending = " " if has_ending_punctuation(data.headline) else ". " if data.headline else ""
     article = data.headline + headline_ending + data.text
 
     # sentiment analysis with spacy
@@ -59,7 +59,7 @@ def evaluate_subjectivity(data: WebpageData) -> float:
 
     nlp = spacy.load('en_core_web_sm')
     nlp.add_pipe("spacytextblob")
-    headline_ending = " " if has_ending_punctuation(data.headline) else ". "
+    headline_ending = " " if has_ending_punctuation(data.headline) else ". " if data.headline else ""
     doc = nlp(data.headline + headline_ending + data.text)
     subjectivity = doc._.subjectivity
 

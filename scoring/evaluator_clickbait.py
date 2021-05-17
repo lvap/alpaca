@@ -1,12 +1,11 @@
 import pickle
 import re
 import string
-import traceback
 import warnings
 from pathlib import Path
 
-import nltk
-from nltk.corpus import stopwords
+# import nltk
+# from nltk.corpus import stopwords
 from scipy import sparse
 
 from logger import log
@@ -21,24 +20,20 @@ LOGGING_ENABLED = False
 def evaluate_clickbait(data: WebpageData) -> float:
     """Determines whether a webpage's headline is clickbait.
 
-    :return: 1 if the headline is not clickbait, 0 if it is. Returns -1 if an error occurs during classification.
+    :return: 1 if the headline is not clickbait (or empty), 0 if it is.
     """
 
-    try:
-        return 0 if classify_clickbait(data.headline) else 1
+    if not data.headline:
+        return 1
 
-    except Exception:
-        traceback.print_exc()
-        return -1
+    return 0 if is_clickbait(data.headline) else 1
 
 
-def classify_clickbait(headline: str) -> bool:
+def is_clickbait(headline: str) -> bool:
     """Clickbait classifier by Alison Salerno https://github.com/AlisonSalerno/clickbait_detector
 
     :return: True if submitted headline is clickbait, False otherwise.
     """
-
-    # TODO perhaps turn this into a service/object to avoid reloading model/tfidf every call
 
     cleaned_headline = clean_text(headline)
     headline_words = len(cleaned_headline.split())
@@ -54,7 +49,7 @@ def classify_clickbait(headline: str) -> bool:
 
         # loading pickled model and tfidf vectorizer
         model = pickle.load(open(model_path, "rb"))
-        stopwords_list = stopwords.words("english")
+        # stopwords_list = stopwords.words("english")
         vectorizer = pickle.load(open(tfidf_path, "rb"))
 
         log("[Clickbait] Cleaned headline: " + cleaned_headline, LOGGING_ENABLED)

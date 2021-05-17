@@ -66,8 +66,8 @@ def evaluate_emotional_words(data: WebpageData) -> float:
     filepath = (Path(__file__).parent / emotion_list_path).resolve()
     emotional_words = pd.read_csv(filepath, sep=";")
 
-    fulltext = data.headline.lower() + " " + data.text.lower()
     df_size = len(emotional_words)
+    fulltext = data.headline.lower() + " " + data.text.lower()
     word_count = 0
 
     emotionality_results = {"anger":        {"count": 0, "intensity": 0},

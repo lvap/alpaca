@@ -31,7 +31,7 @@ def evaluate_readability_grades(data: WebpageData) -> float:
 
     # TODO analyse which readability grades perform best as indicators of credibility and exclude the others (?)
 
-    headline_ending = "\n" if has_ending_punctuation(data.headline) else ".\n"
+    headline_ending = "\n" if has_ending_punctuation(data.headline) else ".\n" if data.headline else ""
     # replace characters that are problematic for nltk.tokenize
     full_text = re.sub("[“‟„”«»❝❞⹂〝〞〟＂]", "\"",
                        re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", data.headline + headline_ending + data.text))

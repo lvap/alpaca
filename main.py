@@ -13,7 +13,7 @@ def start_service():
 
 def _handle_input():
     """Waits for and handles user input. If a valid webpage URL is submitted, retrieves and prints the webpage's
-    credibility score. Exits on input **exit** or **quit**.
+    credibility score. Terminates on input **exit** or **quit**.
     """
 
     while True:
@@ -26,13 +26,12 @@ def _handle_input():
         if valid_address(user_input):
             score = evaluate_webpage(user_input)
             if 0 <= score <= 1:
-                print("Webpage score: {:.3f} for {}".format(score, user_input))
+                print("Webpage score: {:.5f} for {}".format(score, user_input))
             else:
-                print("Score could not be calculated.")
-                log("[Main] Invalid score {}".format(score))
+                print("Score could not be calculated")
 
         else:
-            print("Invalid address.")
+            print("Invalid address")
 
 
 if __name__ == "__main__":
