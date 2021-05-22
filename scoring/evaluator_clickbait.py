@@ -23,10 +23,7 @@ def evaluate_clickbait(data: WebpageData) -> float:
     :return: 1 if the headline is not clickbait (or empty), 0 if it is.
     """
 
-    if not data.headline:
-        return 1
-
-    return 0 if is_clickbait(data.headline) else 1
+    return 0 if data.headline and is_clickbait(data.headline) else 1
 
 
 def is_clickbait(headline: str) -> bool:

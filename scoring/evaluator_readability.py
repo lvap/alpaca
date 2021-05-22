@@ -102,6 +102,8 @@ def evaluate_text_lengths(data: WebpageData) -> float:
     indicating very short texts with short sentences and paragraphs and 1 indicating long texts/sentences/paragraphs.
     """
 
+    # TODO find literature supporting correlation credibility <-> text/sentence/paragraph length
+
     # words = strings bounded by whitespaces + 1, excluding strings consisting of a single non-alphanumeric character
     word_count = data.text.count(" ") + 1 - len(re.findall(r"\s\W\s", data.text))
     word_score = (word_count - WORDS_LIMIT_LOWER) / (WORDS_LIMIT_UPPER - WORDS_LIMIT_LOWER)

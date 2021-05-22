@@ -56,7 +56,6 @@ evaluation_signals = {
                                                       lambda score: 0.8),
     "sentiment_subjectivity":       CredibilitySignal(evaluate_subjectivity,
                                                       lambda score: 0.8),
-    # "sentiment_2":                  CredibilitySignal(evaluate_sentiment2, lambda score: 0)
 }
 
 
