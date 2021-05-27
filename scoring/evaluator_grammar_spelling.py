@@ -1,15 +1,14 @@
+import logging
 import re
 
 import language_tool_python as ltp
 
-from logger import log
 from parsing.webpage_data import WebpageData
-
-# toggle some file-specific logging messages
-LOGGING_ENABLED = False
 
 # modify grammar/spelling error score gradient given this upper limit
 ERROR_LIMIT = 0.2
+
+LOGGER = logging.getLogger("alpaca")
 
 
 def evaluate_grammar_spelling(data: WebpageData) -> float:
@@ -21,6 +20,8 @@ def evaluate_grammar_spelling(data: WebpageData) -> float:
 
     :return: Value between 0 (large amount of errors) and 1 (no errors).
     """
+
+    # FIXME check chars before matches for punctuation, else assume names
 
     tool = ltp.LanguageTool("en-US")
 
@@ -43,10 +44,10 @@ def evaluate_grammar_spelling(data: WebpageData) -> float:
             if match.matchedText in unknown_words:
                 matches_to_ignore += 1
             else:
-                log(match, LOGGING_ENABLED)
+                LOGGER.debug("[Grammar-Spelling] Text error match:\n{}".format(match))
                 unknown_words.append(match.matchedText)
         else:
-            log(match, LOGGING_ENABLED)
+            LOGGER.debug("[Grammar-Spelling] Text error match:\n{}".format(match))
 
     error_score = len(matches) - matches_to_ignore
     # words = strings bounded by whitespaces + 1, excluding strings consisting of a single non-alphanumeric character
@@ -54,7 +55,7 @@ def evaluate_grammar_spelling(data: WebpageData) -> float:
                                                                         + len(re.findall(r"\s\W\s", data.text)))
     error_score = 1 - (error_score / (word_count * ERROR_LIMIT))
 
-    log("[Grammar/Spelling] {} errors in {} words ({} errors ignored), {:.3f} errors per word"
-        .format(len(matches) - matches_to_ignore, word_count, matches_to_ignore, error_score / word_count))
+    LOGGER.info("[Grammar-Spelling] {} errors in {} words ({} errors ignored), {:.3f} errors per word"
+                .format(len(matches) - matches_to_ignore, word_count, matches_to_ignore, error_score / word_count))
 
     return max(error_score, 0)

@@ -1,7 +1,7 @@
+import logging
 from typing import NamedTuple, Callable
 
 import parsing.webpage_parser as parser
-from logger import log
 from parsing.webpage_data import WebpageData
 from scoring.evaluator_authors import evaluate_authors
 from scoring.evaluator_clickbait import evaluate_clickbait
@@ -9,10 +9,11 @@ from scoring.evaluator_grammar_spelling import evaluate_grammar_spelling
 from scoring.evaluator_links import evaluate_links_external
 from scoring.evaluator_readability import evaluate_readability_grades, evaluate_text_lengths
 from scoring.evaluator_sentiment import evaluate_polarity, evaluate_subjectivity
-# from scoring.evaluator_sentiment_2 import evaluate_sentiment2
 from scoring.evaluator_tonality import evaluate_exclamation_marks, evaluate_question_marks, evaluate_capitalisation
 from scoring.evaluator_url import evaluate_domain_ending
 from scoring.evaluator_vocabulary import evaluate_profanity, evaluate_emotional_words
+
+LOGGER = logging.getLogger("alpaca")
 
 
 class CredibilitySignal(NamedTuple):
@@ -74,7 +75,7 @@ def evaluate_webpage(url: str) -> float:
 
     # check for valid data
     if not page_data or not page_data.url or not page_data.html or len(page_data.text) < 50:
-        print("Webpage parsing failed")
+        LOGGER.error("Webpage parsing failed")
         return -1
 
     scores = {}
@@ -82,7 +83,7 @@ def evaluate_webpage(url: str) -> float:
     final_score = 0
 
     # compute sub-scores and sum up overall score via linear combination
-    # TODO possibly parellelise the signal evaluation calls to improve performance
+    # TODO possibly parellelise the signal evaluation calls to boost performance
     for signal_name, signal in evaluation_signals.items():
         subscore = signal.evaluator(page_data)
         weight = signal.weight_func(subscore)
@@ -92,10 +93,12 @@ def evaluate_webpage(url: str) -> float:
 
     # check for valid scores
     if not scores or len(scores) != len(evaluation_signals) or not all(0 <= score <= 1 for score in scores.values()):
-        log("[Evaluation] Error computing sub-scores: {}".format(scores))
+        LOGGER.error("[Evaluation] Error computing sub-scores: {}".format(scores))
         return -2
 
-    log("[Evaluation] Individual sub-scores: {}".format(
+    LOGGER.info("[Evaluation] Individual sub-scores: {}".format(
         [signal_name + " {:.3f}".format(score) for signal_name, score in scores.items()]))
 
-    return final_score / weight_sum
+    final_score = final_score / weight_sum
+    LOGGER.debug("[Evaluation] Overall webpage score: {:.5f}".format(final_score))
+    return final_score

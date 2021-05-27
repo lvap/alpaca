@@ -1,14 +1,11 @@
+import logging
 import re
 
 import nltk.data
 
 import _readability as readability
-from logger import log
 from parsing.webpage_data import WebpageData
 from parsing.webpage_parser import has_ending_punctuation
-
-# toggle some file-specific logging messages
-LOGGING_ENABLED = True
 
 # modify readability text length score (words/sentences/paragraphs sub-score gradients) given these upper limits
 WORDS_LIMIT_LOWER = 300
@@ -17,6 +14,8 @@ SENTENCE_LIMIT_LOWER = 10
 SENTENCE_LIMIT_UPPER = 20
 PARAGRAPH_LIMIT_LOWER = 1
 PARAGRAPH_LIMIT_UPPER = 3
+
+LOGGER = logging.getLogger("alpaca")
 
 
 def evaluate_readability_grades(data: WebpageData) -> float:
@@ -41,31 +40,31 @@ def evaluate_readability_grades(data: WebpageData) -> float:
     read_metrics = readability.getmeasures(tokens, lang="en")
     paragraph_count = data.text.count("\n") + 1
 
-    log("[Readability] Text properties: "
-        "{} characters | {} syllables | {} words | {} sentences | {} paragraphs | "
-        "{:.3f} characters_p_w | {:.3f} syllables_p_w | {:.3f} words_p_s | {:.3f} sentences_p_p | "
-        "{} word types | {} long words | {} complex words"
-        .format(read_metrics["sentence info"]["characters"],  # alphanumeric symbols and hyphens (-)
-                read_metrics["sentence info"]["syllables"],
-                read_metrics["sentence info"]["words"],  # strings of alphanumerics and hyphens (isn't = 2 words)
-                read_metrics["sentence info"]["sentences"],
-                paragraph_count,
-                read_metrics["sentence info"]["characters_per_word"],
-                read_metrics["sentence info"]["syll_per_word"],
-                read_metrics["sentence info"]["words_per_sentence"],
-                read_metrics["sentence info"]["sentences"] / paragraph_count,
-                read_metrics["sentence info"]["wordtypes"],
-                read_metrics["sentence info"]["long_words"],
-                read_metrics["sentence info"]["complex_words"]), LOGGING_ENABLED)
-    log("[Readability] Readability grades: "
-        "Flesch-Kincaid grade {:.3f} | Flesch reading ease {:.3f} | "
-        "Gunning-Fog {:.3f} | SMOG {:.3f} | ARI {:.3f} | Coleman-Liau {:.3f}"
-        .format(read_metrics["readability grades"]["Kincaid"],
-                read_metrics["readability grades"]["FleschReadingEase"],
-                read_metrics["readability grades"]["GunningFogIndex"],
-                read_metrics["readability grades"]["SMOGIndex"],
-                read_metrics["readability grades"]["ARI"],
-                read_metrics["readability grades"]["Coleman-Liau"]), LOGGING_ENABLED)
+    LOGGER.debug("[Readability] Text properties: "
+                 "{} characters | {} syllables | {} words | {} sentences | {} paragraphs | "
+                 "{:.3f} characters_p_w | {:.3f} syllables_p_w | {:.3f} words_p_s | {:.3f} sentences_p_p | "
+                 "{} word types | {} long words | {} complex words"
+                 .format(read_metrics["sentence info"]["characters"],  # alphanumeric symbols and hyphens (-)
+                         read_metrics["sentence info"]["syllables"],
+                         read_metrics["sentence info"]["words"],  # strings of alphanumerics & hyphens (isn't = 2 words)
+                         read_metrics["sentence info"]["sentences"],
+                         paragraph_count,
+                         read_metrics["sentence info"]["characters_per_word"],
+                         read_metrics["sentence info"]["syll_per_word"],
+                         read_metrics["sentence info"]["words_per_sentence"],
+                         read_metrics["sentence info"]["sentences"] / paragraph_count,
+                         read_metrics["sentence info"]["wordtypes"],
+                         read_metrics["sentence info"]["long_words"],
+                         read_metrics["sentence info"]["complex_words"]))
+    LOGGER.debug("[Readability] Readability grades: "
+                 "Flesch-Kincaid grade {:.3f} | Flesch reading ease {:.3f} | "
+                 "Gunning-Fog {:.3f} | SMOG {:.3f} | ARI {:.3f} | Coleman-Liau {:.3f}"
+                 .format(read_metrics["readability grades"]["Kincaid"],
+                         read_metrics["readability grades"]["FleschReadingEase"],
+                         read_metrics["readability grades"]["GunningFogIndex"],
+                         read_metrics["readability grades"]["SMOGIndex"],
+                         read_metrics["readability grades"]["ARI"],
+                         read_metrics["readability grades"]["Coleman-Liau"]))
 
     # preliminary scoring: assign highest credibility for complex text, equivalent to  11th-grade reading level
     # Flesch-Kincaid grade level score range 1-17, 11-17 best
@@ -83,7 +82,7 @@ def evaluate_readability_grades(data: WebpageData) -> float:
 
     for index, score in enumerate(readability_scores):
         readability_scores[index] = 1 - max(min(score, 1), 0)
-    log("[Readability] Readability scores: {}".format([round(score, 3) for score in readability_scores]))
+    LOGGER.info("[Readability] Readability scores: {}".format([round(score, 3) for score in readability_scores]))
 
     # lower median
     readability_scores.sort()
@@ -112,7 +111,7 @@ def evaluate_text_lengths(data: WebpageData) -> float:
     # sentences = occurrences of (one or multiple) !?.
     sentence_count = len(re.findall("[!?.]+", data.text))  # FIXME use tokenizer instead (eg Dr. = 1 sentence)
     if sentence_count == 0:
-        log("[Readability] No sentences detected.")
+        LOGGER.warning("[Readability] No sentences detected.")
         return 0
     sentence_length = word_count / sentence_count
     sentence_score = (sentence_length - SENTENCE_LIMIT_LOWER) / (SENTENCE_LIMIT_UPPER - SENTENCE_LIMIT_LOWER)
@@ -122,9 +121,8 @@ def evaluate_text_lengths(data: WebpageData) -> float:
     paragraph_score = (paragraph_length - PARAGRAPH_LIMIT_LOWER) / (PARAGRAPH_LIMIT_UPPER - PARAGRAPH_LIMIT_LOWER)
     paragraph_score = min(max(paragraph_score, 0), 1)
 
-    log("[Readability] {} words (subscore {:.3f}) | {:.3f} average sentence length (subscore {:.3f}) | "
-        "{:.3f} average paragraph length (subscore {:.3f})".format(
-            word_count, word_score, sentence_length, sentence_score, paragraph_length, paragraph_score),
-        LOGGING_ENABLED)
+    LOGGER.debug("[Readability] {} words (subscore {:.3f}) | {:.3f} average sentence length (subscore {:.3f}) | "
+                 "{:.3f} average paragraph length (subscore {:.3f})"
+                 .format(word_count, word_score, sentence_length, sentence_score, paragraph_length, paragraph_score))
 
     return (2 * word_score + sentence_score + paragraph_score) / 4

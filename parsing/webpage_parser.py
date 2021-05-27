@@ -7,14 +7,12 @@ import trafilatura
 from bs4 import BeautifulSoup
 from newspaper import Article
 
-from logger import log
 from parsing.webpage_data import WebpageData
-
-# toggle some file-specific logging messages
-LOGGING_ENABLED = False
 
 # parser used for text extraction from html data
 PARSER = "trafilatura"
+
+LOGGER = logging.getLogger("alpaca")
 
 
 def parse_data(url: str) -> WebpageData:
@@ -27,26 +25,24 @@ def parse_data(url: str) -> WebpageData:
     article = Article(url, language="en", fetch_images=False)
     article.download()
     article.parse()
-
     if not article.html:
-        log("[Parsing] Could not parse webpage html")
+        LOGGER.error("[Parsing] Could not parse webpage html")
         return WebpageData()
 
     text = _parse_text(article)
-
     if not text:
-        log("[Parsing] Could not parse webpage text")
+        LOGGER.error("[Parsing] Could not parse webpage text")
         return WebpageData()
 
     authors = article.authors
     if not authors:
         authors = extract_authors(article.html)
 
-    log("[Parsing] Title: {}".format(article.title))
-    log("[Parsing] Authors: {}".format(authors))
-    log("[Parsing] Text length: {} symbols".format(len(text) - 1))
-    log("[Parsing] Text: {}".format(text[:200] + " [...] " + text[-200:]).replace("\n", " "), not LOGGING_ENABLED)
-    log("[Parsing] Full text: {}".format(text), LOGGING_ENABLED)
+    LOGGER.info("[Parsing] Title: {}".format(article.title))
+    LOGGER.info("[Parsing] Authors: {}".format(authors))
+    LOGGER.info("[Parsing] Text length: {} symbols".format(len(text) - 1))
+    LOGGER.info("[Parsing] Text: {}".format(text[:200] + " [...] " + text[-200:]).replace("\n", " "))
+    # LOGGER.debug("[Parsing] Full text: {}".format(text))
 
     return WebpageData(article.html, article.title, text[:-1], authors, url)
 
@@ -59,16 +55,15 @@ def _parse_text(article: Article) -> str:
 
     if PARSER == "trafilatura":
         # redirect external logging to our own logger
-        ext_logger = logging.getLogger("trafilatura")
-        logger_state = ext_logger.propagate
-        ext_logger.propagate = False
+        traf_logger = logging.getLogger("trafilatura")
+        traf_logger.propagate = False
         buf = io.StringIO()
         buf_handler = logging.StreamHandler(buf)
-        ext_logger.addHandler(buf_handler)
+        traf_logger.addHandler(buf_handler)
         text = trafilatura.extract(article.html, include_comments=False, target_language="en", include_tables=False)
         for message in buf.getvalue().strip().split("\n"):
-            log("[Trafilatura] " + message, LOGGING_ENABLED and message)
-        ext_logger.propagate = logger_state
+            if message:
+                LOGGER.debug("[Parsing>Trafilatura] " + message)
 
     elif PARSER == "newspaper":
         text = article.text
@@ -129,5 +124,6 @@ def extract_authors(html: str) -> list[str]:
         [meta_author.get("content") for meta_author in soup.findAll("meta", attrs={"property": "article:author"})
          if meta_author.get("content")])
 
-    log("[Parsing] {} additional author(s) detected".format(len(authors)), LOGGING_ENABLED and authors)
+    if authors:
+        LOGGER.info("[Parsing] {} additional author(s) detected".format(len(authors)))
     return authors

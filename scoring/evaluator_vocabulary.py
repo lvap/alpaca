@@ -1,18 +1,17 @@
+import logging
 import re
 from pathlib import Path
 
 import pandas as pd
 
-from logger import log
 from parsing.webpage_data import WebpageData
-
-# toggle some file-specific logging messages
-LOGGING_ENABLED = True
 
 # modify profanity score gradient given this upper limit
 MAX_PROFANITY = 3
 # multiplier for emotion intensity per words ratio to modify final emotionality score
 EMOTION_INTENSITY_MULTIPLIER = 2
+
+LOGGER = logging.getLogger("alpaca")
 
 
 def evaluate_profanity(data: WebpageData) -> float:
@@ -39,8 +38,9 @@ def evaluate_profanity(data: WebpageData) -> float:
                 else:
                     profanity_matches[match[0]] = len(match)
 
-    log("[Vocabulary] Profanity matches: {}".format(
-        ["{} ({}x)".format(slur, occurrences) for slur, occurrences in profanity_matches.items()]), profanity_matches)
+    if profanity_matches:
+        LOGGER.info("[Vocabulary] Profanity matches: {}"
+                    .format(["{} ({}x)".format(slur, occurrences) for slur, occurrences in profanity_matches.items()]))
 
     match_count = sum(profanity_matches.values())
     score = match_count * (1 / MAX_PROFANITY)
@@ -58,7 +58,7 @@ def evaluate_emotional_words(data: WebpageData) -> float:
     :return: Value between 0 (high emotionality) and 1 (low emotionality).
     """
 
-    # TODO maybe limit scoring to some subset of emotions
+    # TODO possibly limit scoring to some subset of emotions
 
     # file containing words & their degree of association with 8 emotions, one entry per line
     # using emotion intensity lexicon by Saif M. Mohammad https://saifmohammad.com/WebPages/AffectIntensity.htm
@@ -93,11 +93,11 @@ def evaluate_emotional_words(data: WebpageData) -> float:
     total_emotion_count = sum(emotion_stats["count"] for emotion_stats in emotionality_results.values())
     total_emotion_intensity = sum(emotion_stats["intensity"] for emotion_stats in emotionality_results.values())
 
-    log("[Vocabulary] Emotionality results: {}".format(
+    LOGGER.debug("[Vocabulary] Emotionality results: {}".format(
         ["{}: {} words, {:.3f} intensity".format(emotion, emotion_stats["count"], emotion_stats["intensity"])
-         for emotion, emotion_stats in emotionality_results.items()]), LOGGING_ENABLED)
-    log("[Vocabulary] Emotionality overall: {} words | {:.3f} intensity sum | {:.3f} intensity per word".format(
-        total_emotion_count, total_emotion_intensity, total_emotion_intensity / word_count), LOGGING_ENABLED)
+         for emotion, emotion_stats in emotionality_results.items()]))
+    LOGGER.debug("[Vocabulary] Emotionality overall: {} words | {:.3f} intensity | {:.3f} intensity per word".format(
+        total_emotion_count, total_emotion_intensity, total_emotion_intensity / word_count))
 
     emotion_score = (total_emotion_intensity * EMOTION_INTENSITY_MULTIPLIER) / word_count
     return max(1 - emotion_score, 0)

@@ -1,3 +1,4 @@
+import logging
 from pathlib import Path
 
 import fasttext
@@ -6,16 +7,14 @@ import spacy
 from spacytextblob.spacytextblob import SpacyTextBlob
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-from logger import log
 from parsing.webpage_data import WebpageData
 from parsing.webpage_parser import has_ending_punctuation
 
-# toggle some file-specific logging messages
-LOGGING_ENABLED = True
-
-# TODO check project for division by 0 through constants
+# FIXME check project for division by 0 through constants
 # lower limit for polarity scores (upper limit is 1)
 POLARITY_MINIMUM = 0.5
+
+LOGGER = logging.getLogger("alpaca")
 
 
 def evaluate_polarity(data: WebpageData) -> float:
@@ -28,7 +27,8 @@ def evaluate_polarity(data: WebpageData) -> float:
     :return: Value between 0 (extreme polarity) and 1 (relatively low polarity).
     """
 
-    # TODO decide on the better-performing sentiment analysis tool(s) as indicator of credibility, remove others
+    # TODO decide on the better-performing sentiment analysis tool(s) as indicator of credibility
+    # TODO possibly separate in headline / text
 
     headline_ending = " " if has_ending_punctuation(data.headline) else ". " if data.headline else ""
     article = data.headline + headline_ending + data.text
@@ -56,10 +56,10 @@ def evaluate_polarity(data: WebpageData) -> float:
     score_ft = 1 - score_ft
 
     np.set_printoptions(precision=3)
-    log("[Sentiment] Article polarity raw: SpaCy {:.3f} | VADER {} | FastText {}".format(
-        polarity_spacy, polarity_vader, sentiment_ft[0]), LOGGING_ENABLED)
-    log("[Sentiment] Article polarity scores: SpaCy {:.3f} | VADER {:.3f} | FastText {:.3f}".format(
-        score_spacy, score_vader, score_ft), LOGGING_ENABLED)
+    LOGGER.debug("[Sentiment] Article polarity raw: SpaCy {:.3f} | VADER {} | FastText {}"
+                 .format(polarity_spacy, polarity_vader, sentiment_ft[0]))
+    LOGGER.debug("[Sentiment] Article polarity scores: SpaCy {:.3f} | VADER {:.3f} | FastText {:.3f}"
+                 .format(score_spacy, score_vader, score_ft))
 
     combined_score = (score_spacy + score_vader + score_ft) / 3
     combined_score = min(1 - combined_score, 1)
@@ -78,7 +78,7 @@ def evaluate_subjectivity(data: WebpageData) -> float:
     doc = nlp(data.headline + headline_ending + data.text)
     subjectivity = doc._.subjectivity
 
-    log("[Sentiment] Article subjectivity: {:.3f}".format(subjectivity), LOGGING_ENABLED)
+    LOGGER.debug("[Sentiment] Article subjectivity: {:.3f}".format(subjectivity))
 
     return 1 - subjectivity
 

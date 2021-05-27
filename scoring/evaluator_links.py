@@ -1,16 +1,15 @@
+import logging
 from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
 
-from logger import log
 from parsing.webpage_data import WebpageData
 from parsing.webpage_parser import valid_address
 
-# toggle some file-specific logging messages
-LOGGING_ENABLED = False
-
 # modify external links score gradient given this threshold
 LINKS_EXTERNAL_THRESHOLD = 3
+
+LOGGER = logging.getLogger("alpaca")
 
 
 def evaluate_links_external(data: WebpageData) -> float:
@@ -41,8 +40,8 @@ def evaluate_links_external(data: WebpageData) -> float:
                     and not link_domain.endswith("." + local_domain) and link.text in data.text):
                 links[link_url] = link.text
 
-    log("[Links] External links: {} found".format(len(links)), not LOGGING_ENABLED)
-    log("[Links] External links: {}".format(links), LOGGING_ENABLED)
+    LOGGER.info("[Links] {} external links found".format(len(links)))
+    LOGGER.debug("[Links] External links: {}".format(links))
 
     score = len(links) / LINKS_EXTERNAL_THRESHOLD
     return min(score, 1)

@@ -1,20 +1,15 @@
+import logging
 import pickle
 import re
 import string
 import warnings
 from pathlib import Path
 
-# import nltk
-# from nltk.corpus import stopwords
 from scipy import sparse
 
-from logger import log
 from parsing.webpage_data import WebpageData
 
-# toggle some file-specific logging messages
-LOGGING_ENABLED = False
-
-# nltk.download("stopwords")
+LOGGER = logging.getLogger("alpaca")
 
 
 def evaluate_clickbait(data: WebpageData) -> float:
@@ -46,10 +41,11 @@ def is_clickbait(headline: str) -> bool:
 
         # loading pickled model and tfidf vectorizer
         model = pickle.load(open(model_path, "rb"))
+        # nltk.download("stopwords")
         # stopwords_list = stopwords.words("english")
         vectorizer = pickle.load(open(tfidf_path, "rb"))
 
-        log("[Clickbait] Cleaned headline: " + cleaned_headline, LOGGING_ENABLED)
+        LOGGER.debug("[Clickbait] Cleaned headline: " + cleaned_headline)
 
         vectorizer_input = [cleaned_headline]
         vectorized = vectorizer.transform(vectorizer_input)

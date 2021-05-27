@@ -1,10 +1,7 @@
+import logging
 import re
 
 from parsing.webpage_data import WebpageData
-from logger import log
-
-# toggle some file-specific logging messages
-LOGGING_ENABLED = False
 
 # modify punctuation scores gradient given these upper limits
 QUESTION_MARKS_LIMIT = 0.15
@@ -12,6 +9,8 @@ EXCLAMATION_MARKS_LIMIT = 0.05
 # modify capitalisation score gradient given these upper limits
 ALL_CAPS_MAX_TITLE = 2
 ALL_CAPS_MAX_TEXT = 10
+
+LOGGER = logging.getLogger("alpaca")
 
 
 def evaluate_question_marks(data: WebpageData) -> float:
@@ -26,7 +25,7 @@ def evaluate_question_marks(data: WebpageData) -> float:
 
     # penalise double question marks
     if "??" in data.headline or "??" in data.text:
-        log("[Tonality] Double question marks detected", LOGGING_ENABLED)
+        LOGGER.debug("[Tonality] Double question marks detected in headline or text")
         return 0
 
     question_score_title = 0 if "?" in data.headline else 1
@@ -39,7 +38,7 @@ def evaluate_question_marks(data: WebpageData) -> float:
             question_marks += 1
 
     question_score_text = question_marks / sentences
-    log("[Tonality] Question marks per sentence: {:.3f}".format(question_score_text), LOGGING_ENABLED)
+    LOGGER.debug("[Tonality] Question marks per sentence: {:.3f}".format(question_score_text))
 
     question_score_text = 1 - min(question_score_text * (1 / QUESTION_MARKS_LIMIT), 1)
     return (question_score_title + 2 * question_score_text) / 3 if data.headline else question_score_text
@@ -57,7 +56,7 @@ def evaluate_exclamation_marks(data: WebpageData) -> float:
 
     # penalise double exclamation marks
     if "!!" in data.headline or "!!" in data.text:
-        log("[Tonality] Double exclamation marks detected", LOGGING_ENABLED)
+        LOGGER.debug("[Tonality] Double exclamation marks detected in headline or text")
         return 0
 
     exclamation_score_title = 0 if "!" in data.headline else 1
@@ -70,7 +69,7 @@ def evaluate_exclamation_marks(data: WebpageData) -> float:
             exclamation_marks += 1
 
     exclamation_score_text = exclamation_marks / sentences
-    log("[Tonality] Exclamation marks per sentence: {:.3f}".format(exclamation_score_text), LOGGING_ENABLED)
+    LOGGER.debug("[Tonality] Exclamation marks per sentence: {:.3f}".format(exclamation_score_text))
 
     exclamation_score_text = 1 - min(exclamation_score_text * (1 / EXCLAMATION_MARKS_LIMIT), 1)
     return (exclamation_score_title + 2 * exclamation_score_text) / 3 if data.headline else exclamation_score_text
@@ -116,26 +115,26 @@ def evaluate_capitalisation(data: WebpageData) -> float:
 
     # compute headline sub-score
     headline_score = 0
-    all_cap_words_title = []
+    all_caps_title = []
     if not headline_capitalised:
         for match, match_value in headline_matches.items():
             if match_value:
-                all_cap_words_title.append(match)
+                all_caps_title.append(match)
                 headline_score += 1
         headline_score = 1 - (headline_score / ALL_CAPS_MAX_TITLE)
         headline_score = max(headline_score, 0)
 
     # compute text body sub-score
     text_score = 0
-    all_cap_words_text = []
+    all_caps_text = []
     for match, match_value in text_matches.items():
         if match_value:
-            all_cap_words_text.append(match)
+            all_caps_text.append(match)
             text_score += 1
     text_score = 1 - (text_score / ALL_CAPS_MAX_TEXT)
     text_score = max(text_score, 0)
 
-    log("[Tonality] All capitalised words: Title {} | Text {}".format(all_cap_words_title, all_cap_words_text),
-        all_cap_words_title or all_cap_words_text)
+    if all_caps_title or all_caps_text:
+        LOGGER.info("[Tonality] All capitalised words: Title {} | Text {}".format(all_caps_title, all_caps_text))
 
     return (headline_score + text_score) / 2 if not headline_capitalised else text_score

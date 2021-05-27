@@ -1,13 +1,18 @@
-from logger import log
+import logging
+
 from parsing.webpage_parser import valid_address
 from scoring.credibility_evaluation import evaluate_webpage
 
-# toggle some file-specific logging messages
-LOGGING_ENABLED = True
+# logging message threshold
+LOGGER_LEVEL = logging.INFO
+
+logger = logging.getLogger("alpaca")
 
 
 def start_service():
-    log("[Main] Alpaca init", LOGGING_ENABLED)
+    logger.setLevel(LOGGER_LEVEL)
+
+    logger.info("[Main] Alpaca init")
     _handle_input()
 
 
@@ -20,7 +25,7 @@ def _handle_input():
         user_input = input("\nEnter webpage address: ")
 
         if user_input.lower() in ["exit", "quit"]:
-            log("[Main] Alpaca end", LOGGING_ENABLED)
+            logger.info("[Main] Alpaca end")
             break
 
         if valid_address(user_input):
@@ -28,10 +33,10 @@ def _handle_input():
             if 0 <= score <= 1:
                 print("Webpage score: {:.5f} for {}".format(score, user_input))
             else:
-                print("Score could not be calculated")
+                logger.error("Score could not be calculated")
 
         else:
-            print("Invalid address")
+            logger.error("Invalid address")
 
 
 if __name__ == "__main__":
