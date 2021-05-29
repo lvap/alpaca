@@ -1,6 +1,8 @@
 import logging
 import re
 
+from nltk import sent_tokenize
+
 from parsing.webpage_data import WebpageData
 
 # modify punctuation scores gradient given these upper limits
@@ -9,6 +11,10 @@ EXCLAMATION_MARKS_LIMIT = 0.05
 # modify capitalisation score gradient given these upper limits
 ALL_CAPS_MAX_TITLE = 2
 ALL_CAPS_MAX_TEXT = 10
+
+# boundary checks
+if QUESTION_MARKS_LIMIT <= 0 or EXCLAMATION_MARKS_LIMIT <= 0 or ALL_CAPS_MAX_TITLE <= 0 or ALL_CAPS_MAX_TEXT <= 0:
+    raise ValueError("A constant for punctuation evaluation is set incorrectly")
 
 LOGGER = logging.getLogger("alpaca")
 
@@ -30,17 +36,15 @@ def evaluate_question_marks(data: WebpageData) -> float:
 
     question_score_title = 0 if "?" in data.headline else 1
 
-    question_marks = 0
-    sentences = 0  # FIXME use tokenizer instead (eg Dr. = 1 sentence)
-    for punctuation in re.findall("[!?.]", data.text):
-        sentences += 1
-        if punctuation == "?":
-            question_marks += 1
+    # replace symbols that are problematic for nltk.tokenize
+    text = re.sub("[“‟„”«»❝❞⹂〝〞〟＂]", "\"", re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", data.text))
+    sentences = len(sent_tokenize(text))
 
+    question_marks = data.text.count("?")
     question_score_text = question_marks / sentences
     LOGGER.debug("[Tonality] Question marks per sentence: {:.3f}".format(question_score_text))
 
-    question_score_text = 1 - min(question_score_text * (1 / QUESTION_MARKS_LIMIT), 1)
+    question_score_text = 1 - min(question_score_text / QUESTION_MARKS_LIMIT, 1)
     return (question_score_title + 2 * question_score_text) / 3 if data.headline else question_score_text
 
 
@@ -61,17 +65,15 @@ def evaluate_exclamation_marks(data: WebpageData) -> float:
 
     exclamation_score_title = 0 if "!" in data.headline else 1
 
-    exclamation_marks = 0
-    sentences = 0  # FIXME use tokenizer instead (eg Dr. = 1 sentence)
-    for punctuation in re.findall("[!?.]", data.text):
-        sentences += 1
-        if punctuation == "!":
-            exclamation_marks += 1
+    # replace symbols that are problematic for nltk.tokenize
+    text = re.sub("[“‟„”«»❝❞⹂〝〞〟＂]", "\"", re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", data.text))
+    sentences = len(sent_tokenize(text))
 
+    exclamation_marks = data.text.count("!")
     exclamation_score_text = exclamation_marks / sentences
     LOGGER.debug("[Tonality] Exclamation marks per sentence: {:.3f}".format(exclamation_score_text))
 
-    exclamation_score_text = 1 - min(exclamation_score_text * (1 / EXCLAMATION_MARKS_LIMIT), 1)
+    exclamation_score_text = 1 - min(exclamation_score_text / EXCLAMATION_MARKS_LIMIT, 1)
     return (exclamation_score_title + 2 * exclamation_score_text) / 3 if data.headline else exclamation_score_text
 
 

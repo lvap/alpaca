@@ -1,4 +1,6 @@
+import io
 import logging
+from contextlib import redirect_stderr
 from pathlib import Path
 
 import fasttext
@@ -10,9 +12,12 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 from parsing.webpage_data import WebpageData
 from parsing.webpage_parser import has_ending_punctuation
 
-# FIXME check project for division by 0 through constants
-# lower limit for polarity scores (upper limit is 1)
+# lower limit for polarity scores (greater than 0, lower than 1)
 POLARITY_MINIMUM = 0.5
+
+# boundary check
+if not 0 < POLARITY_MINIMUM < 1:
+    raise ValueError("POLARITY_MINIMUM must be greater than 0 and lower than 1.")
 
 LOGGER = logging.getLogger("alpaca")
 
@@ -45,9 +50,9 @@ def evaluate_polarity(data: WebpageData) -> float:
     # for now we are only interested in the degree of polarity, not the direction
     score_spacy = abs(polarity_spacy)
     score_vader = abs(polarity_vader["compound"])
-    # scale polarity scores into interval [0.5, 1]
-    score_spacy = max((score_spacy - POLARITY_MINIMUM) / POLARITY_MINIMUM, 0)
-    score_vader = max((score_vader - POLARITY_MINIMUM) / POLARITY_MINIMUM, 0)
+    # scale polarity scores from interval [POLARITY_MINIMUM, 1]
+    score_spacy = 1 - max((score_spacy - POLARITY_MINIMUM) / POLARITY_MINIMUM, 0)
+    score_vader = 1 - max((score_vader - POLARITY_MINIMUM) / POLARITY_MINIMUM, 0)
 
     # sentiment analysis using fasttext
     text_ft = _tokenizer(article.replace("\n", " ")).lower()
@@ -61,9 +66,7 @@ def evaluate_polarity(data: WebpageData) -> float:
     LOGGER.debug("[Sentiment] Article polarity scores: SpaCy {:.3f} | VADER {:.3f} | FastText {:.3f}"
                  .format(score_spacy, score_vader, score_ft))
 
-    combined_score = (score_spacy + score_vader + score_ft) / 3
-    combined_score = min(1 - combined_score, 1)
-    return combined_score
+    return (score_spacy + score_vader + score_ft) / 3
 
 
 def evaluate_subjectivity(data: WebpageData) -> float:
@@ -89,7 +92,12 @@ def _sentiment_analyser(texts: list[str]) -> np.array([float, ...]):
     :return: TODO documentation"""
 
     model_path = (Path(__file__).parent / "../files/sst5_hyperopt.ftz").resolve()
-    classifier = fasttext.load_model(str(model_path))  # FIXME avoid newline for this call
+    # redirect external error prints to our own logger
+    with redirect_stderr(io.StringIO()) as buf:
+        classifier = fasttext.load_model(str(model_path))
+        for message in buf.getvalue().strip().split("\n"):
+            if message:
+                LOGGER.debug("[Sentiment>FastText] " + message)
 
     labels, probs = classifier.predict(texts, 5)
 

@@ -1,7 +1,7 @@
 import logging
 import re
 
-import nltk.data
+from nltk import sent_tokenize
 
 import _readability as readability
 from parsing.webpage_data import WebpageData
@@ -14,6 +14,12 @@ SENTENCE_LIMIT_LOWER = 10
 SENTENCE_LIMIT_UPPER = 20
 PARAGRAPH_LIMIT_LOWER = 1
 PARAGRAPH_LIMIT_UPPER = 3
+
+# boundary checks
+if (WORDS_LIMIT_LOWER < 1 or SENTENCE_LIMIT_LOWER < 1 or PARAGRAPH_LIMIT_LOWER < 1
+        or WORDS_LIMIT_UPPER <= WORDS_LIMIT_LOWER or SENTENCE_LIMIT_UPPER <= SENTENCE_LIMIT_LOWER
+        or PARAGRAPH_LIMIT_UPPER <= PARAGRAPH_LIMIT_LOWER):
+    raise ValueError("A constant for text length evaluation is set incorrectly")
 
 LOGGER = logging.getLogger("alpaca")
 
@@ -30,12 +36,12 @@ def evaluate_readability_grades(data: WebpageData) -> float:
 
     # TODO analyse which readability grades perform best as indicators of credibility and exclude the others (?)
 
+    # TODO remove/split headline?
     headline_ending = "\n" if has_ending_punctuation(data.headline) else ".\n" if data.headline else ""
     # replace characters that are problematic for nltk.tokenize
     full_text = re.sub("[“‟„”«»❝❞⹂〝〞〟＂]", "\"",
                        re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", data.headline + headline_ending + data.text))
-    sent_tokeniser = nltk.data.load('tokenizers/punkt/english.pickle')
-    tokens = sent_tokeniser.tokenize(full_text, realign_boundaries=True)
+    tokens = sent_tokenize(full_text)
 
     read_metrics = readability.getmeasures(tokens, lang="en")
     paragraph_count = data.text.count("\n") + 1
@@ -103,13 +109,16 @@ def evaluate_text_lengths(data: WebpageData) -> float:
 
     # TODO find literature supporting correlation credibility <-> text/sentence/paragraph length
 
-    # words = strings bounded by whitespaces + 1, excluding strings consisting of a single non-alphanumeric character
+    # word score
+    # words are strings bounded by whitespaces + 1, excluding strings consisting of a single non-alphanumeric character
     word_count = data.text.count(" ") + 1 - len(re.findall(r"\s\W\s", data.text))
     word_score = (word_count - WORDS_LIMIT_LOWER) / (WORDS_LIMIT_UPPER - WORDS_LIMIT_LOWER)
     word_score = min(max(word_score, 0), 1)
 
-    # sentences = occurrences of (one or multiple) !?.
-    sentence_count = len(re.findall("[!?.]+", data.text))  # FIXME use tokenizer instead (eg Dr. = 1 sentence)
+    # sentence score
+    # replace symbols that are problematic for nltk.tokenize
+    text = re.sub("[“‟„”«»❝❞⹂〝〞〟＂]", "\"", re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", data.text))
+    sentence_count = len(sent_tokenize(text))
     if sentence_count == 0:
         LOGGER.warning("[Readability] No sentences detected.")
         return 0
@@ -117,6 +126,7 @@ def evaluate_text_lengths(data: WebpageData) -> float:
     sentence_score = (sentence_length - SENTENCE_LIMIT_LOWER) / (SENTENCE_LIMIT_UPPER - SENTENCE_LIMIT_LOWER)
     sentence_score = min(max(sentence_score, 0), 1)
 
+    # paragraph score
     paragraph_length = sentence_count / (data.text.count("\n") + 1)
     paragraph_score = (paragraph_length - PARAGRAPH_LIMIT_LOWER) / (PARAGRAPH_LIMIT_UPPER - PARAGRAPH_LIMIT_LOWER)
     paragraph_score = min(max(paragraph_score, 0), 1)

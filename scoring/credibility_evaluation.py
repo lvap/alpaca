@@ -44,7 +44,7 @@ evaluation_signals = {
     "readability_grades":           CredibilitySignal(evaluate_readability_grades,
                                                       lambda score: 0.8),
     "readability_text_lengths":     CredibilitySignal(evaluate_text_lengths,
-                                                      lambda score: 0.8),
+                                                      lambda score: 0.6),
     "vocabulary_profanity":         CredibilitySignal(evaluate_profanity,
                                                       lambda score: 0 if score == 1 else 1),
     "vocabulary_emotional_words":   CredibilitySignal(evaluate_emotional_words,
@@ -56,7 +56,7 @@ evaluation_signals = {
     "sentiment_polarity":           CredibilitySignal(evaluate_polarity,
                                                       lambda score: 0.8),
     "sentiment_subjectivity":       CredibilitySignal(evaluate_subjectivity,
-                                                      lambda score: 0.8),
+                                                      lambda score: 0.6),
 }
 
 

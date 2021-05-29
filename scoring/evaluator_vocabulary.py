@@ -11,6 +11,10 @@ MAX_PROFANITY = 3
 # multiplier for emotion intensity per words ratio to modify final emotionality score
 EMOTION_INTENSITY_MULTIPLIER = 2
 
+# boundary checks
+if MAX_PROFANITY <= 0 or EMOTION_INTENSITY_MULTIPLIER <= 0:
+    raise ValueError("A constant for vacabulary evaluation is set incorrectly")
+
 LOGGER = logging.getLogger("alpaca")
 
 
@@ -43,7 +47,7 @@ def evaluate_profanity(data: WebpageData) -> float:
                     .format(["{} ({}x)".format(slur, occurrences) for slur, occurrences in profanity_matches.items()]))
 
     match_count = sum(profanity_matches.values())
-    score = match_count * (1 / MAX_PROFANITY)
+    score = match_count / MAX_PROFANITY
     return 1 - min(score, 1)
 
 

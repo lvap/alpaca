@@ -9,6 +9,10 @@ from parsing.webpage_parser import valid_address
 # modify external links score gradient given this threshold
 LINKS_EXTERNAL_THRESHOLD = 3
 
+# boundary check
+if LINKS_EXTERNAL_THRESHOLD < 1:
+    raise ValueError("LINKS_EXTRERNAL_THRESHOLD must be equal or greater than 1")
+
 LOGGER = logging.getLogger("alpaca")
 
 

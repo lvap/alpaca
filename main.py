@@ -12,6 +12,7 @@ logger = logging.getLogger("alpaca")
 
 
 def start_service():
+    # TODO possibly add option to print logging to a file
     logger.setLevel(LOGGER_LEVEL)
 
     logger.info("[Main] Alpaca init")

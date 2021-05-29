@@ -55,15 +55,18 @@ def _parse_text(article: Article) -> str:
 
     if PARSER == "trafilatura":
         # redirect external logging to our own logger
-        traf_logger = logging.getLogger("trafilatura")
-        traf_logger.propagate = False
-        buf = io.StringIO()
-        buf_handler = logging.StreamHandler(buf)
-        traf_logger.addHandler(buf_handler)
-        text = trafilatura.extract(article.html, include_comments=False, target_language="en", include_tables=False)
-        for message in buf.getvalue().strip().split("\n"):
-            if message:
-                LOGGER.debug("[Parsing>Trafilatura] " + message)
+        with io.StringIO() as buf:
+            traf_logger = logging.getLogger("trafilatura")
+            propagate_state = traf_logger.propagate
+            traf_logger.propagate = False
+            buf_handler = logging.StreamHandler(buf)
+            traf_logger.addHandler(buf_handler)
+            text = trafilatura.extract(article.html, include_comments=False, target_language="en", include_tables=False)
+            traf_logger.removeHandler(buf_handler)
+            traf_logger.propagate = propagate_state
+            for message in buf.getvalue().strip().split("\n"):
+                if message:
+                    LOGGER.debug("[Parsing>Trafilatura] " + message)
 
     elif PARSER == "newspaper":
         text = article.text

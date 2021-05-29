@@ -5,11 +5,14 @@ import language_tool_python as ltp
 import spacy
 
 from parsing.webpage_data import WebpageData
-
-# modify grammar/spelling error score gradient given this upper limit
 from parsing.webpage_parser import has_ending_punctuation
 
+# modify grammar/spelling error score gradient given this upper limit
 ERROR_LIMIT = 0.2
+
+# boundary check
+if not 0 < ERROR_LIMIT < 1:
+    raise ValueError("ERROR_LIMIT must be greater than 0 and lower than 1.")
 
 LOGGER = logging.getLogger("alpaca")
 
@@ -18,8 +21,8 @@ def evaluate_grammar_spelling(data: WebpageData) -> float:
     """Evaluates a webpage's language correctness.
 
     Determines how many spelling or grammar errors were encountered on the page and scales this value
-    by overall word count. Specifically, the returned score is linear from 0 errors per word (no errors,
-    best score => 1) to *ERRORS_LIMIT* errors per word (large amount of errors, worst score => 0).
+    by overall word count. Specifically, the returned score is linear from 0 unique errors per word (no errors,
+    best score => 1) to *ERRORS_LIMIT* unique errors per word (large amount of errors, worst score => 0).
 
     :return: Value between 0 (large amount of errors) and 1 (no errors).
     """
@@ -38,24 +41,18 @@ def evaluate_grammar_spelling(data: WebpageData) -> float:
     if matches and matches[len(matches) - 1].ruleId == "PUNCTUATION_PARAGRAPH_END":
         # ignore error for missing punctuation at title ending
         matches.pop()
-    # headline_matches = len(matches)
     matches += tool.check(data.text)
 
-    # filter out irrelevant matches and penalise spelling errors only once (probably not actual errors)
+    # filter out irrelevant matches and penalise errors only once
     unknown_words = []
-    for index, match in enumerate(matches):
-        if (match.ruleId in ["EN_QUOTES", "DASH_RULE", "EXTREME_ADJECTIVES"]
-                or match.category == "REDUNDANCY" or "is British English" in match.message
-                or any(match.matchedText in name for name in names)):
+    for match in matches:
+        if (match.ruleId in ["EN_QUOTES", "DASH_RULE", "EXTREME_ADJECTIVES"] or match.category == "REDUNDANCY"
+                or "is British English" in match.message or match.matchedText in unknown_words
+                or ("Possible spelling mistake" in match.message and any(match.matchedText in name for name in names))):
             matches_to_ignore += 1
-            continue
-        elif "Possible spelling mistake" in match.message:
-            if match.matchedText in unknown_words:
-                matches_to_ignore += 1
-                continue
-            else:
-                unknown_words.append(match.matchedText)
-        LOGGER.debug("[Grammar-Spelling] Text error:\n{}".format(match))
+        else:
+            unknown_words.append(match.matchedText)
+            LOGGER.debug("[Grammar-Spelling] Text error:\n{}".format(match))
 
     error_score = len(matches) - matches_to_ignore
     word_count = data.headline.count(" ") + data.text.count(" ") + 2 if data.headline else data.text.count(" ") + 1
