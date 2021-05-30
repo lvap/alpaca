@@ -19,33 +19,29 @@ POLARITY_MINIMUM = 0.5
 if not 0 < POLARITY_MINIMUM < 1:
     raise ValueError("POLARITY_MINIMUM must be greater than 0 and lower than 1.")
 
-LOGGER = logging.getLogger("alpaca")
+logger = logging.getLogger("alpaca")
 
 
-def evaluate_polarity(data: WebpageData) -> float:
-    """Evaluates the polarity of the webpage through sentiment analysis.
+def evaluate_polarity_text(data: WebpageData) -> float:
+    """Evaluates the polarity of the webpage' text through sentiment analysis.
 
-    Performs sentiment analysis to determine a webpage's positivity/negativity score between -1 and 1, then looks at the
+    Performs sentiment analysis to determine a positivity/negativity score between -1 and 1, then looks at the
     absolute value as indicator of "extremism"/"emotionality". Final score is linear from 0 (absolute polarity is 1)
-    to 1 (absolute polarity is at most *POLARITY_MINIMUM*). Uses average of spaCy and VADER sentiment analysis.
+    to 1 (absolute polarity is at most *POLARITY_MINIMUM*). TODO documentation when decided on a single system
 
-    :return: Value between 0 (extreme polarity) and 1 (relatively low polarity).
+    :return: Value between 0 (extreme polarity/sentiment) and 1 (relatively low polarity/sentiment).
     """
 
     # TODO decide on the better-performing sentiment analysis tool(s) as indicator of credibility
-    # TODO possibly separate in headline / text
-
-    headline_ending = " " if has_ending_punctuation(data.headline) else ". " if data.headline else ""
-    article = data.headline + headline_ending + data.text
 
     # sentiment analysis with spacy
     nlp = spacy.load('en_core_web_sm')
     nlp.add_pipe("spacytextblob")
-    doc = nlp(article)
+    doc = nlp(data.text)
     polarity_spacy = doc._.polarity
 
     # sentiment analysis with vader
-    polarity_vader = SentimentIntensityAnalyzer().polarity_scores(article)
+    polarity_vader = SentimentIntensityAnalyzer().polarity_scores(data.text)
 
     # for now we are only interested in the degree of polarity, not the direction
     score_spacy = abs(polarity_spacy)
@@ -55,15 +51,58 @@ def evaluate_polarity(data: WebpageData) -> float:
     score_vader = 1 - max((score_vader - POLARITY_MINIMUM) / POLARITY_MINIMUM, 0)
 
     # sentiment analysis using fasttext
-    text_ft = _tokenizer(article.replace("\n", " ")).lower()
+    text_ft = _tokenizer(data.text.replace("\n", " ")).lower()
     sentiment_ft = _sentiment_analyser([text_ft])
     score_ft = sentiment_ft[0][0] + sentiment_ft[0][4]  # sum of extreme sentiments
     score_ft = 1 - score_ft
 
     np.set_printoptions(precision=3)
-    LOGGER.debug("[Sentiment] Article polarity raw: SpaCy {:.3f} | VADER {} | FastText {}"
+    logger.debug("[Sentiment] Text polarity raw: SpaCy {:.3f} | VADER {} | FastText {}"
                  .format(polarity_spacy, polarity_vader, sentiment_ft[0]))
-    LOGGER.debug("[Sentiment] Article polarity scores: SpaCy {:.3f} | VADER {:.3f} | FastText {:.3f}"
+    logger.info("[Sentiment] Text polarity scores: SpaCy {:.3f} | VADER {:.3f} | FastText {:.3f}"
+                 .format(score_spacy, score_vader, score_ft))
+
+    return (score_spacy + score_vader + score_ft) / 3
+
+
+def evaluate_polarity_headline(data: WebpageData) -> float:
+    """Evaluates the polarity of the webpage's headline through sentiment analysis.
+
+    Performs sentiment analysis to determine a webpage's positivity/negativity score between -1 and 1, then looks at the
+    absolute value as indicator of "extremism"/"emotionality". Final score is linear from 0 (absolute polarity is 1)
+    to 1 (absolute polarity is at most *POLARITY_MINIMUM*). TODO documentation when decided on a single system
+
+    :return: Value between 0 (extreme polarity/sentiment) and 1 (relatively low polarity/sentiment).
+    """
+
+    # TODO decide on the better-performing sentiment analysis tool(s) as indicator of credibility
+
+    # sentiment analysis with spacy
+    nlp = spacy.load('en_core_web_sm')
+    nlp.add_pipe("spacytextblob")
+    doc = nlp(data.headline)
+    polarity_spacy = doc._.polarity
+
+    # sentiment analysis with vader
+    polarity_vader = SentimentIntensityAnalyzer().polarity_scores(data.headline)
+
+    # for now we are only interested in the degree of polarity, not the direction
+    score_spacy = abs(polarity_spacy)
+    score_vader = abs(polarity_vader["compound"])
+    # scale polarity scores from interval [POLARITY_MINIMUM, 1]
+    score_spacy = 1 - max((score_spacy - POLARITY_MINIMUM) / POLARITY_MINIMUM, 0)
+    score_vader = 1 - max((score_vader - POLARITY_MINIMUM) / POLARITY_MINIMUM, 0)
+
+    # sentiment analysis using fasttext
+    text_ft = _tokenizer(data.headline.replace("\n", " ")).lower()
+    sentiment_ft = _sentiment_analyser([text_ft])
+    score_ft = sentiment_ft[0][0] + sentiment_ft[0][4]  # sum of extreme sentiments
+    score_ft = 1 - score_ft
+
+    np.set_printoptions(precision=3)
+    logger.debug("[Sentiment] Headline polarity raw: SpaCy {:.3f} | VADER {} | FastText {}"
+                 .format(polarity_spacy, polarity_vader, sentiment_ft[0]))
+    logger.info("[Sentiment] Headline polarity scores: SpaCy {:.3f} | VADER {:.3f} | FastText {:.3f}"
                  .format(score_spacy, score_vader, score_ft))
 
     return (score_spacy + score_vader + score_ft) / 3
@@ -81,7 +120,7 @@ def evaluate_subjectivity(data: WebpageData) -> float:
     doc = nlp(data.headline + headline_ending + data.text)
     subjectivity = doc._.subjectivity
 
-    LOGGER.debug("[Sentiment] Article subjectivity: {:.3f}".format(subjectivity))
+    logger.debug("[Sentiment] Article subjectivity: {:.3f}".format(subjectivity))
 
     return 1 - subjectivity
 
@@ -98,7 +137,7 @@ def _sentiment_analyser(texts: list[str]) -> np.array([float, ...]):
         classifier = fasttext.load_model(str(model_path))
         for message in buf.getvalue().strip().split("\n"):
             if message:
-                LOGGER.debug("[Sentiment>FastText] " + message)
+                logger.debug("[Sentiment>FastText] " + message)
 
     labels, probs = classifier.predict(texts, 5)
 

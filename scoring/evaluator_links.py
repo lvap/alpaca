@@ -13,7 +13,7 @@ LINKS_EXTERNAL_THRESHOLD = 3
 if LINKS_EXTERNAL_THRESHOLD < 1:
     raise ValueError("LINKS_EXTRERNAL_THRESHOLD must be equal or greater than 1")
 
-LOGGER = logging.getLogger("alpaca")
+logger = logging.getLogger("alpaca")
 
 
 def evaluate_links_external(data: WebpageData) -> float:
@@ -44,8 +44,8 @@ def evaluate_links_external(data: WebpageData) -> float:
                     and not link_domain.endswith("." + local_domain) and link.text in data.text):
                 links[link_url] = link.text
 
-    LOGGER.info("[Links] {} external links found".format(len(links)))
-    LOGGER.debug("[Links] External links: {}".format(links))
+    logger.info("[Links] {} external links found".format(len(links)))
+    logger.debug("[Links] External links: {}".format(links))
 
     score = len(links) / LINKS_EXTERNAL_THRESHOLD
     return min(score, 1)

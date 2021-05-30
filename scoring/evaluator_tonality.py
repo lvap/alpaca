@@ -1,8 +1,6 @@
 import logging
 import re
 
-from nltk import sent_tokenize
-
 from parsing.webpage_data import WebpageData
 
 # modify punctuation scores gradient given these upper limits
@@ -16,7 +14,7 @@ ALL_CAPS_MAX_TEXT = 10
 if QUESTION_MARKS_LIMIT <= 0 or EXCLAMATION_MARKS_LIMIT <= 0 or ALL_CAPS_MAX_TITLE <= 0 or ALL_CAPS_MAX_TEXT <= 0:
     raise ValueError("A constant for punctuation evaluation is set incorrectly")
 
-LOGGER = logging.getLogger("alpaca")
+logger = logging.getLogger("alpaca")
 
 
 def evaluate_question_marks(data: WebpageData) -> float:
@@ -31,18 +29,15 @@ def evaluate_question_marks(data: WebpageData) -> float:
 
     # penalise double question marks
     if "??" in data.headline or "??" in data.text:
-        LOGGER.debug("[Tonality] Double question marks detected in headline or text")
+        logger.debug("[Tonality] Double question marks detected in headline or text")
         return 0
 
     question_score_title = 0 if "?" in data.headline else 1
 
-    # replace symbols that are problematic for nltk.tokenize
-    text = re.sub("[“‟„”«»❝❞⹂〝〞〟＂]", "\"", re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", data.text))
-    sentences = len(sent_tokenize(text))
-
     question_marks = data.text.count("?")
+    sentences = len(data.tokenized_text)
     question_score_text = question_marks / sentences
-    LOGGER.debug("[Tonality] Question marks per sentence: {:.3f}".format(question_score_text))
+    logger.debug("[Tonality] Question marks per sentence: {:.3f}".format(question_score_text))
 
     question_score_text = 1 - min(question_score_text / QUESTION_MARKS_LIMIT, 1)
     return (question_score_title + 2 * question_score_text) / 3 if data.headline else question_score_text
@@ -60,18 +55,15 @@ def evaluate_exclamation_marks(data: WebpageData) -> float:
 
     # penalise double exclamation marks
     if "!!" in data.headline or "!!" in data.text:
-        LOGGER.debug("[Tonality] Double exclamation marks detected in headline or text")
+        logger.debug("[Tonality] Double exclamation marks detected in headline or text")
         return 0
 
     exclamation_score_title = 0 if "!" in data.headline else 1
 
-    # replace symbols that are problematic for nltk.tokenize
-    text = re.sub("[“‟„”«»❝❞⹂〝〞〟＂]", "\"", re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", data.text))
-    sentences = len(sent_tokenize(text))
-
     exclamation_marks = data.text.count("!")
+    sentences = len(data.tokenized_text)
     exclamation_score_text = exclamation_marks / sentences
-    LOGGER.debug("[Tonality] Exclamation marks per sentence: {:.3f}".format(exclamation_score_text))
+    logger.debug("[Tonality] Exclamation marks per sentence: {:.3f}".format(exclamation_score_text))
 
     exclamation_score_text = 1 - min(exclamation_score_text / EXCLAMATION_MARKS_LIMIT, 1)
     return (exclamation_score_title + 2 * exclamation_score_text) / 3 if data.headline else exclamation_score_text
@@ -137,6 +129,6 @@ def evaluate_capitalisation(data: WebpageData) -> float:
     text_score = max(text_score, 0)
 
     if all_caps_title or all_caps_text:
-        LOGGER.info("[Tonality] All capitalised words: Title {} | Text {}".format(all_caps_title, all_caps_text))
+        logger.info("[Tonality] All capitalised words: Title {} | Text {}".format(all_caps_title, all_caps_text))
 
     return (headline_score + text_score) / 2 if not headline_capitalised else text_score

@@ -1,18 +1,20 @@
 import io
 import json
 import logging
+import re
 from urllib.parse import urlparse
 
 import trafilatura
 from bs4 import BeautifulSoup
 from newspaper import Article
+from nltk import sent_tokenize
 
 from parsing.webpage_data import WebpageData
 
 # parser used for text extraction from html data
 PARSER = "trafilatura"
 
-LOGGER = logging.getLogger("alpaca")
+logger = logging.getLogger("alpaca")
 
 
 def parse_data(url: str) -> WebpageData:
@@ -26,25 +28,32 @@ def parse_data(url: str) -> WebpageData:
     article.download()
     article.parse()
     if not article.html:
-        LOGGER.error("[Parsing] Could not parse webpage html")
+        logger.error("[Parsing] Could not parse webpage html")
         return WebpageData()
 
     text = _parse_text(article)
     if not text:
-        LOGGER.error("[Parsing] Could not parse webpage text")
+        logger.error("[Parsing] Could not parse webpage text")
         return WebpageData()
 
     authors = article.authors
     if not authors:
-        authors = extract_authors(article.html)
+        authors = _extract_authors(article.html)
 
-    LOGGER.info("[Parsing] Title: {}".format(article.title))
-    LOGGER.info("[Parsing] Authors: {}".format(authors))
-    LOGGER.info("[Parsing] Text length: {} symbols".format(len(text) - 1))
-    LOGGER.info("[Parsing] Text: {}".format(text[:200] + " [...] " + text[-200:]).replace("\n", " "))
-    # LOGGER.debug("[Parsing] Full text: {}".format(text))
+    # tokenize text into list of sentences
+    # replace symbols that are problematic for nltk.tokenize
+    tokenized_text = sent_tokenize(re.sub("[“‟„”«»❝❞⹂〝〞〟＂]", "\"", re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", text)))
+    if not tokenized_text or len(tokenized_text) < 1:
+        logger.error("[Parsing] Could not tokenize text")
+        return WebpageData()
 
-    return WebpageData(article.html, article.title, text[:-1], authors, url)
+    logger.info("[Parsing] Title: {}".format(article.title))
+    logger.info("[Parsing] Authors: {}".format(authors))
+    logger.info("[Parsing] Text length: {} symbols, {} sentences".format(len(text) - 1, len(tokenized_text)))
+    logger.info("[Parsing] Text: {}".format(text[:200] + " [...] " + text[-200:-1]).replace("\n", " "))
+    # logger.debug("[Parsing] Full text: {}".format(text[:-1]))
+
+    return WebpageData(article.html, article.title, text[:-1], authors, url, tokenized_text)
 
 
 def _parse_text(article: Article) -> str:
@@ -66,7 +75,7 @@ def _parse_text(article: Article) -> str:
             traf_logger.propagate = propagate_state
             for message in buf.getvalue().strip().split("\n"):
                 if message:
-                    LOGGER.debug("[Parsing>Trafilatura] " + message)
+                    logger.debug("[Parsing>Trafilatura] " + message)
 
     elif PARSER == "newspaper":
         text = article.text
@@ -91,25 +100,7 @@ def _parse_text(article: Article) -> str:
     return text
 
 
-def has_ending_punctuation(text: str) -> bool:
-    """Checks whether the text ending (last three characters) contains any of . ! ? :"""
-
-    ending_punctuation = set(".!?:")
-    # evaluate the last 3 characters of text to allow for parentheses and quotation marks
-    return any((char in ending_punctuation) for char in text[-3:])
-
-
-def valid_address(user_input: str) -> bool:
-    """Returns True if the given string is a valid http or https URL, False otherwise."""
-
-    try:
-        result = urlparse(user_input)
-        return all([result.scheme, result.netloc, result.path]) and result.scheme in ["http", "https"]
-    except ValueError:
-        return False
-
-
-def extract_authors(html: str) -> list[str]:
+def _extract_authors(html: str) -> list[str]:
     """Extracts web article author(s) for specific html site structures."""
 
     authors = []
@@ -128,5 +119,23 @@ def extract_authors(html: str) -> list[str]:
          if meta_author.get("content")])
 
     if authors:
-        LOGGER.info("[Parsing] {} additional author(s) detected".format(len(authors)))
+        logger.info("[Parsing] {} additional author(s) detected: ".format(len(authors), authors))
     return authors
+
+
+def has_ending_punctuation(text: str) -> bool:
+    """Checks whether the text ending (last three characters) contains any of . ! ? :"""
+
+    ending_punctuation = set(".!?:")
+    # evaluate the last 3 characters of text to allow for parentheses and quotation marks
+    return any((char in ending_punctuation) for char in text[-3:])
+
+
+def valid_address(user_input: str) -> bool:
+    """Returns True if the given string is a valid http or https URL, False otherwise."""
+
+    try:
+        result = urlparse(user_input)
+        return all([result.scheme, result.netloc, result.path]) and result.scheme in ["http", "https"]
+    except ValueError:
+        return False

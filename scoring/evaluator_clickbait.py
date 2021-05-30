@@ -9,7 +9,7 @@ from scipy import sparse
 
 from parsing.webpage_data import WebpageData
 
-LOGGER = logging.getLogger("alpaca")
+logger = logging.getLogger("alpaca")
 
 
 def evaluate_clickbait(data: WebpageData) -> float:
@@ -45,7 +45,7 @@ def is_clickbait(headline: str) -> bool:
         # stopwords_list = stopwords.words("english")
         vectorizer = pickle.load(open(tfidf_path, "rb"))
 
-        LOGGER.debug("[Clickbait] Cleaned headline: " + cleaned_headline)
+        logger.debug("[Clickbait] Cleaned headline: " + cleaned_headline)
 
         vectorizer_input = [cleaned_headline]
         vectorized = vectorizer.transform(vectorizer_input)

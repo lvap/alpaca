@@ -13,9 +13,11 @@ class WebpageData:
                  headline: str = "",
                  text: str = "",
                  authors: list[str] = [],
-                 url: str = ""):
+                 url: str = "",
+                 tokenized_text: list[str] = None):
         self.html = html
         self.headline = headline
         self.text = text
         self.authors = authors
         self.url = url
+        self.tokenized_text = tokenized_text or []

@@ -15,7 +15,7 @@ EMOTION_INTENSITY_MULTIPLIER = 2
 if MAX_PROFANITY <= 0 or EMOTION_INTENSITY_MULTIPLIER <= 0:
     raise ValueError("A constant for vacabulary evaluation is set incorrectly")
 
-LOGGER = logging.getLogger("alpaca")
+logger = logging.getLogger("alpaca")
 
 
 def evaluate_profanity(data: WebpageData) -> float:
@@ -43,7 +43,7 @@ def evaluate_profanity(data: WebpageData) -> float:
                     profanity_matches[match[0]] = len(match)
 
     if profanity_matches:
-        LOGGER.info("[Vocabulary] Profanity matches: {}"
+        logger.info("[Vocabulary] Profanity matches: {}"
                     .format(["{} ({}x)".format(slur, occurrences) for slur, occurrences in profanity_matches.items()]))
 
     match_count = sum(profanity_matches.values())
@@ -74,14 +74,14 @@ def evaluate_emotional_words(data: WebpageData) -> float:
     fulltext = data.headline.lower() + " " + data.text.lower()
     word_count = 0
 
-    emotionality_results = {"anger":        {"count": 0, "intensity": 0},
+    emotionality_results = {"anger": {"count": 0, "intensity": 0},
                             "anticipation": {"count": 0, "intensity": 0},
-                            "disgust":      {"count": 0, "intensity": 0},
-                            "fear":         {"count": 0, "intensity": 0},
-                            "sadness":      {"count": 0, "intensity": 0},
-                            "joy":          {"count": 0, "intensity": 0},
-                            "surprise":     {"count": 0, "intensity": 0},
-                            "trust":        {"count": 0, "intensity": 0}}
+                            "disgust": {"count": 0, "intensity": 0},
+                            "fear": {"count": 0, "intensity": 0},
+                            "sadness": {"count": 0, "intensity": 0},
+                            "joy": {"count": 0, "intensity": 0},
+                            "surprise": {"count": 0, "intensity": 0},
+                            "trust": {"count": 0, "intensity": 0}}
 
     # lookup all words from article in emotional words list
     for article_word in re.findall("[a-z]+", fulltext):
@@ -97,10 +97,10 @@ def evaluate_emotional_words(data: WebpageData) -> float:
     total_emotion_count = sum(emotion_stats["count"] for emotion_stats in emotionality_results.values())
     total_emotion_intensity = sum(emotion_stats["intensity"] for emotion_stats in emotionality_results.values())
 
-    LOGGER.debug("[Vocabulary] Emotionality results: {}".format(
+    logger.debug("[Vocabulary] Emotionality results: {}".format(
         ["{}: {} words, {:.3f} intensity".format(emotion, emotion_stats["count"], emotion_stats["intensity"])
          for emotion, emotion_stats in emotionality_results.items()]))
-    LOGGER.debug("[Vocabulary] Emotionality overall: {} words | {:.3f} intensity | {:.3f} intensity per word".format(
+    logger.debug("[Vocabulary] Emotionality overall: {} words | {:.3f} intensity | {:.3f} intensity per word".format(
         total_emotion_count, total_emotion_intensity, total_emotion_intensity / word_count))
 
     emotion_score = (total_emotion_intensity * EMOTION_INTENSITY_MULTIPLIER) / word_count

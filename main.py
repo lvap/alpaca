@@ -1,6 +1,5 @@
 import logging
 import os
-
 from datetime import datetime
 from pathlib import Path
 
@@ -57,7 +56,7 @@ def _handle_input():
 
         else:
             print("Invalid address")
-            logger.debug("[Main] Invalid address.")
+            logger.debug("[Main] Invalid address")
 
 
 if __name__ == "__main__":

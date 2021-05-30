@@ -14,7 +14,7 @@ ERROR_LIMIT = 0.2
 if not 0 < ERROR_LIMIT < 1:
     raise ValueError("ERROR_LIMIT must be greater than 0 and lower than 1.")
 
-LOGGER = logging.getLogger("alpaca")
+logger = logging.getLogger("alpaca")
 
 
 def evaluate_grammar_spelling(data: WebpageData) -> float:
@@ -33,7 +33,7 @@ def evaluate_grammar_spelling(data: WebpageData) -> float:
     doc = nlp(data.headline + headline_ending + data.text)
     entities = ["ORG", "PERSON", "NORP", "FACILITY", "GPE", "LOC", "PRODUCT", "EVENT", "WORK_OF_ART", "LAW"]
     names = [ent.text for ent in doc.ents if ent.label_ in entities]
-    LOGGER.debug("[Grammar-Spelling] Recognised named entities: {}".format(names))
+    logger.debug("[Grammar-Spelling] {} recognised named entities: {}".format(len(names), names))
 
     tool = ltp.LanguageTool("en-US")
     matches = tool.check(data.headline)
@@ -52,7 +52,7 @@ def evaluate_grammar_spelling(data: WebpageData) -> float:
             matches_to_ignore += 1
         else:
             unknown_words.append(match.matchedText)
-            LOGGER.debug("[Grammar-Spelling] Text error:\n{}".format(match))
+            logger.debug("[Grammar-Spelling] Text error:\n{}".format(match))
 
     error_score = len(matches) - matches_to_ignore
     word_count = data.headline.count(" ") + data.text.count(" ") + 2 if data.headline else data.text.count(" ") + 1
@@ -60,7 +60,7 @@ def evaluate_grammar_spelling(data: WebpageData) -> float:
     word_count -= len(re.findall(r"\s\W\s", data.headline)) + len(re.findall(r"\s\W\s", data.text))
     error_score = 1 - (error_score / (word_count * ERROR_LIMIT))
 
-    LOGGER.info("[Grammar-Spelling] {} errors in {} words ({} errors ignored), {:.3f} errors per word"
+    logger.info("[Grammar-Spelling] {} errors in {} words ({} errors ignored), {:.3f} errors per word"
                 .format(len(matches) - matches_to_ignore, word_count, matches_to_ignore, error_score / word_count))
 
     return max(error_score, 0)
