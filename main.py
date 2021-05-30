@@ -6,13 +6,13 @@ from pathlib import Path
 from parsing.webpage_parser import valid_address
 from scoring.credibility_evaluation import evaluate_webpage
 
-# logging output settings
+# logging output settings per stream (set to None to disable)
 LOG_LEVEL_CONSOLE = logging.INFO
 LOG_LEVEL_FILE = logging.DEBUG
 
 logger = logging.getLogger("alpaca")
 
-# set up logging
+# initialise logging
 logger.setLevel(logging.DEBUG)
 logger.propagate = False
 if LOG_LEVEL_CONSOLE:

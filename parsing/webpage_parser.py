@@ -119,7 +119,7 @@ def _extract_authors(html: str) -> list[str]:
          if meta_author.get("content")])
 
     if authors:
-        logger.info("[Parsing] {} additional author(s) detected: ".format(len(authors), authors))
+        logger.debug("[Parsing] {} additional author(s) detected: {}".format(len(authors), authors))
     return authors
 
 

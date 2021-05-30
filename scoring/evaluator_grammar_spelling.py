@@ -31,8 +31,8 @@ def evaluate_grammar_spelling(data: WebpageData) -> float:
     headline_ending = " " if has_ending_punctuation(data.headline) else ". " if data.headline else ""
     nlp = spacy.load("en_core_web_sm")
     doc = nlp(data.headline + headline_ending + data.text)
-    entities = ["ORG", "PERSON", "NORP", "FACILITY", "GPE", "LOC", "PRODUCT", "EVENT", "WORK_OF_ART", "LAW"]
-    names = [ent.text for ent in doc.ents if ent.label_ in entities]
+    entities = ["PERSON", "NORP", "FAC", "FACILITY", "ORG", "GPE", "LOC", "PRODUCT", "EVENT", "WORK_OF_ART", "LAW"]
+    names = set([ent.text for ent in doc.ents if ent.label_ in entities])
     logger.debug("[Grammar-Spelling] {} recognised named entities: {}".format(len(names), names))
 
     tool = ltp.LanguageTool("en-US")
@@ -48,7 +48,8 @@ def evaluate_grammar_spelling(data: WebpageData) -> float:
     for match in matches:
         if (match.ruleId in ["EN_QUOTES", "DASH_RULE", "EXTREME_ADJECTIVES"] or match.category == "REDUNDANCY"
                 or "is British English" in match.message or match.matchedText in unknown_words
-                or ("Possible spelling mistake" in match.message and any(match.matchedText in name for name in names))):
+                or ("Possible spelling mistake" in match.message
+                    and any(match.matchedText in name.split() for name in names))):
             matches_to_ignore += 1
         else:
             unknown_words.append(match.matchedText)
