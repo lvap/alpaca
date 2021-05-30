@@ -1,6 +1,9 @@
 # project folders
-.idea
+.idea/
 venv/
 
 # build files
 __pycache__/
+
+# logs
+.tmp/

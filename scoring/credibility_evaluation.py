@@ -75,7 +75,7 @@ def evaluate_webpage(url: str) -> float:
 
     # check for valid data
     if not page_data or not page_data.url or not page_data.html or len(page_data.text) < 50:
-        LOGGER.error("Webpage parsing failed")
+        LOGGER.error("[Evaluation] Webpage parsing failed")
         return -1
 
     scores = {}
@@ -100,5 +100,5 @@ def evaluate_webpage(url: str) -> float:
         [signal_name + " {:.3f}".format(score) for signal_name, score in scores.items()]))
 
     final_score = final_score / weight_sum
-    LOGGER.debug("[Evaluation] Overall webpage score: {:.5f}".format(final_score))
+    LOGGER.debug("[Evaluation] Overall webpage score: {:.5f} for {}".format(final_score, url))
     return final_score
