@@ -4,6 +4,7 @@ import re
 import language_tool_python as ltp
 import spacy
 
+import test
 from parsing.webpage_data import WebpageData
 from parsing.webpage_parser import has_ending_punctuation
 
@@ -35,13 +36,13 @@ def evaluate_grammar_spelling(data: WebpageData) -> float:
     names = set([ent.text for ent in doc.ents if ent.label_ in entities])
     logger.debug("[Grammar-Spelling] {} recognised named entities: {}".format(len(names), names))
 
-    tool = ltp.LanguageTool("en-US")
-    matches = tool.check(data.headline)
+    lang_tool = ltp.LanguageTool("en-US")
+    matches = lang_tool.check(data.headline)
     matches_to_ignore = 0
     if matches and matches[len(matches) - 1].ruleId == "PUNCTUATION_PARAGRAPH_END":
         # ignore error for missing punctuation at title ending
         matches.pop()
-    matches += tool.check(data.text)
+    matches += lang_tool.check(data.text)
 
     # filter out irrelevant matches and penalise errors only once
     unknown_words = []
@@ -63,5 +64,6 @@ def evaluate_grammar_spelling(data: WebpageData) -> float:
 
     logger.info("[Grammar-Spelling] {} errors in {} words ({} errors ignored), {:.3f} errors per word"
                 .format(len(matches) - matches_to_ignore, word_count, matches_to_ignore, error_score / word_count))
+    test.add_result(data.url, "grammar_spelling_errors", error_score / word_count)
 
     return max(error_score, 0)

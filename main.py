@@ -1,13 +1,15 @@
+import atexit
 import logging
 import os
 from datetime import datetime
 from pathlib import Path
 
+import test
 from parsing.webpage_parser import valid_address
 from scoring.credibility_evaluation import evaluate_webpage
 
 # logging output settings per stream (set to None to disable)
-LOG_LEVEL_CONSOLE = logging.INFO
+LOG_LEVEL_CONSOLE = logging.WARNING
 LOG_LEVEL_FILE = logging.DEBUG
 
 logger = logging.getLogger("alpaca")
@@ -29,8 +31,9 @@ if LOG_LEVEL_FILE:
     logger.addHandler(filehandler)
 
 
-def start_service():
+def alpaca_init():
     logger.info("[Main] Alpaca init")
+    atexit.register(test.results_to_csv)
     _handle_input()
 
 
@@ -60,4 +63,4 @@ def _handle_input():
 
 
 if __name__ == "__main__":
-    start_service()
+    alpaca_init()

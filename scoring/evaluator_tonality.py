@@ -17,6 +17,8 @@ if QUESTION_MARKS_LIMIT <= 0 or EXCLAMATION_MARKS_LIMIT <= 0 or ALL_CAPS_MAX_TIT
 logger = logging.getLogger("alpaca")
 
 
+# TODO split tonality into headline/text body?
+
 def evaluate_question_marks(data: WebpageData) -> float:
     """Evaluates webpage question mark usage.
 

@@ -2,6 +2,7 @@ import logging
 from typing import NamedTuple, Callable
 
 import parsing.webpage_parser as parser
+import test
 from parsing.webpage_data import WebpageData
 from scoring.evaluator_authors import evaluate_authors
 from scoring.evaluator_clickbait import evaluate_clickbait
@@ -30,35 +31,35 @@ class CredibilitySignal(NamedTuple):
 # holds credibility signals with signal evaluator and weight functions
 evaluation_signals = {
     "authors":                      CredibilitySignal(evaluate_authors,
-                                                      lambda score, wd: 0.3),
+                                                      lambda score, d: 0.3),
     "url_domain_ending":            CredibilitySignal(evaluate_domain_ending,
-                                                      lambda score, wd: 0.2 if score == 1 else 0),
+                                                      lambda score, d: 0.2 if score == 1 else 0),
     "grammar_spelling":             CredibilitySignal(evaluate_grammar_spelling,
-                                                      lambda score, wd: 0.3 if score > 0.8 else 0.45),
+                                                      lambda score, d: 0.3 if score > 0.8 else 0.45),
     "tonality_question_marks":      CredibilitySignal(evaluate_question_marks,
-                                                      lambda score, wd: 0.2 if score > 0 else 0.3),
+                                                      lambda score, d: 0.2 if score > 0 else 0.3),
     "tonality_exclamation_marks":   CredibilitySignal(evaluate_exclamation_marks,
-                                                      lambda sc, wd: 0.2 if sc > 0.8 else 0.3 if sc > 0 else 0.45),
+                                                      lambda sc, d: 0.2 if sc > 0.8 else 0.3 if sc > 0 else 0.45),
     "tonality_capitalisation":      CredibilitySignal(evaluate_capitalisation,
-                                                      lambda score, wd: 0 if score > 0.8 else 0.3),
+                                                      lambda score, d: 0 if score > 0.8 else 0.3),
     "readability_grades":           CredibilitySignal(evaluate_readability_grades,
-                                                      lambda score, wd: 0.8),
+                                                      lambda score, d: 0.8),
     "readability_text_lengths":     CredibilitySignal(evaluate_text_lengths,
-                                                      lambda score, wd: 0.6),
+                                                      lambda score, d: 0.6),
     "vocabulary_profanity":         CredibilitySignal(evaluate_profanity,
-                                                      lambda score, wd: 0 if score == 1 else 1),
+                                                      lambda score, d: 0 if score == 1 else 1),
     "vocabulary_emotional_words":   CredibilitySignal(evaluate_emotional_words,
-                                                      lambda score, wd: 0.6),
+                                                      lambda score, d: 0.6),
     "clickbait":                    CredibilitySignal(evaluate_clickbait,
-                                                      lambda sc, wd: 0 if not wd.headline else 0.3 if sc > 0 else 0.8),
+                                                      lambda sc, d: 0 if not d.headline else 0.3 if sc > 0 else 0.8),
     "links_external":               CredibilitySignal(evaluate_links_external,
-                                                      lambda score, wd: 0.3 if score == 0 or score == 1 else 0),
+                                                      lambda score, d: 0.3 if score == 0 or score == 1 else 0),
     "sentiment_polarity_text":      CredibilitySignal(evaluate_polarity_text,
-                                                      lambda score, wd: 0.8),
+                                                      lambda score, d: 0.8),
     "sentiment_polarity_headline":  CredibilitySignal(evaluate_polarity_headline,
-                                                      lambda score, wd: 0.5),
+                                                      lambda score, d: 0.5),
     "sentiment_subjectivity":       CredibilitySignal(evaluate_subjectivity,
-                                                      lambda score, wd: 0.4),
+                                                      lambda score, d: 0.4),
 }
 
 
@@ -92,6 +93,7 @@ def evaluate_webpage(url: str) -> float:
         scores[signal_name] = subscore
         final_score += subscore * weight
         weight_sum += weight
+        test.add_result(url, "score_" + signal_name, subscore)
 
     # check for valid scores
     if not scores or len(scores) != len(evaluation_signals) or not all(0 <= score <= 1 for score in scores.values()):

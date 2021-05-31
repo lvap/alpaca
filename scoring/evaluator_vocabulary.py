@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 
+import test
 from parsing.webpage_data import WebpageData
 
 # modify profanity score gradient given this upper limit
@@ -28,7 +29,7 @@ def evaluate_profanity(data: WebpageData) -> float:
     """
 
     # file containing profanity/slurs, one entry per line
-    profanity_list_path = "../files/profanity.txt"
+    profanity_list_path = "scoring/files/profanity.txt"
     filepath = (Path(__file__).parent / profanity_list_path).resolve()
 
     fulltext = data.headline.lower() + " " + data.text.lower()
@@ -45,6 +46,7 @@ def evaluate_profanity(data: WebpageData) -> float:
     if profanity_matches:
         logger.info("[Vocabulary] Profanity matches: {}"
                     .format(["{} ({}x)".format(slur, occurrences) for slur, occurrences in profanity_matches.items()]))
+    test.add_result(data.url, "profanity", sum(profanity_matches.values()))
 
     match_count = sum(profanity_matches.values())
     score = match_count / MAX_PROFANITY
@@ -66,7 +68,7 @@ def evaluate_emotional_words(data: WebpageData) -> float:
 
     # file containing words & their degree of association with 8 emotions, one entry per line
     # using emotion intensity lexicon by Saif M. Mohammad https://saifmohammad.com/WebPages/AffectIntensity.htm
-    emotion_list_path = "../files/emotion_intensity_list.csv"
+    emotion_list_path = "scoring/files/emotion_intensity_list.csv"
     filepath = (Path(__file__).parent / emotion_list_path).resolve()
     emotional_words = pd.read_csv(filepath, sep=";")
 
@@ -102,6 +104,9 @@ def evaluate_emotional_words(data: WebpageData) -> float:
          for emotion, emotion_stats in emotionality_results.items()]))
     logger.debug("[Vocabulary] Emotionality overall: {} words | {:.3f} intensity | {:.3f} intensity per word".format(
         total_emotion_count, total_emotion_intensity, total_emotion_intensity / word_count))
+    for emotion in emotionality_results.keys():
+        test.add_result(data.url, emotion + "_word_count", emotionality_results[emotion]["count"])
+        test.add_result(data.url, emotion + "_intensity", emotionality_results[emotion]["intensity"])
 
     emotion_score = (total_emotion_intensity * EMOTION_INTENSITY_MULTIPLIER) / word_count
     return max(1 - emotion_score, 0)

@@ -33,8 +33,8 @@ def is_clickbait(headline: str) -> bool:
     exclamation = contains_exclamation(cleaned_headline)
     starts_with_num = starts_with_number(cleaned_headline)
 
-    model_path = (Path(__file__).parent / "../files/nbmodel.pkl").resolve()
-    tfidf_path = (Path(__file__).parent / "../files/tfidf.pkl").resolve()
+    model_path = (Path(__file__).parent / "scoring/files/nbmodel.pkl").resolve()
+    tfidf_path = (Path(__file__).parent / "scoring/files/tfidf.pkl").resolve()
 
     with warnings.catch_warnings():
         warnings.filterwarnings('ignore')

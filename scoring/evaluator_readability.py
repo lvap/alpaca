@@ -2,6 +2,7 @@ import logging
 import re
 
 import _readability as readability
+import test
 from parsing.webpage_data import WebpageData
 
 # modify readability text length score (words/sentences/paragraphs sub-score gradients) given these upper limits
@@ -61,6 +62,12 @@ def evaluate_readability_grades(data: WebpageData) -> float:
                          read_metrics["readability grades"]["SMOGIndex"],
                          read_metrics["readability grades"]["ARI"],
                          read_metrics["readability grades"]["Coleman-Liau"]))
+    test.add_result(data.url, "flesch_kincaid", read_metrics["readability grades"]["Kincaid"])
+    test.add_result(data.url, "flesch_reading_ease", read_metrics["readability grades"]["FleschReadingEase"])
+    test.add_result(data.url, "gunning_fog", read_metrics["readability grades"]["GunningFogIndex"])
+    test.add_result(data.url, "smog", read_metrics["readability grades"]["SMOGIndex"])
+    test.add_result(data.url, "ari", read_metrics["readability grades"]["ARI"])
+    test.add_result(data.url, "coleman_liau", read_metrics["readability grades"]["Coleman-Liau"])
 
     # preliminary scoring: assign highest credibility for complex text, equivalent to  11th-grade reading level
     # Flesch-Kincaid grade level score range 1-17, 11-17 best
@@ -85,6 +92,8 @@ def evaluate_readability_grades(data: WebpageData) -> float:
     return readability_scores[2]
 
 
+# TODO incorporate #chars1, #words2, #sentences3, #paragraphs2, paragraph length1, sentence length2, word length1
+
 def evaluate_text_lengths(data: WebpageData) -> float:
     """Evaluates the absolute number of words & average sentence and paragraph length of a webpage's text.
 
@@ -96,8 +105,6 @@ def evaluate_text_lengths(data: WebpageData) -> float:
     :return: Combined score for number of words & average sentence and paragraph length between 0 and 1, with 0
     indicating very short texts with short sentences and paragraphs and 1 indicating long texts/sentences/paragraphs.
     """
-
-    # TODO find literature supporting correlation credibility <-> text/sentence/paragraph length
 
     # word score
     # words are strings bounded by whitespaces + 1, excluding strings consisting of a single non-alphanumeric character
@@ -120,7 +127,7 @@ def evaluate_text_lengths(data: WebpageData) -> float:
     paragraph_score = min(max(paragraph_score, 0), 1)
 
     logger.info("[Readability] {} words (subscore {:.3f}) | {:.3f} average sentence length (subscore {:.3f}) | "
-                 "{:.3f} average paragraph length (subscore {:.3f})"
-                 .format(word_count, word_score, sentence_length, sentence_score, paragraph_length, paragraph_score))
+                "{:.3f} average paragraph length (subscore {:.3f})"
+                .format(word_count, word_score, sentence_length, sentence_score, paragraph_length, paragraph_score))
 
     return (2 * word_score + sentence_score + paragraph_score) / 4

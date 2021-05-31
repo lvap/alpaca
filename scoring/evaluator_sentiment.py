@@ -9,6 +9,7 @@ import spacy
 from spacytextblob.spacytextblob import SpacyTextBlob
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
+import test
 from parsing.webpage_data import WebpageData
 from parsing.webpage_parser import has_ending_punctuation
 
@@ -60,7 +61,14 @@ def evaluate_polarity_text(data: WebpageData) -> float:
     logger.debug("[Sentiment] Text polarity raw: SpaCy {:.3f} | VADER {} | FastText {}"
                  .format(polarity_spacy, polarity_vader, sentiment_ft[0]))
     logger.info("[Sentiment] Text polarity scores: SpaCy {:.3f} | VADER {:.3f} | FastText {:.3f}"
-                 .format(score_spacy, score_vader, score_ft))
+                .format(score_spacy, score_vader, score_ft))
+    test.add_result(data.url, "sentiment_spacy", polarity_spacy)
+    test.add_result(data.url, "sentiment_vader", polarity_vader)
+    test.add_result(data.url, "sentiment_fasttext_1", sentiment_ft[0][0])
+    test.add_result(data.url, "sentiment_fasttext_2", sentiment_ft[0][1])
+    test.add_result(data.url, "sentiment_fasttext_3", sentiment_ft[0][2])
+    test.add_result(data.url, "sentiment_fasttext_4", sentiment_ft[0][3])
+    test.add_result(data.url, "sentiment_fasttext_5", sentiment_ft[0][4])
 
     return (score_spacy + score_vader + score_ft) / 3
 
@@ -103,7 +111,14 @@ def evaluate_polarity_headline(data: WebpageData) -> float:
     logger.debug("[Sentiment] Headline polarity raw: SpaCy {:.3f} | VADER {} | FastText {}"
                  .format(polarity_spacy, polarity_vader, sentiment_ft[0]))
     logger.info("[Sentiment] Headline polarity scores: SpaCy {:.3f} | VADER {:.3f} | FastText {:.3f}"
-                 .format(score_spacy, score_vader, score_ft))
+                .format(score_spacy, score_vader, score_ft))
+    test.add_result(data.url, "sentiment_spacy", polarity_spacy)
+    test.add_result(data.url, "sentiment_vader", polarity_vader)
+    test.add_result(data.url, "sentiment_fasttext_1", sentiment_ft[0][0])
+    test.add_result(data.url, "sentiment_fasttext_2", sentiment_ft[0][1])
+    test.add_result(data.url, "sentiment_fasttext_3", sentiment_ft[0][2])
+    test.add_result(data.url, "sentiment_fasttext_4", sentiment_ft[0][3])
+    test.add_result(data.url, "sentiment_fasttext_5", sentiment_ft[0][4])
 
     return (score_spacy + score_vader + score_ft) / 3
 
@@ -131,7 +146,7 @@ def _sentiment_analyser(texts: list[str]) -> np.array([float, ...]):
     :return: Sentiment analysis of the input texts, classifying each into 5 groups from 0 (very negative) to 5
         (very positive). The numbers in each of the 5 groups represents the probability of the text belonging to it."""
 
-    model_path = (Path(__file__).parent / "../files/sst5_hyperopt.ftz").resolve()
+    model_path = (Path(__file__).parent / "scoring/files/sst5_hyperopt.ftz").resolve()
     # redirect external error prints to our own logger
     with redirect_stderr(io.StringIO()) as buf:
         classifier = fasttext.load_model(str(model_path))
