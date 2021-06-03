@@ -91,7 +91,7 @@ def evaluate_all_caps_text(data: WebpageData) -> float:
     all_caps = re.compile(r"\b[A-Z]+\b")
 
     # collect all-cap words in headline (unless empty/entirely capitalised)
-    if data.headline.upper() is not data.headline:
+    if data.headline.upper() != data.headline:
         for word in all_caps.findall(data.headline):
             if len(word) >= 2:
                 if word in headline_matches:
@@ -136,7 +136,7 @@ def evaluate_all_caps_title(data: WebpageData) -> float:
 
     # TODO implement better check to avoid matching acronyms/initialisms (alternatively score text based on length)?
 
-    if data.headline.upper() is data.headline:
+    if data.headline.upper() == data.headline:
         # entire headline is capitalised (or empty)
         return 1
 
