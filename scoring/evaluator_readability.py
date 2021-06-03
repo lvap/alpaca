@@ -2,7 +2,7 @@ import logging
 import re
 
 import _readability as readability
-import test
+from testing import test
 from parsing.webpage_data import WebpageData
 
 # modify readability text length score (words/sentences/paragraphs sub-score gradients) given these upper limits
@@ -21,6 +21,8 @@ if (WORDS_LIMIT_LOWER < 1 or SENTENCE_LIMIT_LOWER < 1 or PARAGRAPH_LIMIT_LOWER <
 
 logger = logging.getLogger("alpaca")
 
+
+# TODO add title readability
 
 def evaluate_readability_grades(data: WebpageData) -> float:
     """Evaluates the readability of a webpage by averaging several common readability grades.
@@ -92,7 +94,7 @@ def evaluate_readability_grades(data: WebpageData) -> float:
     return readability_scores[2]
 
 
-# TODO incorporate #chars1, #words2, #sentences3, #paragraphs2, paragraph length1, sentence length2, word length1
+# TODO #words text/title, #sentences text, TTR text, word length text/title, (stop words title), (nouns text/title)
 
 def evaluate_text_lengths(data: WebpageData) -> float:
     """Evaluates the absolute number of words & average sentence and paragraph length of a webpage's text.

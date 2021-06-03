@@ -11,10 +11,25 @@ from nltk import sent_tokenize
 
 from parsing.webpage_data import WebpageData
 
-# parser used for text extraction from html data
-PARSER = "trafilatura"
-
 logger = logging.getLogger("alpaca")
+
+
+def has_ending_punctuation(text: str) -> bool:
+    """Checks whether the text ending (last three characters) contains any of . ! ? :"""
+
+    ending_punctuation = set(".!?:")
+    # evaluate the last 3 characters of text to allow for parentheses and quotation marks
+    return any((char in ending_punctuation) for char in text[-3:])
+
+
+def valid_address(user_input: str) -> bool:
+    """Returns True if the given string is a valid http or https URL, False otherwise."""
+
+    try:
+        result = urlparse(user_input)
+        return all([result.scheme, result.netloc, result.path]) and result.scheme in ["http", "https"]
+    except ValueError:
+        return False
 
 
 def parse_data(url: str) -> WebpageData:
@@ -62,25 +77,19 @@ def _parse_text(article: Article) -> str:
     :raise ValueError: If the text parser is unspecified or not recognised.
     """
 
-    if PARSER == "trafilatura":
-        # redirect external logging to our own logger
-        with io.StringIO() as buf:
-            traf_logger = logging.getLogger("trafilatura")
-            propagate_state = traf_logger.propagate
-            traf_logger.propagate = False
-            buf_handler = logging.StreamHandler(buf)
-            traf_logger.addHandler(buf_handler)
-            text = trafilatura.extract(article.html, include_comments=False, target_language="en", include_tables=False)
-            traf_logger.removeHandler(buf_handler)
-            traf_logger.propagate = propagate_state
-            for message in buf.getvalue().strip().split("\n"):
-                if message:
-                    logger.debug("[Parsing>Trafilatura] " + message)
-
-    elif PARSER == "newspaper":
-        text = article.text
-    else:
-        raise ValueError("No text parser specified")
+    # redirect external logging to our own logger
+    with io.StringIO() as buf:
+        traf_logger = logging.getLogger("trafilatura")
+        propagate_state = traf_logger.propagate
+        traf_logger.propagate = False
+        buf_handler = logging.StreamHandler(buf)
+        traf_logger.addHandler(buf_handler)
+        text = trafilatura.extract(article.html, include_comments=False, target_language="en", include_tables=False)
+        traf_logger.removeHandler(buf_handler)
+        traf_logger.propagate = propagate_state
+        for message in buf.getvalue().strip().split("\n"):
+            if message:
+                logger.debug("[Parsing>Trafilatura] " + message)
 
     if text:
         paragraphs = text.split("\n")
@@ -121,21 +130,3 @@ def _extract_authors(html: str) -> list[str]:
     if authors:
         logger.debug("[Parsing] {} additional author(s) detected: {}".format(len(authors), authors))
     return authors
-
-
-def has_ending_punctuation(text: str) -> bool:
-    """Checks whether the text ending (last three characters) contains any of . ! ? :"""
-
-    ending_punctuation = set(".!?:")
-    # evaluate the last 3 characters of text to allow for parentheses and quotation marks
-    return any((char in ending_punctuation) for char in text[-3:])
-
-
-def valid_address(user_input: str) -> bool:
-    """Returns True if the given string is a valid http or https URL, False otherwise."""
-
-    try:
-        result = urlparse(user_input)
-        return all([result.scheme, result.netloc, result.path]) and result.scheme in ["http", "https"]
-    except ValueError:
-        return False

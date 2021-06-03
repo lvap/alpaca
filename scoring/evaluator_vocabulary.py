@@ -4,7 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 
-import test
+from testing import test
 from parsing.webpage_data import WebpageData
 
 # modify profanity score gradient given this upper limit

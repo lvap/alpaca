@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 from pathlib import Path
 
-import test
+from testing import test
 from parsing.webpage_parser import valid_address
 from scoring.credibility_evaluation import evaluate_webpage
 

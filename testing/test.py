@@ -18,6 +18,6 @@ def results_to_csv():
 
     if results:
         csvpath = (Path(__file__).parent /
-                   ("test_data/test_results_" + datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss") + ".csv")).resolve()
-        df = pd.DataFrame.from_dict(results, orient="index")
+                   ("testing/test_results_" + datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss") + ".csv")).resolve()
+        df = pd.DataFrame.from_dict(results, orient="index")  # TODO check output formatting
         df.to_csv(path_or_buf=csvpath, sep=";")

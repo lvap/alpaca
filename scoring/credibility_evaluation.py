@@ -2,15 +2,16 @@ import logging
 from typing import NamedTuple, Callable
 
 import parsing.webpage_parser as parser
-import test
+from testing import test
 from parsing.webpage_data import WebpageData
 from scoring.evaluator_authors import evaluate_authors
 from scoring.evaluator_clickbait import evaluate_clickbait
 from scoring.evaluator_grammar_spelling import evaluate_grammar_spelling
 from scoring.evaluator_links import evaluate_links_external
 from scoring.evaluator_readability import evaluate_readability_grades, evaluate_text_lengths
-from scoring.evaluator_sentiment import evaluate_polarity_headline, evaluate_polarity_text, evaluate_subjectivity
-from scoring.evaluator_tonality import evaluate_exclamation_marks, evaluate_question_marks, evaluate_capitalisation
+from scoring.evaluator_sentiment import evaluate_polarity_title, evaluate_polarity_text, evaluate_subjectivity
+from scoring.evaluator_tonality import evaluate_questions_text, evaluate_questions_title, evaluate_exclamations_text, \
+    evaluate_all_caps_text, evaluate_exclamations_title, evaluate_all_caps_title
 from scoring.evaluator_url import evaluate_domain_ending
 from scoring.evaluator_vocabulary import evaluate_profanity, evaluate_emotional_words
 
@@ -36,11 +37,17 @@ evaluation_signals = {
                                                       lambda score, d: 0.2 if score == 1 else 0),
     "grammar_spelling":             CredibilitySignal(evaluate_grammar_spelling,
                                                       lambda score, d: 0.3 if score > 0.8 else 0.45),
-    "tonality_question_marks":      CredibilitySignal(evaluate_question_marks,
+    "tonality_questions_text":      CredibilitySignal(evaluate_questions_text,
                                                       lambda score, d: 0.2 if score > 0 else 0.3),
-    "tonality_exclamation_marks":   CredibilitySignal(evaluate_exclamation_marks,
+    "tonality_questions_title":     CredibilitySignal(evaluate_questions_title,
+                                                      lambda sc, d: 0 if data0.2 if sc > 0 else 0.3),
+    "tonality_exclamations_text":   CredibilitySignal(evaluate_exclamations_text,
                                                       lambda sc, d: 0.2 if sc > 0.8 else 0.3 if sc > 0 else 0.45),
-    "tonality_capitalisation":      CredibilitySignal(evaluate_capitalisation,
+    "tonality_exclamations_title":  CredibilitySignal(evaluate_exclamations_title,
+                                                      lambda sc, d: 0.2 if sc > 0.8 else 0.3 if sc > 0 else 0.45),
+    "tonality_all_caps_text":       CredibilitySignal(evaluate_all_caps_text,
+                                                      lambda score, d: 0 if score > 0.8 else 0.3),
+    "tonality_all_caps_title":      CredibilitySignal(evaluate_all_caps_title,
                                                       lambda score, d: 0 if score > 0.8 else 0.3),
     "readability_grades":           CredibilitySignal(evaluate_readability_grades,
                                                       lambda score, d: 0.8),
@@ -56,7 +63,7 @@ evaluation_signals = {
                                                       lambda score, d: 0.3 if score == 0 or score == 1 else 0),
     "sentiment_polarity_text":      CredibilitySignal(evaluate_polarity_text,
                                                       lambda score, d: 0.8),
-    "sentiment_polarity_headline":  CredibilitySignal(evaluate_polarity_headline,
+    "sentiment_polarity_title":     CredibilitySignal(evaluate_polarity_title,
                                                       lambda score, d: 0.5),
     "sentiment_subjectivity":       CredibilitySignal(evaluate_subjectivity,
                                                       lambda score, d: 0.4),

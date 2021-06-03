@@ -4,7 +4,7 @@ import re
 import language_tool_python as ltp
 import spacy
 
-import test
+from testing import test
 from parsing.webpage_data import WebpageData
 from parsing.webpage_parser import has_ending_punctuation
 

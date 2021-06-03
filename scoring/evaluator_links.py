@@ -3,7 +3,7 @@ from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
 
-import test
+from testing import test
 from parsing.webpage_data import WebpageData
 from parsing.webpage_parser import valid_address
 

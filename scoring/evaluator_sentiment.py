@@ -6,10 +6,9 @@ from pathlib import Path
 import fasttext
 import numpy as np
 import spacy
-from spacytextblob.spacytextblob import SpacyTextBlob
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-import test
+from testing import test
 from parsing.webpage_data import WebpageData
 from parsing.webpage_parser import has_ending_punctuation
 
@@ -62,18 +61,18 @@ def evaluate_polarity_text(data: WebpageData) -> float:
                  .format(polarity_spacy, polarity_vader, sentiment_ft[0]))
     logger.info("[Sentiment] Text polarity scores: SpaCy {:.3f} | VADER {:.3f} | FastText {:.3f}"
                 .format(score_spacy, score_vader, score_ft))
-    test.add_result(data.url, "sentiment_spacy", polarity_spacy)
-    test.add_result(data.url, "sentiment_vader", polarity_vader)
-    test.add_result(data.url, "sentiment_fasttext_1", sentiment_ft[0][0])
-    test.add_result(data.url, "sentiment_fasttext_2", sentiment_ft[0][1])
-    test.add_result(data.url, "sentiment_fasttext_3", sentiment_ft[0][2])
-    test.add_result(data.url, "sentiment_fasttext_4", sentiment_ft[0][3])
-    test.add_result(data.url, "sentiment_fasttext_5", sentiment_ft[0][4])
+    test.add_result(data.url, "sentiment_text_spacy", polarity_spacy)
+    test.add_result(data.url, "sentiment_text_vader", polarity_vader)
+    test.add_result(data.url, "sentiment_text_fasttext_1", sentiment_ft[0][0])
+    test.add_result(data.url, "sentiment_text_fasttext_2", sentiment_ft[0][1])
+    test.add_result(data.url, "sentiment_text_fasttext_3", sentiment_ft[0][2])
+    test.add_result(data.url, "sentiment_text_fasttext_4", sentiment_ft[0][3])
+    test.add_result(data.url, "sentiment_text_fasttext_5", sentiment_ft[0][4])
 
     return (score_spacy + score_vader + score_ft) / 3
 
 
-def evaluate_polarity_headline(data: WebpageData) -> float:
+def evaluate_polarity_title(data: WebpageData) -> float:
     """Evaluates the polarity of the webpage's headline through sentiment analysis.
 
     Performs sentiment analysis to determine a webpage's positivity/negativity score between -1 and 1, then looks at the
@@ -112,13 +111,13 @@ def evaluate_polarity_headline(data: WebpageData) -> float:
                  .format(polarity_spacy, polarity_vader, sentiment_ft[0]))
     logger.info("[Sentiment] Headline polarity scores: SpaCy {:.3f} | VADER {:.3f} | FastText {:.3f}"
                 .format(score_spacy, score_vader, score_ft))
-    test.add_result(data.url, "sentiment_spacy", polarity_spacy)
-    test.add_result(data.url, "sentiment_vader", polarity_vader)
-    test.add_result(data.url, "sentiment_fasttext_1", sentiment_ft[0][0])
-    test.add_result(data.url, "sentiment_fasttext_2", sentiment_ft[0][1])
-    test.add_result(data.url, "sentiment_fasttext_3", sentiment_ft[0][2])
-    test.add_result(data.url, "sentiment_fasttext_4", sentiment_ft[0][3])
-    test.add_result(data.url, "sentiment_fasttext_5", sentiment_ft[0][4])
+    test.add_result(data.url, "sentiment_title_spacy", polarity_spacy)
+    test.add_result(data.url, "sentiment_title_vader", polarity_vader)
+    test.add_result(data.url, "sentiment_title_fasttext_1", sentiment_ft[0][0])
+    test.add_result(data.url, "sentiment_title_fasttext_2", sentiment_ft[0][1])
+    test.add_result(data.url, "sentiment_title_fasttext_3", sentiment_ft[0][2])
+    test.add_result(data.url, "sentiment_title_fasttext_4", sentiment_ft[0][3])
+    test.add_result(data.url, "sentiment_title_fasttext_5", sentiment_ft[0][4])
 
     return (score_spacy + score_vader + score_ft) / 3
 
@@ -131,8 +130,7 @@ def evaluate_subjectivity(data: WebpageData) -> float:
 
     nlp = spacy.load('en_core_web_sm')
     nlp.add_pipe("spacytextblob")
-    headline_ending = " " if has_ending_punctuation(data.headline) else ". " if data.headline else ""
-    doc = nlp(data.headline + headline_ending + data.text)
+    doc = nlp(data.text)
     subjectivity = doc._.subjectivity
 
     logger.debug("[Sentiment] Article subjectivity: {:.3f}".format(subjectivity))
