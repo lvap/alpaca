@@ -3,6 +3,7 @@ import re
 
 import language_tool_python as ltp
 import spacy
+from nltk import word_tokenize
 
 from testing import test
 from parsing.webpage_data import WebpageData
@@ -18,7 +19,7 @@ if not 0 < ERROR_LIMIT < 1:
 logger = logging.getLogger("alpaca")
 
 
-def evaluate_grammar_spelling(data: WebpageData) -> float:
+def evaluate_errors(data: WebpageData) -> float:
     """Evaluates a webpage's language correctness.
 
     Determines how many spelling or grammar errors were encountered on the page and scales this value
@@ -34,7 +35,7 @@ def evaluate_grammar_spelling(data: WebpageData) -> float:
     doc = nlp(data.headline + headline_ending + data.text)
     entities = ["PERSON", "NORP", "FAC", "FACILITY", "ORG", "GPE", "LOC", "PRODUCT", "EVENT", "WORK_OF_ART", "LAW"]
     names = set([ent.text for ent in doc.ents if ent.label_ in entities])
-    logger.debug("[Grammar-Spelling] {} recognised named entities: {}".format(len(names), names))
+    logger.debug("[Errors] {} recognised named entities: {}".format(len(names), names))
 
     lang_tool = ltp.LanguageTool("en-US")
     matches = lang_tool.check(data.headline)
@@ -54,16 +55,16 @@ def evaluate_grammar_spelling(data: WebpageData) -> float:
             matches_to_ignore += 1
         else:
             unknown_words.append(match.matchedText)
-            logger.debug("[Grammar-Spelling] Text error:\n{}".format(match))
+            logger.debug("[Errors] Text error:\n{}".format(match))
 
     error_score = len(matches) - matches_to_ignore
-    word_count = data.headline.count(" ") + data.text.count(" ") + 2 if data.headline else data.text.count(" ") + 1
-    # exclude strings consisting of a single non-alphanumeric character
-    word_count -= len(re.findall(r"\s\W\s", data.headline)) + len(re.findall(r"\s\W\s", data.text))
+    # replace characters that are problematic for nltk.tokenize
+    cleaned_headline = re.sub("[“‟„”«»❝❞⹂〝〞〟＂]", "\"", re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", data.headline))
+    word_count = len(word_tokenize(cleaned_headline)) + len(data.text_words)
     error_score = 1 - (error_score / (word_count * ERROR_LIMIT))
 
-    logger.info("[Grammar-Spelling] {} errors in {} words ({} errors ignored), {:.3f} errors per word"
+    logger.info("[Errors] {} grammar or spelling errors in {} words ({} errors ignored), {:.3f} errors per word"
                 .format(len(matches) - matches_to_ignore, word_count, matches_to_ignore, error_score / word_count))
-    test.add_result(data.url, "grammar_spelling_errors", error_score / word_count)
+    test.add_result(data.url, "errors_grammar_spelling", error_score / word_count)
 
     return max(error_score, 0)

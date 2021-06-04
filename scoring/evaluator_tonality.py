@@ -27,7 +27,7 @@ def evaluate_questions_text(data: WebpageData) -> float:
     :return: 1 for low usage of question marks, 0 for high usage of question marks.
     """
 
-    question_score = data.text.count("?") / len(data.tokenized_text)
+    question_score = data.text.count("?") / len(data.text_sentences)
     
     logger.debug("[Tonality] Question marks per sentence: {:.3f}".format(question_score))
     test.add_result(data.url, "questions_text_per_sentence", question_score)
@@ -55,7 +55,7 @@ def evaluate_exclamations_text(data: WebpageData) -> float:
     :return: 1 for low usage of exclamation marks, 0 for high usage of exclamation marks.
     """
 
-    exclamation_score = data.text.count("!") / len(data.tokenized_text)
+    exclamation_score = data.text.count("!") / len(data.text_sentences)
 
     logger.debug("[Tonality] Exclamation marks per sentence: {:.3f}".format(exclamation_score))
     test.add_result(data.url, "exclamations_text_per_sentence", exclamation_score)

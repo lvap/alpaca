@@ -6,6 +6,8 @@ class WebpageData:
     :param text: The webpage's main text body.
     :param authors: The article authors.
     :param url: The webpage's URL.
+    :param text_sentences: The article text's sentences.
+    :param text_words: The article text's words.
     """
 
     def __init__(self,
@@ -14,10 +16,12 @@ class WebpageData:
                  text: str = "",
                  authors: list[str] = [],
                  url: str = "",
-                 tokenized_text: list[str] = None):
+                 text_sentences: list[str] = None,
+                 text_words: list[str] = None):
         self.html = html
         self.headline = headline
         self.text = text
         self.authors = authors
         self.url = url
-        self.tokenized_text = tokenized_text or []
+        self.text_sentences = text_sentences or []
+        self.text_words = text_words or []

@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 import trafilatura
 from bs4 import BeautifulSoup
 from newspaper import Article
-from nltk import sent_tokenize
+from nltk import sent_tokenize, word_tokenize
 
 from parsing.webpage_data import WebpageData
 
@@ -36,7 +36,7 @@ def parse_data(url: str) -> WebpageData:
     """Extracts data necessary for credibility evaluation given a webpage's URL.
 
     Fetches HTML data, then parses article text, headline and author(s) from HTML.
-    Uses module specified in *PARSER* for text extraction. Webpage is assumed to be in English.
+    Additionally tokenizes article text into words and sentences. Webpage is assumed to be in English.
     """
 
     article = Article(url, language="en", fetch_images=False)
@@ -55,20 +55,22 @@ def parse_data(url: str) -> WebpageData:
     if not authors:
         authors = _extract_authors(article.html)
 
-    # tokenize text into list of sentences
     # replace symbols that are problematic for nltk.tokenize
-    tokenized_text = sent_tokenize(re.sub("[“‟„”«»❝❞⹂〝〞〟＂]", "\"", re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", text)))
-    if not tokenized_text or len(tokenized_text) < 1:
+    nltk_text = re.sub("[“‟„”«»❝❞⹂〝〞〟＂]", "\"", re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", text))
+    # tokenize text
+    sentences = sent_tokenize(nltk_text)
+    words = word_tokenize(nltk_text)  # TODO check word tokenization correctness
+    if not words or not sentences or len(words) <= 5 or len(sentences) < 1:
         logger.error("[Parsing] Could not tokenize text")
         return WebpageData()
 
     logger.info("[Parsing] Title: {}".format(article.title))
     logger.info("[Parsing] Authors: {}".format(authors))
-    logger.info("[Parsing] Text length: {} symbols, {} sentences".format(len(text) - 1, len(tokenized_text)))
+    logger.info("[Parsing] Text length: {} symbols, {} sentences".format(len(text) - 1, len(sentences)))
     logger.info("[Parsing] Text: {}".format(text[:200] + " [...] " + text[-200:-1]).replace("\n", " "))
     # logger.debug("[Parsing] Full text: {}".format(text[:-1]))
 
-    return WebpageData(article.html, article.title, text[:-1], authors, url, tokenized_text)
+    return WebpageData(article.html, article.title, text[:-1], authors, url, sentences, words)
 
 
 def _parse_text(article: Article) -> str:
