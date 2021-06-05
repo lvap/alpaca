@@ -6,4 +6,7 @@ venv/
 __pycache__/
 
 # logs
-.tmp/
+.log/
+
+# test runs
+testing/test_runs/

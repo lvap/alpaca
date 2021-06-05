@@ -22,7 +22,7 @@ if LOG_LEVEL_CONSOLE:
     handler.setLevel(LOG_LEVEL_CONSOLE)
     logger.addHandler(handler)
 if LOG_LEVEL_FILE:
-    dirpath = (Path(__file__).parent / ".tmp/").resolve()
+    dirpath = (Path(__file__).parent / ".log/").resolve()
     os.makedirs(dirpath, exist_ok=True)
     filepath = (dirpath / (datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss.%f") + ".log")).resolve()
     filehandler = logging.FileHandler(filepath, encoding="utf-8")

@@ -1,23 +1,30 @@
+import os
+from collections import defaultdict
 from datetime import datetime
 from pathlib import Path
 
 import pandas as pd
 
-# collects signal data for performance tests
-results = {}
+# toggle test run (save all webpage data to csv)
+TEST_ENABLED = True
+
+# collects signal data for test runs
+results = defaultdict(lambda: defaultdict(float))
 
 
 def add_result(url: str, field: str, value: float):
     """TODO documentation"""
 
-    results[url][field] = value
+    if TEST_ENABLED:
+        results[url][field] = value
 
 
 def results_to_csv():
     """TODO documentation"""
 
-    if results:
-        csvpath = (Path(__file__).parent /
-                   ("testing/test_results_" + datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss") + ".csv")).resolve()
+    if TEST_ENABLED and results:
+        dirpath = (Path(__file__).parent / "test_runs/").resolve()
+        os.makedirs(dirpath, exist_ok=True)
+        csvpath = (dirpath / ("test_results_" + datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss") + ".csv")).resolve()
         df = pd.DataFrame.from_dict(results, orient="index")  # TODO check output formatting
         df.to_csv(path_or_buf=csvpath, sep=";")

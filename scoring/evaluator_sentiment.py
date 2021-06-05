@@ -6,11 +6,11 @@ from pathlib import Path
 import fasttext
 import numpy as np
 import spacy
+from spacytextblob.spacytextblob import SpacyTextBlob
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
 from testing import test
 from parsing.webpage_data import WebpageData
-from parsing.webpage_parser import has_ending_punctuation
 
 # lower limit for polarity scores (greater than 0, lower than 1)
 POLARITY_MINIMUM = 0.5
@@ -62,7 +62,7 @@ def evaluate_polarity_text(data: WebpageData) -> float:
     logger.info("[Sentiment] Text polarity scores: SpaCy {:.3f} | VADER {:.3f} | FastText {:.3f}"
                 .format(score_spacy, score_vader, score_ft))
     test.add_result(data.url, "sentiment_text_spacy", polarity_spacy)
-    test.add_result(data.url, "sentiment_text_vader", polarity_vader)
+    test.add_result(data.url, "sentiment_text_vader", polarity_vader["compound"])
     test.add_result(data.url, "sentiment_text_fasttext_1", sentiment_ft[0][0])
     test.add_result(data.url, "sentiment_text_fasttext_2", sentiment_ft[0][1])
     test.add_result(data.url, "sentiment_text_fasttext_3", sentiment_ft[0][2])
@@ -112,7 +112,7 @@ def evaluate_polarity_title(data: WebpageData) -> float:
     logger.info("[Sentiment] Headline polarity scores: SpaCy {:.3f} | VADER {:.3f} | FastText {:.3f}"
                 .format(score_spacy, score_vader, score_ft))
     test.add_result(data.url, "sentiment_title_spacy", polarity_spacy)
-    test.add_result(data.url, "sentiment_title_vader", polarity_vader)
+    test.add_result(data.url, "sentiment_title_vader", polarity_vader["compound"])
     test.add_result(data.url, "sentiment_title_fasttext_1", sentiment_ft[0][0])
     test.add_result(data.url, "sentiment_title_fasttext_2", sentiment_ft[0][1])
     test.add_result(data.url, "sentiment_title_fasttext_3", sentiment_ft[0][2])
@@ -144,7 +144,7 @@ def _sentiment_analyser(texts: list[str]) -> np.array([float, ...]):
     :return: Sentiment analysis of the input texts, classifying each into 5 groups from 0 (very negative) to 5
         (very positive). The numbers in each of the 5 groups represents the probability of the text belonging to it."""
 
-    model_path = (Path(__file__).parent / "scoring/files/sst5_hyperopt.ftz").resolve()
+    model_path = (Path(__file__).parent / "files/sst5_hyperopt.ftz").resolve()
     # redirect external error prints to our own logger
     with redirect_stderr(io.StringIO()) as buf:
         classifier = fasttext.load_model(str(model_path))

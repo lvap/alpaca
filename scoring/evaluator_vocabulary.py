@@ -1,5 +1,6 @@
 import logging
 import re
+from collections import defaultdict
 from pathlib import Path
 
 import pandas as pd
@@ -29,19 +30,16 @@ def evaluate_profanity(data: WebpageData) -> float:
     """
 
     # file containing profanity/slurs, one entry per line
-    profanity_list_path = "scoring/files/profanity.txt"
+    profanity_list_path = "files/profanity.txt"
     filepath = (Path(__file__).parent / profanity_list_path).resolve()
 
     fulltext = data.headline.lower() + " " + data.text.lower()
-    profanity_matches = {}
+    profanity_matches = defaultdict(int)
 
     with open(filepath, "r") as profanity_words:
         for line in profanity_words.readlines():
             if match := re.findall(r"\b" + line.strip() + r"\b", fulltext):
-                if match[0] in profanity_matches:
-                    profanity_matches[match[0]] += len(match)
-                else:
-                    profanity_matches[match[0]] = len(match)
+                profanity_matches[match[0]] += len(match)
 
     if profanity_matches:
         logger.info("[Vocabulary] Profanity matches: {}"
@@ -68,7 +66,7 @@ def evaluate_emotional_words(data: WebpageData) -> float:
 
     # file containing words & their degree of association with 8 emotions, one entry per line
     # using emotion intensity lexicon by Saif M. Mohammad https://saifmohammad.com/WebPages/AffectIntensity.htm
-    emotion_list_path = "scoring/files/emotion_intensity_list.csv"
+    emotion_list_path = "files/emotion_intensity_list.csv"
     filepath = (Path(__file__).parent / emotion_list_path).resolve()
     emotional_words = pd.read_csv(filepath, sep=";")
 
