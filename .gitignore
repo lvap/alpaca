@@ -5,8 +5,6 @@ venv/
 # build files
 __pycache__/
 
-# logs
+# folders for output files
 .log/
-
-# test runs
 testing/test_runs/

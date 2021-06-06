@@ -3,11 +3,10 @@ import re
 
 import language_tool_python as ltp
 import spacy
-from nltk import word_tokenize
 
 from testing import test
 from parsing.webpage_data import WebpageData
-from parsing.webpage_parser import has_ending_punctuation
+from parsing.webpage_parser import has_ending_punctuation, word_tokenize
 
 # modify grammar/spelling error score gradient given this upper limit
 ERROR_LIMIT = 0.2
@@ -58,8 +57,8 @@ def evaluate_errors(data: WebpageData) -> float:
             logger.debug("[Errors] Text error:\n{}".format(match))
 
     error_score = len(matches) - matches_to_ignore
-    # replace characters that are problematic for nltk.tokenize
-    cleaned_headline = re.sub("[“‟„”«»❝❞⹂〝〞〟＂]", "\"", re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", data.headline))
+    # replace variants to avoid not recognising apostrophes
+    cleaned_headline = re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", data.headline)
     word_count = len(word_tokenize(cleaned_headline)) + len(data.text_words)
     error_score = 1 - (error_score / (word_count * ERROR_LIMIT))
 

@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 import trafilatura
 from bs4 import BeautifulSoup
 from newspaper import Article
-from nltk import sent_tokenize, word_tokenize
+from nltk import sent_tokenize
 
 from parsing.webpage_data import WebpageData
 
@@ -30,6 +30,15 @@ def valid_address(user_input: str) -> bool:
         return all([result.scheme, result.netloc, result.path]) and result.scheme in ["http", "https"]
     except ValueError:
         return False
+
+
+def word_tokenize(text: str) -> list[str]:
+    """TODO documentation"""
+
+    word_re = re.compile(r"\b\w+(?:[-']?\w+)*\b")
+    words = word_re.findall(text)
+    # TODO check exceptions: Dr. - e.g. / e. g. - T.N.T.
+    return words
 
 
 def parse_data(url: str) -> WebpageData:
@@ -59,7 +68,10 @@ def parse_data(url: str) -> WebpageData:
     nltk_text = re.sub("[“‟„”«»❝❞⹂〝〞〟＂]", "\"", re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", text))
     # tokenize text
     sentences = sent_tokenize(nltk_text)
-    words = word_tokenize(nltk_text)  # TODO check word tokenization correctness
+    words = word_tokenize(nltk_text)
+    print()
+    print(words[:30])
+    print()
     if not words or not sentences or len(words) <= 5 or len(sentences) < 1:
         logger.error("[Parsing] Could not tokenize text")
         return WebpageData()
@@ -94,11 +106,12 @@ def _parse_text(article: Article) -> str:
                 logger.debug("[Parsing>Trafilatura] " + message)
 
     if text:
-        paragraphs = text.split("\n")
         # remove title if the text begins with it
-        if paragraphs[0] == article.title:
-            paragraphs.pop(0)
-        # add period if article has subtitle without one
+        if text.startswith(article.title):
+            text = text[len(article.title):]
+
+        paragraphs = text.split("\n")
+        # add period if article has sub-title without ending punctuation
         if not has_ending_punctuation(paragraphs[0]):
             paragraphs[0] += "."
 
@@ -108,7 +121,7 @@ def _parse_text(article: Article) -> str:
             if len(pg) > 125 or (len(pg) > 40 and has_ending_punctuation(pg)):
                 text += pg + "\n"
 
-    return text
+    return text.strip()
 
 
 def _extract_authors(html: str) -> list[str]:

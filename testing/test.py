@@ -5,8 +5,8 @@ from pathlib import Path
 
 import pandas as pd
 
-# toggle test run (save all webpage data to csv)
-TEST_ENABLED = True
+# toggle test run (exporting signal stats for all processed webpages to csv)
+TEST_ENABLED = False
 
 # collects signal data for test runs
 results = defaultdict(lambda: defaultdict(float))
@@ -26,5 +26,5 @@ def results_to_csv():
         dirpath = (Path(__file__).parent / "test_runs/").resolve()
         os.makedirs(dirpath, exist_ok=True)
         csvpath = (dirpath / ("test_results_" + datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss") + ".csv")).resolve()
-        df = pd.DataFrame.from_dict(results, orient="index")  # TODO check output formatting
+        df = pd.DataFrame.from_dict(results, orient="index")
         df.to_csv(path_or_buf=csvpath, sep=";")

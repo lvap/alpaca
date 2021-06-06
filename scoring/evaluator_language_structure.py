@@ -1,9 +1,8 @@
 import logging
 import re
 
-from nltk import word_tokenize, sent_tokenize
-
 from parsing.webpage_data import WebpageData
+from parsing.webpage_parser import word_tokenize
 from testing import test
 
 # modify language structure score gradients given these limits
@@ -28,7 +27,7 @@ if not (1 <= WORDS_TEXT_LOWER < WORDS_TEXT_UPPER and 1 <= WORDS_TITLE_LOWER < WO
 logger = logging.getLogger("alpaca")
 
 
-# TODO possibly add nouns text/title), (stop words title)
+# TODO possibly add nouns text/title, stop words title
 
 def evaluate_word_count_text(data: WebpageData) -> float:
     """TODO documentation"""
@@ -44,8 +43,8 @@ def evaluate_word_count_text(data: WebpageData) -> float:
 def evaluate_word_count_title(data: WebpageData) -> float:
     """TODO documentation"""
 
-    # replace characters that are problematic for nltk.tokenize
-    headline_clean = re.sub("[“‟„”«»❝❞⹂〝〞〟＂]", "\"", re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", data.headline))
+    # replace variants to avoid not recognising apostrophes
+    headline_clean = re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", data.headline)
     word_count = len(word_tokenize(headline_clean))
 
     logger.info("[Lang_structure] Words in title: " + str(word_count))
@@ -91,8 +90,8 @@ def evaluate_word_length_text(data: WebpageData) -> float:
 def evaluate_word_length_title(data: WebpageData) -> float:
     """TODO documentation"""
 
-    # replace characters that are problematic for nltk.tokenize
-    headline_clean = re.sub("[“‟„”«»❝❞⹂〝〞〟＂]", "\"", re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", data.headline))
+    # replace variants to avoid not recognising apostrophes
+    headline_clean = re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", data.headline)
     headline_tokens = word_tokenize(headline_clean)
 
     word_length = sum(len(word) for word in headline_tokens) / len(headline_tokens)
