@@ -1,9 +1,10 @@
 import io
 import json
 import logging
-import re
+import regex as re
 from urllib.parse import urlparse
 
+import spacy
 import trafilatura
 from bs4 import BeautifulSoup
 from newspaper import Article
@@ -32,15 +33,28 @@ def valid_address(user_input: str) -> bool:
 
 
 def word_tokenize(text: str) -> list[str]:
-    """TODO documentation"""
+    """Tokenizes text into words. Won't recognize apostrophes other than ' ."""
 
-    words = re.compile(r"\b(?:Mr|Ms|Mrs|vs|etc|Dr|Prof|Inc|Est|Dept|St|Blvd)\."  # match common abbreviations
-                       r"|\b(?:i\.(?=\se\.)|e\.(?=\sg\.)|P\.(?=\sS\.))"  # match first part of i. e., e. g., P. S.
-                       r"|(?<=\bi\.\s)e\.|(?<=\be\.\s)g\.|(?<=\bP\.\s)S\."  # match second part of i. e., e. g., P. S.
-                       r"|\b(?:\w\.){2,}"  # match abbreviations with alternating single letter/full stop
-                       r"|\b\w+(?:[-']?\w+)*\b",  # match normal words including hyphens and apostrophes
+    words = re.compile(r"\b(?:Mr|Ms|Mrs|vs|etc|Dr|Prof|Rev|Pres|Inc|Est|Dept|St|Blvd)\."  # common abbreviations
+                       r"|\b(?:i\.(?=\se\.)|e\.(?=\sg\.)|P\.(?=\sS\.))"  # first part of i. e., e. g., P. S.
+                       r"|(?<=\bi\.\s)e\.|(?<=\be\.\s)g\.|(?<=\bP\.\s)S\."  # second part of i. e., e. g., P. S.
+                       r"|\b\d\d:\d\d(?:\d\d)?\b"  # time
+                       r"|(?:\b|\p{Sc}?)\d+(?:(?:\.\d+)+|(?:,\d+)+)?(?:[.,]\d+)?(?:\p{Sc}?|\b)"  # numbers/currency
+                       r"|\b(?:\w\.){2,}"  # abbreviations with alternating single letter/full stop
+                       r"|\b\w+(?:[-']?\w+)*\b",  # normal words including hyphens and apostrophes
                        re.IGNORECASE)
-    return words.findall(text)
+    tokens = words.findall(text)
+
+    # fix abbreviated names (single upper-case letters + full stop)
+    nlp = spacy.load("en_core_web_sm")
+    doc = nlp(text)
+    entities = ["PERSON", "NORP", "FAC", "FACILITY", "ORG", "EVENT", "LAW"]
+    names = set([ent.text for ent in doc.ents if ent.label_ in entities])
+    for index, token in enumerate(tokens):
+        if len(token) == 1 and token.upper() == token and any(token + "." in name.split() for name in names):
+            tokens[index] = token + "."
+
+    return tokens
 
 
 def parse_data(url: str) -> WebpageData:
@@ -71,7 +85,7 @@ def parse_data(url: str) -> WebpageData:
     sentences = nltk.sent_tokenize(tokenizer_text)
     words = word_tokenize(tokenizer_text)
     print()
-    print(words[:30])
+    print(words)
     print()
     if not words or not sentences or len(words) <= 5 or len(sentences) < 1:
         logger.error("[Parsing] Could not tokenize text")
