@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 import trafilatura
 from bs4 import BeautifulSoup
 from newspaper import Article
-from nltk import sent_tokenize
+import nltk
 
 from parsing.webpage_data import WebpageData
 
@@ -17,9 +17,8 @@ logger = logging.getLogger("alpaca")
 def has_ending_punctuation(text: str) -> bool:
     """Checks whether the text ending (last three characters) contains any of . ! ? :"""
 
-    ending_punctuation = set(".!?:")
     # evaluate the last 3 characters of text to allow for parentheses and quotation marks
-    return any((char in ending_punctuation) for char in text[-3:])
+    return any((char in ".!?:") for char in text[-3:])
 
 
 def valid_address(user_input: str) -> bool:
@@ -35,10 +34,13 @@ def valid_address(user_input: str) -> bool:
 def word_tokenize(text: str) -> list[str]:
     """TODO documentation"""
 
-    word_re = re.compile(r"\b\w+(?:[-']?\w+)*\b")
-    words = word_re.findall(text)
-    # TODO check exceptions: Dr. - e.g. / e. g. - T.N.T.
-    return words
+    words = re.compile(r"\b(?:Mr|Ms|Mrs|vs|etc|Dr|Prof|Inc|Est|Dept|St|Blvd)\."  # match common abbreviations
+                       r"|\b(?:i\.(?=\se\.)|e\.(?=\sg\.)|P\.(?=\sS\.))"  # match first part of i. e., e. g., P. S.
+                       r"|(?<=\bi\.\s)e\.|(?<=\be\.\s)g\.|(?<=\bP\.\s)S\."  # match second part of i. e., e. g., P. S.
+                       r"|\b(?:\w\.){2,}"  # match abbreviations with alternating single letter/full stop
+                       r"|\b\w+(?:[-']?\w+)*\b",  # match normal words including hyphens and apostrophes
+                       re.IGNORECASE)
+    return words.findall(text)
 
 
 def parse_data(url: str) -> WebpageData:
@@ -64,11 +66,10 @@ def parse_data(url: str) -> WebpageData:
     if not authors:
         authors = _extract_authors(article.html)
 
-    # replace symbols that are problematic for nltk.tokenize
-    nltk_text = re.sub("[“‟„”«»❝❞⹂〝〞〟＂]", "\"", re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", text))
-    # tokenize text
-    sentences = sent_tokenize(nltk_text)
-    words = word_tokenize(nltk_text)
+    # tokenize text, replacing symbols that are problematic for tokenizers
+    tokenizer_text = re.sub("[“‟„”«»❝❞⹂〝〞〟＂]", "\"", re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", text))
+    sentences = nltk.sent_tokenize(tokenizer_text)
+    words = word_tokenize(tokenizer_text)
     print()
     print(words[:30])
     print()
