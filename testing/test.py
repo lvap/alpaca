@@ -5,22 +5,27 @@ from pathlib import Path
 
 import pandas as pd
 
-# toggle test run (exporting signal stats for all processed webpages to csv)
+# toggle test run (collect signal stats for all processed webpages and export to csv)
 TEST_ENABLED = False
 
-# collects signal data for test runs
+# collects signal statistics from test runs
 results = defaultdict(lambda: defaultdict(float))
 
 
 def add_result(url: str, field: str, value: float):
-    """TODO documentation"""
+    """Add data value regarding a webpage to the module. Collected data can later be exported as csv file.
+
+    :param url: Url of the webpage the data belongs to.
+    :param field: Name/class of the data point to be added (later column header in table).
+    :param value: Value of the data point to be added.
+    """
 
     if TEST_ENABLED:
         results[url][field] = value
 
 
 def results_to_csv():
-    """TODO documentation"""
+    """Exports data currently held by the module to a csv file."""
 
     if TEST_ENABLED and results:
         dirpath = (Path(__file__).parent / "test_runs/").resolve()

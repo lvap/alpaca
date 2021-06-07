@@ -33,13 +33,14 @@ def valid_address(user_input: str) -> bool:
 
 
 def word_tokenize(text: str) -> list[str]:
-    """Tokenizes text into words. Won't recognize apostrophes other than ' ."""
+    """Tokenizes text into words. Keeps full stops with abbreviations, won't recognize apostrophes other than ' ."""
 
     words = re.compile(r"\b(?:Mr|Ms|Mrs|vs|etc|Dr|Prof|Rev|Pres|Inc|Est|Dept|St|Blvd)\."  # common abbreviations
                        r"|\b(?:i\.(?=\se\.)|e\.(?=\sg\.)|P\.(?=\sS\.))"  # first part of i. e., e. g., P. S.
                        r"|(?<=\bi\.\s)e\.|(?<=\be\.\s)g\.|(?<=\bP\.\s)S\."  # second part of i. e., e. g., P. S.
                        r"|\b\d\d:\d\d(?:\d\d)?\b"  # time
-                       r"|(?:\b|\p{Sc}?)\d+(?:(?:\.\d+)+|(?:,\d+)+)?(?:[.,]\d+)?(?:\p{Sc}?|\b)"  # numbers/currency
+                       r"|\b\d+(?:(?:\.\d+)+|(?:,\d+)+)?(?:[.,]\d+)?(?:\p{Sc}|\b)"  # numbers/monetary values
+                       r"|(?:\b|\p{Sc})\d+(?:(?:\.\d+)+|(?:,\d+)+)?(?:[.,]\d+)?\b"  # numbers/monetary values
                        r"|\b(?:\w\.){2,}"  # abbreviations with alternating single letter/full stop
                        r"|\b\w+(?:[-']?\w+)*\b",  # normal words including hyphens and apostrophes
                        re.IGNORECASE)
@@ -84,9 +85,6 @@ def parse_data(url: str) -> WebpageData:
     tokenizer_text = re.sub("[“‟„”«»❝❞⹂〝〞〟＂]", "\"", re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", text))
     sentences = nltk.sent_tokenize(tokenizer_text)
     words = word_tokenize(tokenizer_text)
-    print()
-    print(words)
-    print()
     if not words or not sentences or len(words) <= 5 or len(sentences) < 1:
         logger.error("[Parsing] Could not tokenize text")
         return WebpageData()
