@@ -4,6 +4,8 @@ import os
 from datetime import datetime
 from pathlib import Path
 
+import pandas as pd
+
 from performance_analysis import performance_test
 from parsing.webpage_parser import valid_address
 from scoring.credibility_evaluation import evaluate_webpage
@@ -63,4 +65,7 @@ def _handle_input():
 
 
 if __name__ == "__main__":
-    alpaca_init()
+    # alpaca_init()
+    dataset = pd.read_csv("dataset.csv", index_col="document_id", sep=";")
+    dataset = dataset.sample(1000)
+    dataset.to_csv("sample.csv", sep=";")

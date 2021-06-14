@@ -28,7 +28,7 @@ def results_to_csv():
     """Exports data currently held by the module to a csv file."""
 
     if TEST_ENABLED and results:
-        dirpath = (Path(__file__).parent / "test_runs/").resolve()
+        dirpath = (Path(__file__).parent / "test_results/").resolve()
         os.makedirs(dirpath, exist_ok=True)
         csvpath = (dirpath / ("test_results_" + datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss") + ".csv")).resolve()
         df = pd.DataFrame.from_dict(results, orient="index")
