@@ -5,10 +5,10 @@ from pathlib import Path
 
 import pandas as pd
 
-# toggle test run (collect signal stats for all processed webpages and export to csv)
+# toggle program performance test run (collect signal stats for all processed webpages and export to file)
 TEST_ENABLED = False
 
-# collects signal statistics from test runs
+# collects signal statistics from evaluation runs
 results = defaultdict(lambda: defaultdict(float))
 
 

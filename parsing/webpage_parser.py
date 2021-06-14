@@ -7,7 +7,7 @@ from urllib.parse import urlparse
 import spacy
 import trafilatura
 from bs4 import BeautifulSoup
-from newspaper import Article
+from newspaper import Article, ArticleException
 import nltk
 
 from parsing.webpage_data import WebpageData
@@ -66,8 +66,26 @@ def parse_data(url: str) -> WebpageData:
     """
 
     article = Article(url, language="en", fetch_images=False)
-    article.download()
-    article.parse()
+
+    # download & parse article html, redirecting external logging to our own logger
+    with io.StringIO() as buf:
+        np_logger = logging.getLogger("article")
+        propagate_state = np_logger.propagate
+        np_logger.propagate = False
+        buf_handler = logging.StreamHandler(buf)
+        np_logger.addHandler(buf_handler)
+        try:
+            article.download()
+            article.parse()
+        except ArticleException as err:
+            logger.debug("[Parsing>Newspaper] " + str(err))
+        finally:
+            np_logger.removeHandler(buf_handler)
+            np_logger.propagate = propagate_state
+            for message in buf.getvalue().strip().split("\n"):
+                if message:
+                    logger.debug("[Parsing>Newspaper] " + message)
+
     if not article.html:
         logger.error("[Parsing] Could not parse webpage html")
         return WebpageData()
@@ -91,11 +109,11 @@ def parse_data(url: str) -> WebpageData:
 
     logger.info("[Parsing] Title: {}".format(article.title))
     logger.info("[Parsing] Authors: {}".format(authors))
-    logger.info("[Parsing] Text length: {} symbols, {} sentences".format(len(text) - 1, len(sentences)))
-    logger.info("[Parsing] Text: {}".format(text[:200] + " [...] " + text[-200:-1]).replace("\n", " "))
+    logger.info("[Parsing] Text length: {} symbols, {} sentences".format(len(text), len(sentences)))
+    logger.info("[Parsing] Text: {}".format(text[:200] + " [...] " + text[-200:]).replace("\n", " "))
     # logger.debug("[Parsing] Full text: {}".format(text[:-1]))
 
-    return WebpageData(article.html, article.title, text[:-1], authors, url, sentences, words)
+    return WebpageData(article.html, article.title, text, authors, url, sentences, words)
 
 
 def _parse_text(article: Article) -> str:
@@ -104,7 +122,7 @@ def _parse_text(article: Article) -> str:
     :raise ValueError: If the text parser is unspecified or not recognised.
     """
 
-    # redirect external logging to our own logger
+    # parse text from html, redirecting external logging to our own logger
     with io.StringIO() as buf:
         traf_logger = logging.getLogger("trafilatura")
         propagate_state = traf_logger.propagate

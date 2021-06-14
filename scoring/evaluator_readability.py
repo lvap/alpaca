@@ -4,7 +4,7 @@ import re
 from nltk import sent_tokenize
 
 import _readability as readability
-from testing import test
+from performance_analysis import performance_test
 from parsing.webpage_data import WebpageData
 
 logger = logging.getLogger("alpaca")
@@ -34,12 +34,12 @@ def evaluate_readability_text(data: WebpageData) -> float:
                          read_metrics["readability grades"]["SMOGIndex"],
                          read_metrics["readability grades"]["ARI"],
                          read_metrics["readability grades"]["Coleman-Liau"]))
-    test.add_result(data.url, "read_text_flesch_kincaid", read_metrics["readability grades"]["Kincaid"])
-    test.add_result(data.url, "read_text_flesch_reading_ease", read_metrics["readability grades"]["FleschReadingEase"])
-    test.add_result(data.url, "read_text_gunning_fog", read_metrics["readability grades"]["GunningFogIndex"])
-    test.add_result(data.url, "read_text_smog", read_metrics["readability grades"]["SMOGIndex"])
-    test.add_result(data.url, "read_text_ari", read_metrics["readability grades"]["ARI"])
-    test.add_result(data.url, "read_text_coleman_liau", read_metrics["readability grades"]["Coleman-Liau"])
+    performance_test.add_result(data.url, "read_text_flesch_kincaid", read_metrics["readability grades"]["Kincaid"])
+    performance_test.add_result(data.url, "read_text_flesch_reading_ease", read_metrics["readability grades"]["FleschReadingEase"])
+    performance_test.add_result(data.url, "read_text_gunning_fog", read_metrics["readability grades"]["GunningFogIndex"])
+    performance_test.add_result(data.url, "read_text_smog", read_metrics["readability grades"]["SMOGIndex"])
+    performance_test.add_result(data.url, "read_text_ari", read_metrics["readability grades"]["ARI"])
+    performance_test.add_result(data.url, "read_text_coleman_liau", read_metrics["readability grades"]["Coleman-Liau"])
 
     # preliminary scoring: assign highest credibility for complex text, equivalent to  11th-grade reading level
     # Flesch-Kincaid grade level score range 1-17, 11-17 best
@@ -90,12 +90,12 @@ def evaluate_readability_title(data: WebpageData) -> float:
                          read_metrics["readability grades"]["SMOGIndex"],
                          read_metrics["readability grades"]["ARI"],
                          read_metrics["readability grades"]["Coleman-Liau"]))
-    test.add_result(data.url, "read_title_flesch_kincaid", read_metrics["readability grades"]["Kincaid"])
-    test.add_result(data.url, "read_title_flesch_reading_ease", read_metrics["readability grades"]["FleschReadingEase"])
-    test.add_result(data.url, "read_title_gunning_fog", read_metrics["readability grades"]["GunningFogIndex"])
-    test.add_result(data.url, "read_title_smog", read_metrics["readability grades"]["SMOGIndex"])
-    test.add_result(data.url, "read_title_ari", read_metrics["readability grades"]["ARI"])
-    test.add_result(data.url, "read_title_coleman_liau", read_metrics["readability grades"]["Coleman-Liau"])
+    performance_test.add_result(data.url, "read_title_flesch_kincaid", read_metrics["readability grades"]["Kincaid"])
+    performance_test.add_result(data.url, "read_title_flesch_reading_ease", read_metrics["readability grades"]["FleschReadingEase"])
+    performance_test.add_result(data.url, "read_title_gunning_fog", read_metrics["readability grades"]["GunningFogIndex"])
+    performance_test.add_result(data.url, "read_title_smog", read_metrics["readability grades"]["SMOGIndex"])
+    performance_test.add_result(data.url, "read_title_ari", read_metrics["readability grades"]["ARI"])
+    performance_test.add_result(data.url, "read_title_coleman_liau", read_metrics["readability grades"]["Coleman-Liau"])
 
     # preliminary scoring: assign highest credibility for complex text, equivalent to  11th-grade reading level
     # Flesch-Kincaid grade level score range 1-17, 11-17 best

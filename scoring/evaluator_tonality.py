@@ -1,7 +1,7 @@
 import logging
 import re
 
-from testing import test
+from performance_analysis import performance_test
 from parsing.webpage_data import WebpageData
 
 # modify punctuation scores gradient given these upper limits
@@ -30,7 +30,7 @@ def evaluate_questions_text(data: WebpageData) -> float:
     question_score = data.text.count("?") / len(data.text_sentences)
     
     logger.debug("[Tonality] Question marks per sentence: {:.3f}".format(question_score))
-    test.add_result(data.url, "questions_text_per_sentence", question_score)
+    performance_test.add_result(data.url, "questions_text_per_sentence", question_score)
 
     question_score = min(question_score / QUESTIONS_LIMIT, 1)
     return 1 - question_score
@@ -42,7 +42,7 @@ def evaluate_questions_title(data: WebpageData) -> float:
     :return: 1 if the headline contains no questions marks, else 0.
     """
 
-    test.add_result(data.url, "questions_title", data.headline.count("?"))
+    performance_test.add_result(data.url, "questions_title", data.headline.count("?"))
     return 0 if "?" in data.headline else 1
 
 
@@ -58,7 +58,7 @@ def evaluate_exclamations_text(data: WebpageData) -> float:
     exclamation_score = data.text.count("!") / len(data.text_sentences)
 
     logger.debug("[Tonality] Exclamation marks per sentence: {:.3f}".format(exclamation_score))
-    test.add_result(data.url, "exclamations_text_per_sentence", exclamation_score)
+    performance_test.add_result(data.url, "exclamations_text_per_sentence", exclamation_score)
 
     exclamation_score = min(exclamation_score / EXCLAMATIONS_LIMIT, 1)
     return 1 - exclamation_score
@@ -70,7 +70,7 @@ def evaluate_exclamations_title(data: WebpageData) -> float:
     :return: 1 if the headline contains no exclamation marks, else 0.
     """
 
-    test.add_result(data.url, "exclamations_title", data.headline.count("!"))
+    performance_test.add_result(data.url, "exclamations_title", data.headline.count("!"))
     return 0 if "!" in data.headline else 1
 
 
@@ -118,7 +118,7 @@ def evaluate_all_caps_text(data: WebpageData) -> float:
 
     if all_caps_words:
         logger.info("[Tonality] All capitalised words in text: {}".format(all_caps_words))
-    test.add_result(data.url, "all_caps_text", score)
+    performance_test.add_result(data.url, "all_caps_text", score)
 
     score = 1 - (score / ALL_CAPS_MAX_TEXT)
     return max(score, 0)
@@ -171,7 +171,7 @@ def evaluate_all_caps_title(data: WebpageData) -> float:
 
     if all_caps_words:
         logger.info("[Tonality] All capitalised words in title: {}".format(all_caps_words))
-    test.add_result(data.url, "all_caps_title", score)
+    performance_test.add_result(data.url, "all_caps_title", score)
 
     score = 1 - (score / ALL_CAPS_MAX_TITLE)
     return max(score, 0)

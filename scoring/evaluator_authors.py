@@ -1,7 +1,6 @@
 from urllib.parse import urlparse
 
 from parsing.webpage_data import WebpageData
-from parsing.webpage_parser import valid_address
 
 
 def evaluate_authors(data: WebpageData) -> float:

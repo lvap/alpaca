@@ -3,7 +3,7 @@ from typing import NamedTuple, Callable
 
 import parsing.webpage_parser as parser
 import scoring.evaluator_language_structure as ls
-from testing import test
+from performance_analysis import performance_test
 from parsing.webpage_data import WebpageData
 from scoring.evaluator_authors import evaluate_authors
 from scoring.evaluator_clickbait import evaluate_clickbait
@@ -113,7 +113,7 @@ def evaluate_webpage(url: str) -> float:
         scores[signal_name] = subscore
         final_score += subscore * weight
         weight_sum += weight
-        test.add_result(url, "score_" + signal_name, subscore)
+        performance_test.add_result(url, "score_" + signal_name, subscore)
 
     # check for valid scores
     if not scores or len(scores) != len(evaluation_signals) or not all(0 <= score <= 1 for score in scores.values()):

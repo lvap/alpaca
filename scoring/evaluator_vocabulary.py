@@ -5,7 +5,7 @@ from pathlib import Path
 
 import pandas as pd
 
-from testing import test
+from performance_analysis import performance_test
 from parsing.webpage_data import WebpageData
 
 # modify profanity score gradient given this upper limit
@@ -44,7 +44,7 @@ def evaluate_profanity(data: WebpageData) -> float:
     if profanity_matches:
         logger.info("[Vocabulary] Profanity matches: {}"
                     .format(["{} ({}x)".format(slur, occurrences) for slur, occurrences in profanity_matches.items()]))
-    test.add_result(data.url, "profanity", sum(profanity_matches.values()))
+    performance_test.add_result(data.url, "profanity", sum(profanity_matches.values()))
 
     match_count = sum(profanity_matches.values())
     score = match_count / MAX_PROFANITY
@@ -103,8 +103,8 @@ def evaluate_emotional_words(data: WebpageData) -> float:
     logger.debug("[Vocabulary] Emotionality overall: {} words | {:.3f} intensity | {:.3f} intensity per word".format(
         total_emotion_count, total_emotion_intensity, total_emotion_intensity / word_count))
     for emotion in emotionality_results.keys():
-        test.add_result(data.url, emotion + "_word_count", emotionality_results[emotion]["count"])
-        test.add_result(data.url, emotion + "_intensity", emotionality_results[emotion]["intensity"])
+        performance_test.add_result(data.url, emotion + "_word_count", emotionality_results[emotion]["count"])
+        performance_test.add_result(data.url, emotion + "_intensity", emotionality_results[emotion]["intensity"])
 
     emotion_score = (total_emotion_intensity * EMOTION_INTENSITY_MULTIPLIER) / word_count
     return max(1 - emotion_score, 0)

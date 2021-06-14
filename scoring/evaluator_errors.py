@@ -4,7 +4,7 @@ import re
 import language_tool_python as ltp
 import spacy
 
-from testing import test
+from performance_analysis import performance_test
 from parsing.webpage_data import WebpageData
 from parsing.webpage_parser import has_ending_punctuation, word_tokenize
 
@@ -39,7 +39,7 @@ def evaluate_errors(data: WebpageData) -> float:
     lang_tool = ltp.LanguageTool("en-US")
     matches = lang_tool.check(data.headline)
     matches_to_ignore = 0
-    if matches and matches[len(matches) - 1].ruleId == "PUNCTUATION_PARAGRAPH_END":
+    if matches and matches[-1].ruleId == "PUNCTUATION_PARAGRAPH_END":
         # ignore error for missing punctuation at title ending
         matches.pop()
     matches += lang_tool.check(data.text)
@@ -64,6 +64,6 @@ def evaluate_errors(data: WebpageData) -> float:
 
     logger.info("[Errors] {} grammar or spelling errors in {} words ({} errors ignored), {:.3f} errors per word"
                 .format(len(matches) - matches_to_ignore, word_count, matches_to_ignore, error_score / word_count))
-    test.add_result(data.url, "errors_grammar_spelling", error_score / word_count)
+    performance_test.add_result(data.url, "errors_grammar_spelling", error_score / word_count)
 
     return max(error_score, 0)

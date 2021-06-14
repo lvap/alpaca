@@ -4,7 +4,7 @@ import os
 from datetime import datetime
 from pathlib import Path
 
-from testing import test
+from performance_analysis import performance_test
 from parsing.webpage_parser import valid_address
 from scoring.credibility_evaluation import evaluate_webpage
 
@@ -33,7 +33,7 @@ if LOG_LEVEL_FILE:
 
 def alpaca_init():
     logger.info("[Main] Alpaca init")
-    atexit.register(test.results_to_csv)
+    atexit.register(performance_test.results_to_csv)
     _handle_input()
 
 
