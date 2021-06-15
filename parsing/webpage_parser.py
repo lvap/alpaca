@@ -117,10 +117,7 @@ def parse_data(url: str) -> WebpageData:
 
 
 def _parse_text(article: Article) -> str:
-    """Parse text from an article using parser *PARSER*. Conducts some basic text cleanup.
-
-    :raise ValueError: If the text parser is unspecified or not recognised.
-    """
+    """Parse text from an article. Conducts some basic text cleanup."""
 
     # parse text from html, redirecting external logging to our own logger
     with io.StringIO() as buf:
