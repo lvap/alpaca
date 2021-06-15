@@ -1,15 +1,13 @@
 import io
 import json
 import logging
-import regex as re
 from urllib.parse import urlparse
 
-import spacy
 import trafilatura
 from bs4 import BeautifulSoup
 from newspaper import Article, ArticleException
-import nltk
 
+from parsing.tokenize import sent_tokenize, word_tokenize
 from parsing.webpage_data import WebpageData
 
 logger = logging.getLogger("alpaca")
@@ -30,32 +28,6 @@ def valid_address(url: str) -> bool:
         return all([result.scheme, result.netloc, result.path]) and result.scheme in ["http", "https"]
     except ValueError:
         return False
-
-
-def word_tokenize(text: str) -> list[str]:
-    """Tokenizes text into words. Keeps full stops with abbreviations, won't recognize apostrophes other than ' ."""
-
-    words = re.compile(r"\b(?:Mr|Ms|Mrs|vs|etc|Dr|Prof|Rev|Pres|Inc|Est|Dept|St|Blvd)\."  # common abbreviations
-                       r"|\b(?:i\.(?=\se\.)|e\.(?=\sg\.)|P\.(?=\sS\.))"  # first part of i. e., e. g., P. S.
-                       r"|(?<=\bi\.\s)e\.|(?<=\be\.\s)g\.|(?<=\bP\.\s)S\."  # second part of i. e., e. g., P. S.
-                       r"|\b\d\d:\d\d(?::\d\d)?\b"  # time
-                       r"|\b\d+(?:(?:\.\d+)+|(?:,\d+)+)?(?:[.,]\d+)?(?:\p{Sc}|\b)"  # numbers/monetary values
-                       r"|(?:\b|\p{Sc})\d+(?:(?:\.\d+)+|(?:,\d+)+)?(?:[.,]\d+)?\b"  # numbers/monetary values
-                       r"|\b(?:\w\.){2,}"  # abbreviations with alternating single letter/full stop
-                       r"|\b\w+(?:[-']?\w+)*\b",  # normal words including hyphens and apostrophes
-                       re.IGNORECASE)
-    tokens = words.findall(text)
-
-    # fix abbreviated names (single upper-case letters + full stop)
-    nlp = spacy.load("en_core_web_sm")
-    doc = nlp(text)
-    entities = ["PERSON", "NORP", "FAC", "FACILITY", "ORG", "EVENT", "LAW"]
-    names = set([ent.text for ent in doc.ents if ent.label_ in entities])
-    for index, token in enumerate(tokens):
-        if len(token) == 1 and token.upper() == token and any(token + "." in name.split() for name in names):
-            tokens[index] = token + "."
-
-    return tokens
 
 
 def parse_data(url: str) -> WebpageData:
@@ -99,10 +71,9 @@ def parse_data(url: str) -> WebpageData:
     if not authors:
         authors = _extract_authors(article.html)
 
-    # tokenize text, replacing symbols that are problematic for tokenizers
-    tokenizer_text = re.sub("[“‟„”«»❝❞⹂〝〞〟＂]", "\"", re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", text))
-    sentences = nltk.sent_tokenize(tokenizer_text)
-    words = word_tokenize(tokenizer_text)
+    # tokenize text
+    sentences = sent_tokenize(text)
+    words = word_tokenize(text)
     if not words or not sentences or len(words) <= 5:
         logger.error("[Parsing] Could not tokenize text")
         return WebpageData()

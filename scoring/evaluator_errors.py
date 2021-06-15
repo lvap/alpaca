@@ -1,12 +1,12 @@
 import logging
-import re
 
 import language_tool_python as ltp
 import spacy
 
+from parsing.tokenize import word_tokenize
 from performance_analysis import performance_test
 from parsing.webpage_data import WebpageData
-from parsing.webpage_parser import has_ending_punctuation, word_tokenize
+from parsing.webpage_parser import has_ending_punctuation
 
 # modify grammar/spelling error score gradient given this upper limit
 ERROR_LIMIT = 0.2
@@ -38,13 +38,13 @@ def evaluate_errors(data: WebpageData) -> float:
 
     lang_tool = ltp.LanguageTool("en-US")
     matches = lang_tool.check(data.headline)
-    matches_to_ignore = 0
     if matches and matches[-1].ruleId == "PUNCTUATION_PARAGRAPH_END":
         # ignore error for missing punctuation at title ending
         matches.pop()
     matches += lang_tool.check(data.text)
 
     # filter out irrelevant matches and penalise errors only once
+    matches_to_ignore = 0
     unknown_words = []
     for match in matches:
         if (match.ruleId in ["EN_QUOTES", "DASH_RULE", "EXTREME_ADJECTIVES"] or match.category == "REDUNDANCY"
@@ -57,9 +57,7 @@ def evaluate_errors(data: WebpageData) -> float:
             logger.debug("[Errors] Text error:\n{}".format(match))
 
     error_score = len(matches) - matches_to_ignore
-    # replace variants to avoid not recognising apostrophes
-    cleaned_headline = re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", data.headline)
-    word_count = len(word_tokenize(cleaned_headline)) + len(data.text_words)
+    word_count = len(word_tokenize(data.headline)) + len(data.text_words)
     error_score = 1 - (error_score / (word_count * ERROR_LIMIT))
 
     logger.info("[Errors] {} grammar or spelling errors in {} words ({} errors ignored), {:.3f} errors per word"

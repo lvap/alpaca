@@ -1,8 +1,7 @@
 import logging
-import re
 
+from parsing.tokenize import word_tokenize
 from parsing.webpage_data import WebpageData
-from parsing.webpage_parser import word_tokenize
 from performance_analysis import performance_test
 
 # modify language structure score gradients given these limits
@@ -55,10 +54,7 @@ def evaluate_word_count_title(data: WebpageData) -> float:
     :return: Score between 0 and 1, with 0 indicating low number of words and 1 high number of words.
     """
 
-    # replace variants to avoid not recognising apostrophes
-    headline_clean = re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", data.headline)
-    word_count = len(word_tokenize(headline_clean))
-
+    word_count = len(word_tokenize(data.headline))
     logger.info("[Lang_structure] Words in title: " + str(word_count))
     performance_test.add_result(data.url, "word_count_title", word_count)
 
@@ -127,11 +123,9 @@ def evaluate_word_length_title(data: WebpageData) -> float:
     :return: Score between 0 and 1, with 0 indicating relatively short words and 1 relatively long words on average.
     """
 
-    # replace variants to avoid not recognising apostrophes
-    headline_clean = re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", data.headline)
-    headline_tokens = word_tokenize(headline_clean)
-
+    headline_tokens = word_tokenize(data.headline)
     word_length = sum(len(word) for word in headline_tokens) / len(headline_tokens)
+
     logger.info("[Lang_structure] Word length title: " + str(word_length))
     performance_test.add_result(data.url, "word_length_title", word_length)
 

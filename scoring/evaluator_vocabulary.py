@@ -74,18 +74,19 @@ def evaluate_emotional_words(data: WebpageData) -> float:
     fulltext = data.headline.lower() + " " + data.text.lower()
     word_count = 0
 
-    emotionality_results = {"anger": {"count": 0, "intensity": 0},
+    emotionality_results = {"anger":        {"count": 0, "intensity": 0},
                             "anticipation": {"count": 0, "intensity": 0},
-                            "disgust": {"count": 0, "intensity": 0},
-                            "fear": {"count": 0, "intensity": 0},
-                            "sadness": {"count": 0, "intensity": 0},
-                            "joy": {"count": 0, "intensity": 0},
-                            "surprise": {"count": 0, "intensity": 0},
-                            "trust": {"count": 0, "intensity": 0}}
+                            "disgust":      {"count": 0, "intensity": 0},
+                            "fear":         {"count": 0, "intensity": 0},
+                            "sadness":      {"count": 0, "intensity": 0},
+                            "joy":          {"count": 0, "intensity": 0},
+                            "surprise":     {"count": 0, "intensity": 0},
+                            "trust":        {"count": 0, "intensity": 0}}
 
     # lookup all words from article in emotional words list
-    for article_word in re.findall("[a-z]+", fulltext):
+    for article_word in data.text_words:
         word_count += 1
+        article_word = article_word.lower()
         match = emotional_words["word"].searchsorted(article_word)
         if match < df_size and emotional_words.iat[match, 0] == article_word:
             # get emotion intensity data for a word match

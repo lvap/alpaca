@@ -29,12 +29,13 @@ class CredibilitySignal(NamedTuple):
     weight_func: Callable[[float, WebpageData], float]
 
 
+# TODO tweak evaluation weights
 # holds credibility signals with signal evaluator and weight functions
 evaluation_signals = {
     "authors":                      CredibilitySignal(evaluate_authors,
                                                       lambda score, d: 0.3),
     "url_domain_ending":            CredibilitySignal(evaluate_domain_ending,
-                                                      lambda score, d: 0.2 if score == 1 else 0),
+                                                      lambda score, d: 0 if not d.url or score < 1 else 0.2),
     "errors":                       CredibilitySignal(evaluate_errors,
                                                       lambda score, d: 0.3 if score > 0.8 else 0.45),
     "tonality_questions_text":      CredibilitySignal(tonality.evaluate_questions_text,
@@ -53,11 +54,11 @@ evaluation_signals = {
     "readability_text":             CredibilitySignal(evaluate_readability_text,
                                                       lambda score, d: 0.8),
     "readability_title":            CredibilitySignal(evaluate_readability_title,
-                                                      lambda score, d: 0.3),
+                                                      lambda score, d: 0.3 if d.headline else 0),
     "ls_word_count_text":           CredibilitySignal(ls.evaluate_word_count_text,
                                                       lambda score, d: 0.5),
     "ls_word_count_title":          CredibilitySignal(ls.evaluate_word_count_title,
-                                                      lambda score, d: 0.3),
+                                                      lambda score, d: 0.3 if d.headline else 0),
     "ls_sentence_count":            CredibilitySignal(ls.evaluate_sentence_count,
                                                       lambda score, d: 0.3),
     "ls_type_token_ratio":          CredibilitySignal(ls.evaluate_ttr,
@@ -65,7 +66,7 @@ evaluation_signals = {
     "ls_word_length_text":          CredibilitySignal(ls.evaluate_word_length_text,
                                                       lambda score, d: 0.3),
     "ls_word_length_title":         CredibilitySignal(ls.evaluate_word_length_title,
-                                                      lambda score, d: 0.4),
+                                                      lambda score, d: 0.4 if d.headline else 0),
     "vocabulary_profanity":         CredibilitySignal(evaluate_profanity,
                                                       lambda score, d: 0 if score == 1 else 1),
     "vocabulary_emotional_words":   CredibilitySignal(evaluate_emotional_words,
@@ -73,11 +74,11 @@ evaluation_signals = {
     "clickbait":                    CredibilitySignal(evaluate_clickbait,
                                                       lambda s, d: 0 if not d.headline else 0.3 if s > 0 else 0.8),
     "links_external":               CredibilitySignal(evaluate_links_external,
-                                                      lambda score, d: 0.3 if score == 0 or score == 1 else 0),
+                                                      lambda s, d: 0 if not d.url or not d.html or 0 < s < 1 else 0.3),
     "sentiment_polarity_text":      CredibilitySignal(evaluate_polarity_text,
                                                       lambda score, d: 0.8),
     "sentiment_polarity_title":     CredibilitySignal(evaluate_polarity_title,
-                                                      lambda score, d: 0.5),
+                                                      lambda score, d: 0.5 if d.headline else 0),
     "sentiment_subjectivity":       CredibilitySignal(evaluate_subjectivity,
                                                       lambda score, d: 0.4),
 }
@@ -106,7 +107,6 @@ def evaluate_webpage(url: str) -> float:
     final_score = 0
 
     # compute sub-scores and sum up overall score via linear combination
-    # TODO possibly parellelise the signal evaluation calls to boost performance
     for signal_name, signal in evaluation_signals.items():
         subscore = signal.evaluator(page_data)
         weight = signal.weight_func(subscore, page_data)
