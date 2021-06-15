@@ -22,11 +22,11 @@ def has_ending_punctuation(text: str) -> bool:
     return any((char in ".!?:") for char in text[-3:])
 
 
-def valid_address(user_input: str) -> bool:
+def valid_address(url: str) -> bool:
     """Returns True if the given string is a valid http or https URL, False otherwise."""
 
     try:
-        result = urlparse(user_input)
+        result = urlparse(url)
         return all([result.scheme, result.netloc, result.path]) and result.scheme in ["http", "https"]
     except ValueError:
         return False
@@ -103,7 +103,7 @@ def parse_data(url: str) -> WebpageData:
     tokenizer_text = re.sub("[“‟„”«»❝❞⹂〝〞〟＂]", "\"", re.sub("[‹›’❮❯‚‘‛❛❜❟]", "'", text))
     sentences = nltk.sent_tokenize(tokenizer_text)
     words = word_tokenize(tokenizer_text)
-    if not words or not sentences or len(words) <= 5 or len(sentences) < 1:
+    if not words or not sentences or len(words) <= 5:
         logger.error("[Parsing] Could not tokenize text")
         return WebpageData()
 
@@ -111,7 +111,7 @@ def parse_data(url: str) -> WebpageData:
     logger.info("[Parsing] Authors: {}".format(authors))
     logger.info("[Parsing] Text length: {} symbols, {} sentences".format(len(text), len(sentences)))
     logger.info("[Parsing] Text: {}".format(text[:200] + " [...] " + text[-200:]).replace("\n", " "))
-    # logger.debug("[Parsing] Full text: {}".format(text[:-1]))
+    # logger.debug("[Parsing] Full text: {}".format(text))
 
     return WebpageData(article.html, article.title, text, authors, url, sentences, words)
 

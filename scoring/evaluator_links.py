@@ -21,9 +21,12 @@ def evaluate_links_external(data: WebpageData) -> float:
     """Evaluates webpage usage of external (site outbound) links.
 
     Returned score is linear from 0 external links (worst score => 0) to at least
-    *LINKS_EXTERNAL_THRESHOLD* links (best score => 1).
+    *LINKS_EXTERNAL_THRESHOLD* links (best score => 1). Returns 0 if data.url is not a valid http(s) URL.
 
     :return: 1 for high and 0 for low usage of external links."""
+
+    if not valid_address(data.url):
+        return 0
 
     local_domain = urlparse(data.url).hostname
     if local_domain.startswith("www."):
