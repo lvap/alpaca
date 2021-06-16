@@ -6,7 +6,6 @@ import spacy
 from parsing.tokenize import word_tokenize
 from performance_analysis import performance_test
 from parsing.webpage_data import WebpageData
-from parsing.webpage_parser import has_ending_punctuation
 
 # modify grammar/spelling error score gradient given this upper limit
 ERROR_LIMIT = 0.2
@@ -29,9 +28,8 @@ def evaluate_errors(data: WebpageData) -> float:
     """
 
     # set up named entity recognition to avoid classifying names as spelling errors
-    headline_ending = " " if has_ending_punctuation(data.headline) else ". " if data.headline else ""
     nlp = spacy.load("en_core_web_sm")
-    doc = nlp(data.headline + headline_ending + data.text)
+    doc = nlp(data.headline + "\n" + data.text)
     entities = ["PERSON", "NORP", "FAC", "FACILITY", "ORG", "GPE", "LOC", "PRODUCT", "EVENT", "WORK_OF_ART", "LAW"]
     names = set([ent.text for ent in doc.ents if ent.label_ in entities])
     logger.debug("[Errors] {} recognised named entities: {}".format(len(names), names))

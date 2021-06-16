@@ -1,6 +1,7 @@
 import io
 import json
 import logging
+import re
 from urllib.parse import urlparse
 
 import trafilatura
@@ -14,10 +15,11 @@ logger = logging.getLogger("alpaca")
 
 
 def has_ending_punctuation(text: str) -> bool:
-    """Checks whether the text ending (last three characters) contains any of . ! ? :"""
+    """Checks whether the text ending (last two characters) contains any of . ! ? :"""
 
-    # evaluate the last 3 characters of text to allow for parentheses and quotation marks
-    return any((char in ".!?:") for char in text[-3:])
+    # evaluate the last 2 characters of text to allow for parentheses or quotation marks
+    ending = re.sub("[“‟„”«»❝❞⹂〝〞〟＂‹›’❮❯‚‘‛❛❜❟]", "\"", text[-2:])
+    return bool(re.search("[.!?:]$|[.!?:][\")]|[\")][.!?:]", ending))
 
 
 def valid_address(url: str) -> bool:
@@ -97,28 +99,26 @@ def _parse_text(article: Article) -> str:
         traf_logger.propagate = False
         buf_handler = logging.StreamHandler(buf)
         traf_logger.addHandler(buf_handler)
-        text = trafilatura.extract(article.html, include_comments=False, target_language="en", include_tables=False)
+        parsed_text = trafilatura.extract(article.html, include_comments=False, include_tables=False)
         traf_logger.removeHandler(buf_handler)
         traf_logger.propagate = propagate_state
         for message in buf.getvalue().strip().split("\n"):
             if message:
                 logger.debug("[Parsing>Trafilatura] " + message)
 
-    if text:
-        # remove title if the text begins with it
-        if text.startswith(article.title):
-            text = text[len(article.title):]
+    parsed_text = parsed_text or article.text
+    if not parsed_text:
+        return ""
 
-        paragraphs = text.split("\n")
-        # add period if article has sub-title without ending punctuation
-        if not has_ending_punctuation(paragraphs[0]):
-            paragraphs[0] += "."
+    # remove title if the text begins with it
+    if parsed_text.startswith(article.title):
+        parsed_text = parsed_text[len(article.title):]
 
-        # concatenate paragraphs, removing short parts that are likely not part of the actual text
-        text = ""
-        for pg in paragraphs:
-            if len(pg) > 125 or (len(pg) > 40 and has_ending_punctuation(pg)):
-                text += pg + "\n"
+    # concatenate paragraphs, removing short parts that are likely not part of the actual text
+    text = ""
+    for paragraph in parsed_text.split("\n"):
+        if len(paragraph) > 100 or (len(paragraph) > 25 and has_ending_punctuation(paragraph)):
+            text += paragraph + "\n"
 
     return text.strip()
 
