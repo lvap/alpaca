@@ -10,7 +10,9 @@ def evaluate_domain_ending(data: WebpageData) -> float:
 
     Since .edu and .gov are often the second-level domain, we check for both top-level as well as second-level domains.
 
-    :return: Returns 1 if the domain ending contains .org, .edu or .gov, 0 otherwise."""
+    :return: Returns 1 if the url is a valid http(s) address and the domain ending contains .org, .edu or .gov,
+        0 otherwise.
+    """
 
     if not valid_address(data.url):
         return 0

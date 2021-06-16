@@ -142,7 +142,8 @@ def _sentiment_analyser(texts: list[str]) -> np.array([float, ...]):
     """Sentiment analyser by Prashanth Rao https://github.com/prrao87/fine-grained-sentiment-app
 
     :return: Sentiment analysis of the input texts, classifying each into 5 groups from 0 (very negative) to 5
-        (very positive). The numbers in each of the 5 groups represents the probability of the text belonging to it."""
+        (very positive). The numbers in each of the 5 groups represents the probability of the text belonging to it.
+    """
 
     model_path = (Path(__file__).parent / "files/sst5_hyperopt.ftz").resolve()
     # redirect external error prints to our own logger

@@ -57,6 +57,7 @@ def is_clickbait(headline: str) -> bool:
 
 def clean_text(text: str) -> str:
     """Make text lowercase, remove text in square brackets, remove punctuation and remove words containing numbers."""
+
     text = text.lower()
     # text = re.sub("\w*\d\w*", " ", text)
     text = re.sub("\n", " ", text)
