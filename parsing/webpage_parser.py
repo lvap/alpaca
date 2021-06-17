@@ -19,7 +19,7 @@ def has_ending_punctuation(text: str) -> bool:
 
     # evaluate the last 2 characters of text to allow for parentheses or quotation marks
     ending = re.sub("[“‟„”«»❝❞⹂〝〞〟＂‹›’❮❯‚‘‛❛❜❟]", "\"", text[-2:])
-    return bool(re.search("[.!?:]$|[.!?:][\")]|[\")][.!?:]", ending))
+    return bool(re.search("[.!?:]$|[.!?][\")]|[\")][.!?:]", ending))
 
 
 def valid_address(url: str) -> bool:
@@ -39,8 +39,6 @@ def parse_data(url: str) -> WebpageData:
     Additionally tokenizes article text into words and sentences. Webpage is assumed to be in English.
     """
 
-    article = Article(url, language="en", fetch_images=False)
-
     # download & parse article html, redirecting external logging to our own logger
     with io.StringIO() as buf:
         np_logger = logging.getLogger("article")
@@ -48,9 +46,12 @@ def parse_data(url: str) -> WebpageData:
         np_logger.propagate = False
         buf_handler = logging.StreamHandler(buf)
         np_logger.addHandler(buf_handler)
+
         try:
+            article = Article(url, language="en", fetch_images=False)
             article.download()
             article.parse()
+
         except ArticleException as err:
             logger.debug("[Parsing>Newspaper] " + str(err))
         finally:
@@ -60,15 +61,17 @@ def parse_data(url: str) -> WebpageData:
                 if message:
                     logger.debug("[Parsing>Newspaper] " + message)
 
-    if not article.html:
+    if not article or not article.html:
         logger.error("[Parsing] Could not parse webpage html")
         return WebpageData()
 
+    # parse article text
     text = _parse_text(article)
     if not text:
         logger.error("[Parsing] Could not parse webpage text")
         return WebpageData()
 
+    # parse article authors
     authors = article.authors
     if not authors:
         authors = _extract_authors(article.html)
@@ -114,13 +117,16 @@ def _parse_text(article: Article) -> str:
     if parsed_text.startswith(article.title):
         parsed_text = parsed_text[len(article.title):]
 
+    """
+    for now it seems better to use all page text, even if some snippets may be irrelevant
     # concatenate paragraphs, removing short parts that are likely not part of the actual text
     text = ""
     for paragraph in parsed_text.split("\n"):
-        if len(paragraph) > 100 or (len(paragraph) > 25 and has_ending_punctuation(paragraph)):
+        if len(paragraph) > 25 or has_ending_punctuation(paragraph):
             text += paragraph + "\n"
+    """
 
-    return text.strip()
+    return parsed_text.strip()
 
 
 def _extract_authors(html: str) -> list[str]:
@@ -133,13 +139,19 @@ def _extract_authors(html: str) -> list[str]:
     if matches := soup.find("script", {"type": "application/ld+json"}):
         page_dict = json.loads("".join(matches.contents))
         if page_dict and type(page_dict) is dict:
-            authors.extend(
-                [value.get("name") for (key, value) in page_dict.items() if key == "author" and value.get("name")])
+            for key, value in page_dict.items():
+                if key == "author" and value:
+                    if type(value) is dict and value["name"]:
+                        authors.append(value["name"])
+                    elif type(value) is str:
+                        authors.append(value)
 
     # theguardian.com
-    authors.extend(
-        [meta_author.get("content") for meta_author in soup.findAll("meta", attrs={"property": "article:author"})
-         if meta_author.get("content")])
+    for meta_author in soup.findAll("meta", attrs={"property": "article:author"}):
+        if type(meta_author) is dict and meta_author["content"]:
+            authors.append(meta_author["content"])
+        elif type(meta_author) is str:
+            authors.append(meta_author)
 
     if authors:
         logger.debug("[Parsing] {} additional author(s) detected: {}".format(len(authors), authors))
