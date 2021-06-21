@@ -5,7 +5,7 @@ from bs4 import BeautifulSoup
 
 from performance_analysis import performance_test
 from parsing.webpage_data import WebpageData
-from parsing.webpage_parser import valid_address
+from parsing.webpage_parser import valid_address, get_real_url
 
 # modify external links score gradient given this threshold
 LINKS_EXTERNAL_THRESHOLD = 3
@@ -29,7 +29,8 @@ def evaluate_links_external(data: WebpageData) -> float:
     if not valid_address(data.url) or not data.html:
         return 0
 
-    local_domain = urlparse(data.url).hostname
+    url = get_real_url(data.url)
+    local_domain = urlparse(url).hostname
     if local_domain.startswith("www."):
         local_domain = local_domain[4:]
 

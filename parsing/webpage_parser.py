@@ -2,6 +2,7 @@ import io
 import json
 import logging
 import re
+from json import JSONDecodeError
 from urllib.parse import urlparse
 
 import trafilatura
@@ -30,6 +31,19 @@ def valid_address(url: str) -> bool:
         return all([result.scheme, result.netloc, result.path]) and result.scheme in ["http", "https"]
     except ValueError:
         return False
+
+
+def get_real_url(url: str) -> str:
+    """Extracts the real URL if using an archived webpage via web.archive.org, else returns input URL."""
+
+    if not valid_address(url):
+        return ""
+
+    if match := re.search(r"https?://web\.archive\.org/web/\d+/", url):
+        if valid_address(url[match.end():]):
+            return url[match.end():]
+
+    return url
 
 
 def parse_data(url: str) -> WebpageData:
@@ -113,20 +127,17 @@ def _parse_text(article: Article) -> str:
     if not parsed_text:
         return ""
 
-    # remove title if the text begins with it
-    if parsed_text.startswith(article.title):
-        parsed_text = parsed_text[len(article.title):]
-
-    """
-    for now it seems better to use all page text, even if some snippets may be irrelevant
-    # concatenate paragraphs, removing short parts that are likely not part of the actual text
+    paragraphs = parsed_text.split("\n")
     text = ""
-    for paragraph in parsed_text.split("\n"):
-        if len(paragraph) > 25 or has_ending_punctuation(paragraph):
+    # remove title if the text begins with it
+    if paragraphs[0] == article.title:
+        paragraphs.pop(0)
+    # concatenate paragraphs, removing those without a single alphanumeric character
+    for paragraph in paragraphs:
+        if any(char.isalnum() for char in paragraph):
             text += paragraph + "\n"
-    """
 
-    return parsed_text.strip()
+    return text.strip()
 
 
 def _extract_authors(html: str) -> list[str]:
@@ -135,23 +146,33 @@ def _extract_authors(html: str) -> list[str]:
     authors = []
     soup = BeautifulSoup(html, "html.parser")
 
-    # BBC.com
-    if matches := soup.find("script", {"type": "application/ld+json"}):
-        page_dict = json.loads("".join(matches.contents))
-        if page_dict and type(page_dict) is dict:
-            for key, value in page_dict.items():
-                if key == "author" and value:
-                    if type(value) is dict and value["name"]:
-                        authors.append(value["name"])
-                    elif type(value) is str:
-                        authors.append(value)
+    for match in soup.findAll("script", type="application/ld+json"):
+        try:
+            page_dict = json.loads("".join(match.contents))
+            if page_dict and type(page_dict) is dict:
+
+                # BBC.com (e.g. https://www.bbc.com/news/world-asia-57516630)
+                if "author" in page_dict:
+                    author_dict = page_dict["author"]
+                    if (author_dict and type(author_dict) is dict and "name" in author_dict
+                            and not ("@type" in author_dict and author_dict["@type"] != "Person")):
+                        authors.append(author_dict["name"])
+
+                # snopes.com (e.g.http://www.snopes.com/politics/obama/photos/kenyasign.asp)
+                elif "@graph" in page_dict and type(page_dict["@graph"]) is list:
+                    for graph_dict in page_dict["@graph"]:
+                        if (type(graph_dict) is dict and "@type" in graph_dict and graph_dict["@type"] == "Person"
+                                and "name" in graph_dict):
+                            authors.append(graph_dict["name"])
+                            break
+
+        except JSONDecodeError as err:
+            logger.debug("[Parsing>json] " + str(err))
 
     # theguardian.com
-    for meta_author in soup.findAll("meta", attrs={"property": "article:author"}):
-        if type(meta_author) is dict and meta_author["content"]:
+    for meta_author in soup.findAll("meta", property="article:author"):
+        if meta_author.has_attr("content"):
             authors.append(meta_author["content"])
-        elif type(meta_author) is str:
-            authors.append(meta_author)
 
     if authors:
         logger.debug("[Parsing] {} additional author(s) detected: {}".format(len(authors), authors))
