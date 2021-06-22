@@ -2,7 +2,6 @@ import io
 import json
 import logging
 import re
-from json import JSONDecodeError
 from urllib.parse import urlparse
 
 import trafilatura
@@ -166,7 +165,7 @@ def _extract_authors(html: str) -> list[str]:
                             authors.append(graph_dict["name"])
                             break
 
-        except JSONDecodeError as err:
+        except json.JSONDecodeError as err:
             logger.debug("[Parsing>json] " + str(err))
 
     # theguardian.com
