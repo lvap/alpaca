@@ -1,3 +1,4 @@
+url;credibility_rating
 https://web.archive.org/web/20090619223600/http://www.cnn.com/2009/WORLD/meast/06/15/iran.elections.qa/;5
 https://web.archive.org/web/20111031175128/http://www.peakhomeloan.com/mortgage%20refinancing.asp;2
 https://web.archive.org/web/20100602231114/http://www.energy.ca.gov/greenjobs/;5

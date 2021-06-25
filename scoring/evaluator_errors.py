@@ -45,10 +45,10 @@ def evaluate_errors(data: WebpageData) -> float:
     matches_to_ignore = 0
     unknown_words = []
     for match in matches:
-        if (match.ruleId in ["EN_QUOTES", "DASH_RULE", "EXTREME_ADJECTIVES"] or match.category == "REDUNDANCY"
-                or "is British English" in match.message or match.matchedText in unknown_words
-                or ("Possible spelling mistake" in match.message
-                    and any(match.matchedText in name.split() for name in names))):
+        if (match.ruleId in ["EN_QUOTES", "DASH_RULE", "EXTREME_ADJECTIVES", "MONTH_OF_XXXX"]
+                or match.category == "REDUNDANCY" or "is British English" in match.message
+                or match.matchedText in unknown_words or ("Possible spelling mistake" in match.message
+                                                          and any(match.matchedText in nm.split() for nm in names))):
             matches_to_ignore += 1
         else:
             unknown_words.append(match.matchedText)

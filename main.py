@@ -38,7 +38,7 @@ def alpaca_init():
 
 
 def _handle_input():
-    """Waits for and handles user input. If a valid webpage URL is submitted, retrieves and prints the webpage's
+    """Waits for and handles user input. If a valid webpage address is submitted, retrieves and prints the webpage's
     credibility score. Terminates on input **exit** or **quit**.
     """
 
@@ -50,7 +50,7 @@ def _handle_input():
             logger.info("[Main] Alpaca end")
             break
 
-        if valid_address(user_input):
+        if valid_address(user_input) or valid_address(user_input := "http://" + user_input):
             score = evaluate_webpage(user_input)
             if 0 <= score <= 1:
                 print("Webpage score: {:.5f} for {}".format(score, user_input))

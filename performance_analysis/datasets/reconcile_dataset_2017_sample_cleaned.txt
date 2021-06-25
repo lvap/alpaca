@@ -1,3 +1,4 @@
+url;credibility_rating
 http://samvak.tripod.com/faq23.html;4
 https://www.druglibrary.org/olsen/medical/iowa/dosecomp.html;3
 https://web.archive.org/web/20171202105533/http://chemo.net/amyloxin.htm;3.7142857142857135
