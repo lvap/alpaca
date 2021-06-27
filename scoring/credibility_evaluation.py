@@ -95,11 +95,12 @@ def evaluate_webpage(url: str) -> float:
         Returns -1 if the webpage could not be parsed, and -2 if it could not be evaluated.
     """
 
-    page_data = parser.parse_data(url)
+    logger.debug("[Evaluation] Evaluating " + url)
 
+    page_data = parser.parse_data(url)
     # check for valid data
     if not page_data or not page_data.url or not page_data.html or len(page_data.text) < 50:
-        logger.error("[Evaluation] Webpage parsing failed")
+        logger.error("[Evaluation] Webpage parsing failed for " + url)
         return -1
 
     scores = {}

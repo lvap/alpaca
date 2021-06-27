@@ -33,3 +33,10 @@ def results_to_csv():
         csvpath = (dirpath / ("test_results_" + datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss") + ".csv")).resolve()
         df = pd.DataFrame.from_dict(results, orient="index")
         df.to_csv(path_or_buf=csvpath, sep=";")
+
+
+def clear_results():
+    """Resets the performance test results dictionary."""
+
+    global results
+    results = defaultdict(lambda: defaultdict(float))

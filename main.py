@@ -33,6 +33,7 @@ if LOG_LEVEL_FILE:
 
 def alpaca_init():
     logger.info("[Main] Alpaca init")
+    atexit.register(logger.info, "[Main] Alpaca end")
     atexit.register(performance_test.results_to_csv)
     _handle_input()
 
@@ -44,13 +45,11 @@ def _handle_input():
 
     while True:
         user_input = input("\nEnter webpage address: ")
-        logger.debug("[Main] Processing input: " + user_input)
 
         if user_input.lower() in ["exit", "quit"]:
-            logger.info("[Main] Alpaca end")
             break
 
-        if valid_address(user_input) or valid_address(user_input := "http://" + user_input):
+        if valid_address(user_input):
             score = evaluate_webpage(user_input)
             if 0 <= score <= 1:
                 print("Webpage score: {:.5f} for {}".format(score, user_input))
@@ -59,8 +58,37 @@ def _handle_input():
 
         else:
             print("Invalid address")
-            logger.debug("[Main] Invalid address")
+
+
+def evaluate_datasets():
+    """TODO documentation"""
+
+    logger.info("[Main] Evaluating datasets")
+    directory = (Path(__file__).parent / "performance_analysis/datasets").resolve()
+    urls = set()
+
+    for dataset in directory.glob("*"):
+        logger.info("[Main] Evaluating dataset " + str(dataset))
+        with open(dataset, "r") as datasetIO:
+            for line in datasetIO.readlines()[1:]:  # first line is column headers
+                url = line.split(";")[0]
+                rating = float(line.split(";")[1])
+                if not valid_address(url):
+                    url = "http://" + url
+
+                if url in urls:
+                    logger.error("[Main] Duplicate URL: " + url)
+                    continue
+                urls.add(url)
+
+                performance_test.add_result(url, "rating", rating)
+                evaluate_webpage(url)
+                break
+
+        performance_test.results_to_csv()
+        performance_test.clear_results()
 
 
 if __name__ == "__main__":
     alpaca_init()
+    # evaluate_datasets()
