@@ -7,4 +7,4 @@ __pycache__/
 
 # folders for output files
 .log/
-performance_analysis/test_results/
+analysis/stats_results/

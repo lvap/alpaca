@@ -9,7 +9,7 @@ import spacy
 from spacytextblob.spacytextblob import SpacyTextBlob
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-from performance_analysis import performance_test
+from analysis import stats_collector
 from parsing.webpage_data import WebpageData
 
 # lower limit for polarity scores (greater than 0, lower than 1)
@@ -61,13 +61,13 @@ def evaluate_polarity_text(data: WebpageData) -> float:
                  .format(polarity_spacy, polarity_vader, sentiment_ft[0]))
     logger.info("[Sentiment] Text polarity scores: SpaCy {:.3f} | VADER {:.3f} | FastText {:.3f}"
                 .format(score_spacy, score_vader, score_ft))
-    performance_test.add_result(data.url, "sentiment_text_spacy", polarity_spacy)
-    performance_test.add_result(data.url, "sentiment_text_vader", polarity_vader["compound"])
-    performance_test.add_result(data.url, "sentiment_text_fasttext_1", sentiment_ft[0][0])
-    performance_test.add_result(data.url, "sentiment_text_fasttext_2", sentiment_ft[0][1])
-    performance_test.add_result(data.url, "sentiment_text_fasttext_3", sentiment_ft[0][2])
-    performance_test.add_result(data.url, "sentiment_text_fasttext_4", sentiment_ft[0][3])
-    performance_test.add_result(data.url, "sentiment_text_fasttext_5", sentiment_ft[0][4])
+    stats_collector.add_result(data.url, "sentiment_text_spacy", polarity_spacy)
+    stats_collector.add_result(data.url, "sentiment_text_vader", polarity_vader["compound"])
+    stats_collector.add_result(data.url, "sentiment_text_fasttext_1", sentiment_ft[0][0])
+    stats_collector.add_result(data.url, "sentiment_text_fasttext_2", sentiment_ft[0][1])
+    stats_collector.add_result(data.url, "sentiment_text_fasttext_3", sentiment_ft[0][2])
+    stats_collector.add_result(data.url, "sentiment_text_fasttext_4", sentiment_ft[0][3])
+    stats_collector.add_result(data.url, "sentiment_text_fasttext_5", sentiment_ft[0][4])
 
     return (score_spacy + score_vader + score_ft) / 3
 
@@ -111,13 +111,13 @@ def evaluate_polarity_title(data: WebpageData) -> float:
                  .format(polarity_spacy, polarity_vader, sentiment_ft[0]))
     logger.info("[Sentiment] Headline polarity scores: SpaCy {:.3f} | VADER {:.3f} | FastText {:.3f}"
                 .format(score_spacy, score_vader, score_ft))
-    performance_test.add_result(data.url, "sentiment_title_spacy", polarity_spacy)
-    performance_test.add_result(data.url, "sentiment_title_vader", polarity_vader["compound"])
-    performance_test.add_result(data.url, "sentiment_title_fasttext_1", sentiment_ft[0][0])
-    performance_test.add_result(data.url, "sentiment_title_fasttext_2", sentiment_ft[0][1])
-    performance_test.add_result(data.url, "sentiment_title_fasttext_3", sentiment_ft[0][2])
-    performance_test.add_result(data.url, "sentiment_title_fasttext_4", sentiment_ft[0][3])
-    performance_test.add_result(data.url, "sentiment_title_fasttext_5", sentiment_ft[0][4])
+    stats_collector.add_result(data.url, "sentiment_title_spacy", polarity_spacy)
+    stats_collector.add_result(data.url, "sentiment_title_vader", polarity_vader["compound"])
+    stats_collector.add_result(data.url, "sentiment_title_fasttext_1", sentiment_ft[0][0])
+    stats_collector.add_result(data.url, "sentiment_title_fasttext_2", sentiment_ft[0][1])
+    stats_collector.add_result(data.url, "sentiment_title_fasttext_3", sentiment_ft[0][2])
+    stats_collector.add_result(data.url, "sentiment_title_fasttext_4", sentiment_ft[0][3])
+    stats_collector.add_result(data.url, "sentiment_title_fasttext_5", sentiment_ft[0][4])
 
     return (score_spacy + score_vader + score_ft) / 3
 

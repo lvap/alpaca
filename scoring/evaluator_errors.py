@@ -4,7 +4,7 @@ import language_tool_python as ltp
 import spacy
 
 from parsing.tokenize import word_tokenize
-from performance_analysis import performance_test
+from analysis import stats_collector
 from parsing.webpage_data import WebpageData
 
 # modify grammar/spelling error score gradient given this upper limit
@@ -60,6 +60,6 @@ def evaluate_errors(data: WebpageData) -> float:
 
     logger.info("[Errors] {} grammar or spelling errors in {} words ({} errors ignored), {:.3f} errors per word"
                 .format(len(matches) - matches_to_ignore, word_count, matches_to_ignore, error_score / word_count))
-    performance_test.add_result(data.url, "errors_grammar_spelling", error_score / word_count)
+    stats_collector.add_result(data.url, "errors_grammar_spelling", error_score / word_count)
 
     return max(error_score, 0)

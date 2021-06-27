@@ -3,7 +3,7 @@ from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
 
-from performance_analysis import performance_test
+from analysis import stats_collector
 from parsing.webpage_data import WebpageData
 from parsing.webpage_parser import valid_address, get_real_url
 
@@ -52,7 +52,7 @@ def evaluate_links_external(data: WebpageData) -> float:
 
     logger.info("[Links] {} external links found".format(len(links)))
     logger.debug("[Links] External links: {}".format(links))
-    performance_test.add_result(data.url, "links_count", len(links))
+    stats_collector.add_result(data.url, "links_count", len(links))
 
     score = len(links) / LINKS_EXTERNAL_THRESHOLD
     return min(score, 1)

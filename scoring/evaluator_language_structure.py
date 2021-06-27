@@ -2,7 +2,7 @@ import logging
 
 from parsing.tokenize import word_tokenize
 from parsing.webpage_data import WebpageData
-from performance_analysis import performance_test
+from analysis import stats_collector
 
 # modify language structure score gradients given these limits
 WORDS_TEXT_LOWER = 300
@@ -39,7 +39,7 @@ def evaluate_word_count_text(data: WebpageData) -> float:
 
     word_count = len(data.text_words)
     logger.info("[Lang_structure] Words in text: " + str(word_count))
-    performance_test.add_result(data.url, "word_count_text", word_count)
+    stats_collector.add_result(data.url, "word_count_text", word_count)
 
     word_score = (word_count - WORDS_TEXT_LOWER) / (WORDS_TEXT_UPPER - WORDS_TEXT_LOWER)
     return min(max(word_score, 0), 1)
@@ -56,7 +56,7 @@ def evaluate_word_count_title(data: WebpageData) -> float:
 
     word_count = len(word_tokenize(data.headline))
     logger.info("[Lang_structure] Words in title: " + str(word_count))
-    performance_test.add_result(data.url, "word_count_title", word_count)
+    stats_collector.add_result(data.url, "word_count_title", word_count)
 
     word_score = (word_count - WORDS_TEXT_LOWER) / (WORDS_TEXT_UPPER - WORDS_TEXT_LOWER)
     return 1 - min(max(word_score, 0), 1)
@@ -73,7 +73,7 @@ def evaluate_sentence_count(data: WebpageData) -> float:
 
     sentence_count = len(data.text_sentences)
     logger.info("[Lang_structure] Sentences in text: " + str(sentence_count))
-    performance_test.add_result(data.url, "sentence_count", sentence_count)
+    stats_collector.add_result(data.url, "sentence_count", sentence_count)
 
     score = (sentence_count - SENTENCES_LOWER) / (SENTENCES_UPPER - SENTENCES_LOWER)
     return min(max(score, 0), 1)
@@ -91,7 +91,7 @@ def evaluate_ttr(data: WebpageData) -> float:
 
     ttr = len(set(data.text_words)) / len(data.text_words)
     logger.info("[Lang_structure] Type-token-ratio: " + str(ttr))
-    performance_test.add_result(data.url, "ttr", ttr)
+    stats_collector.add_result(data.url, "ttr", ttr)
 
     ttr_score = (ttr - TTR_MINIMUM) / TTR_MINIMUM
     return max(ttr_score, 0)
@@ -108,7 +108,7 @@ def evaluate_word_length_text(data: WebpageData) -> float:
 
     word_length = sum(len(word) for word in data.text_words) / len(data.text_words)
     logger.info("[Lang_structure] Word length text: " + str(word_length))
-    performance_test.add_result(data.url, "word_length_text", word_length)
+    stats_collector.add_result(data.url, "word_length_text", word_length)
 
     score = (word_length - WLENGTH_TEXT_LOWER) / (WLENGTH_TEXT_UPPER - WLENGTH_TEXT_LOWER)
     return min(max(score, 0), 1)
@@ -127,7 +127,7 @@ def evaluate_word_length_title(data: WebpageData) -> float:
     word_length = sum(len(word) for word in headline_tokens) / len(headline_tokens)
 
     logger.info("[Lang_structure] Word length title: " + str(word_length))
-    performance_test.add_result(data.url, "word_length_title", word_length)
+    stats_collector.add_result(data.url, "word_length_title", word_length)
 
     score = (word_length - WLENGTH_TITLE_LOWER) / (WLENGTH_TITLE_UPPER - WLENGTH_TITLE_LOWER)
     return min(max(score, 0), 1)

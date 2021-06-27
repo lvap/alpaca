@@ -86,7 +86,6 @@ http://abcnews.go.com/ThisWeek/week-transcript-holder-giuliani/story?id=10596448
 https://web.archive.org/web/20180101162402/https://www.whitehouse.gov/presidential-actions/executive-order-protecting-nation-foreign-terrorist-entry-united-states/;0
 https://web.archive.org/web/20100626122700/http://www.citizenlink.org/focusaction/updates/A000006979.cfm;0
 https://web.archive.org/web/20070825014950/http://www.mcclatchydc.com/iraq/story/18861.html;0
-http://www.cnn.com/2012/10/03/politics/debate-transcript/index.html;0
 https://web.archive.org/web/20100330081658/http://switchboard.nrdc.org/blogs/bfinamore/chinas_carbon_intensity_target.html;0
 https://web.archive.org/web/20080319052510/http://www.mtv.com/news/articles/1583539/20080317/id_0.jhtml;0
 https://web.archive.org/web/20171229115105/http://www.washingtonpost.com/wp-dyn/content/article/2009/08/28/AR2009082803158.html;0
@@ -99,3 +98,4 @@ http://abcnews.go.com/print?id=9818034;0
 https://web.archive.org/web/20071016102723/http://eia.doe.gov/emeu/cabs/Saudi_Arabia/Oil.html;0
 https://web.archive.org/web/20100821215324/http://republicans.foreignaffairs.house.gov/press_display.asp?id=1583;0
 http://abcnews.go.com/Politics/memory-lapse-trump-seeks-distance-advisor-past-ties/story?id=34600826;0
+https://web.archive.org/web/20090816181927/http://www.pbs.org/newshour/bb/politics/july-dec09/shieldsbrooks_08-14.html;0

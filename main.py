@@ -4,9 +4,12 @@ import os
 from datetime import datetime
 from pathlib import Path
 
-from performance_analysis import performance_test
+from analysis import stats_collector
 from parsing.webpage_parser import valid_address
 from scoring.credibility_evaluation import evaluate_webpage
+
+# toggle collection of additional signal statistics for all processed webpages
+COLLECT_STATS = False
 
 # logging output settings per stream (set to None to disable)
 LOG_LEVEL_CONSOLE = logging.WARNING
@@ -32,16 +35,14 @@ if LOG_LEVEL_FILE:
 
 
 def alpaca_init():
+    """Handles console input. If a valid webpage URL is submitted, retrieves & prints the webpage's credibility score"""
+
     logger.info("[Main] Alpaca init")
     atexit.register(logger.info, "[Main] Alpaca end")
-    atexit.register(performance_test.results_to_csv)
-    _handle_input()
 
-
-def _handle_input():
-    """Waits for and handles user input. If a valid webpage address is submitted, retrieves and prints the webpage's
-    credibility score. Terminates on input **exit** or **quit**.
-    """
+    if COLLECT_STATS:
+        stats_collector.set_stats_collection(True)
+        atexit.register(stats_collector.results_to_csv)
 
     while True:
         user_input = input("\nEnter webpage address: ")
@@ -55,17 +56,16 @@ def _handle_input():
                 print("Webpage score: {:.5f} for {}".format(score, user_input))
             else:
                 print("Score could not be calculated")
-
         else:
             print("Invalid address")
 
 
 def evaluate_datasets():
-    """TODO documentation"""
+    """Evaluates credibility of and collects statistics for all URLs contained in the performance analysis datasets."""
 
     logger.info("[Main] Evaluating datasets")
-    directory = (Path(__file__).parent / "performance_analysis/datasets").resolve()
-    urls = set()
+    stats_collector.set_stats_collection(True)
+    directory = (Path(__file__).parent / "analysis/datasets").resolve()
 
     for dataset in directory.glob("*"):
         logger.info("[Main] Evaluating dataset " + str(dataset))
@@ -76,19 +76,14 @@ def evaluate_datasets():
                 if not valid_address(url):
                     url = "http://" + url
 
-                if url in urls:
-                    logger.error("[Main] Duplicate URL: " + url)
-                    continue
-                urls.add(url)
+                stats_collector.add_result(url, "rating", rating)
+                score = evaluate_webpage(url)
+                print("Webpage score: {:.5f} for {}".format(score, url))
 
-                performance_test.add_result(url, "rating", rating)
-                evaluate_webpage(url)
-                break
-
-        performance_test.results_to_csv()
-        performance_test.clear_results()
+        stats_collector.results_to_csv()
+        stats_collector.clear_results()
 
 
 if __name__ == "__main__":
-    alpaca_init()
-    # evaluate_datasets()
+    # alpaca_init()
+    evaluate_datasets()
