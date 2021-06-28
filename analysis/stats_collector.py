@@ -43,7 +43,7 @@ def results_to_csv():
         csvpath = (dirpath / ("stats_results_" + datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss") + ".csv")).resolve()
         results_df = pd.DataFrame.from_dict(results, orient="index")
         results_df.index.rename("url", inplace=True)
-        results_df.to_csv(path_or_buf=csvpath, sep=";")
+        results_df.to_csv(path_or_buf=csvpath, sep=";", float_format="%.10f")
 
 
 def clear_results():

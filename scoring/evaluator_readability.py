@@ -75,6 +75,12 @@ def evaluate_readability_title(data: WebpageData) -> float:
     # TODO analyse which readability grades perform best as indicators of credibility and exclude the others
 
     if not data.headline:
+        stats.add_result(data.url, "read_title_flesch_kincaid", -1)
+        stats.add_result(data.url, "read_title_flesch_read_ease", -1)
+        stats.add_result(data.url, "read_title_gunning_fog", -1)
+        stats.add_result(data.url, "read_title_smog", -1)
+        stats.add_result(data.url, "read_title_ari", -1)
+        stats.add_result(data.url, "read_title_coleman_liau", -1)
         return 0
 
     read_metrics = readability.getmeasures(sent_tokenize(data.headline), lang="en")

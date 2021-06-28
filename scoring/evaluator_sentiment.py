@@ -84,6 +84,16 @@ def evaluate_polarity_title(data: WebpageData) -> float:
 
     # TODO decide on the better-performing sentiment analysis tool(s) as indicator of credibility
 
+    if not data.headline:
+        stats_collector.add_result(data.url, "sentiment_title_spacy", -10)
+        stats_collector.add_result(data.url, "sentiment_title_vader", -10)
+        stats_collector.add_result(data.url, "sentiment_title_fasttext_1", -1)
+        stats_collector.add_result(data.url, "sentiment_title_fasttext_2", -1)
+        stats_collector.add_result(data.url, "sentiment_title_fasttext_3", -1)
+        stats_collector.add_result(data.url, "sentiment_title_fasttext_4", -1)
+        stats_collector.add_result(data.url, "sentiment_title_fasttext_5", -1)
+        return 0
+
     # sentiment analysis with spacy
     nlp = spacy.load('en_core_web_sm')
     nlp.add_pipe("spacytextblob")

@@ -55,6 +55,7 @@ def evaluate_word_count_title(data: WebpageData) -> float:
     """
 
     if not data.headline:
+        stats_collector.add_result(data.url, "word_count_title", -1)
         return 0
 
     word_count = len(word_tokenize(data.headline))
@@ -131,6 +132,7 @@ def evaluate_word_length_title(data: WebpageData) -> float:
     """
 
     if not data.headline:
+        stats_collector.add_result(data.url, "word_length_title", -1)
         return 0
 
     headline_tokens = word_tokenize(data.headline)

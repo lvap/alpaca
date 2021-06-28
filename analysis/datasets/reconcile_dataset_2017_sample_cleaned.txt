@@ -27,13 +27,12 @@ http://reason.com/archives/2012/08/16/romney-and-ryan-would-return-us-to-the-b;3
 http://www.ecb.int/press/key/date/2004/html/sp040426.en.html;4
 http://www.carsdirect.com/car-insurance/what-to-do-if-your-car-insurance-is-cancelled;3.75
 http://www.druglibrary.org/mags/newsweek42.htm;4
-http://www.megahealth-lifestyle.com/what-is-mlm.html;3
+https://web.archive.org/web/20150918050033/http://www.megahealth-lifestyle.com/what-is-mlm.html;3
 http://www.myspecialdiet.com/cranberry.aspx;5
 https://web.archive.org/web/20171212053338/https://www.olganon.org/home;3.7142857142857135
 http://www.ushistory.org/us/48.asp;5
 http://www.goodreturns.in/personal-finance/taxes/2013/01/tax-planning-here-complete-guide-salaried-employees-2-158329.html;3.6
 http://www.emphysema.net/whoweare.asp;5
-http://www.thenigerianvoice.com/nvnews/105165/1/world-bank-grants-nigeria-more-shares-8211-fg.html;4.666666666666667
 http://www.earthsave.org/news/03summer/fish.htm;4
 http://www.aoc.nrao.edu/evla/admin/reviews/widarconnect/widarconnect.html;3.5
 http://www.users.zetnet.co.uk/nwoolley/home.htm;3.25
@@ -62,7 +61,6 @@ https://web.archive.org/web/20150130014052/http://www.convergent-capital.com/en/
 http://abcnews.go.com/Health/electronic-cigarettes-combat-addiction-report/story?id=18083882;4.8
 http://www.edc.uri.edu/projects/nutr_sci.html;5
 http://eve-tushnet.blogspot.com/2004_02_01_eve-tushnet_archive.html;4
-http://empoweredhealing.blogetery.com/2009/11/;3
 http://smokingsides.com/docs/hist.html;4
 http://www.tmz.com/2012/12/20/carrie-ann-inaba-president-barack-obama-hawaii-high-school/;4
 http://www.earthsave.org/lifestyle/vegcooking.htm;4.666666666666667
@@ -83,7 +81,7 @@ http://www.goodreturns.in/personal-finance/insurance/2013/01/importance-discussi
 https://web.archive.org/web/20130527225338/http://www.vattenfall.com/en/greenhouse-effect.htm;3.857142857142857
 https://web.archive.org/web/20170308123813/http://www.centerforautism.com/research.aspx;4.5
 http://www.laissez-fairerepublic.com/fund1122.htm;4.5
-http://www.thefundsupermarket.co.uk/Investment_bonds.htm;4.5
+https://web.archive.org/web/20120120142722/http://www.thefundsupermarket.co.uk/Investment_bonds.htm;4.5
 https://web.archive.org/web/20161219020718/http://www.cambridgeveins.co.uk/venousulcers.html;3.5
 https://web.archive.org/web/20130129074626/https://www.ccnow.com/merchantGallery.html;3.5
 https://web.archive.org/web/20160317001008if_/http://www.selfhelpmagazine.com/can-repressed-memories-be-recovered#sthash.DWeq2H7H.dpbs;4.333333333333333
@@ -99,3 +97,5 @@ http://www.cocaine.org/sherlockholmes/index.html;4
 http://www.thesmokinggun.com/documents/michael-jackson-medical-records-481239;4.666666666666667
 http://rhinoxsis.homestead.com/zMkissed.html;4
 http://political-economy.com/causes-of-the-great-depression/;4
+https://web.archive.org/web/20151026074226/http://www.rooseveltinstitute.org/new-roosevelt/real-lesson-great-depression-fiscal-policy-works;4
+http://www.goodreturns.in/personal-finance/investment/2013/01/employees-provident-fund-epf-few-facts-you-should-know-158173.html;4

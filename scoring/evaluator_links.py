@@ -27,6 +27,7 @@ def evaluate_links_external(data: WebpageData) -> float:
     """
 
     if not valid_address(data.url) or not data.html:
+        stats_collector.add_result(data.url, "links_count", -1)
         return 0
 
     url = get_real_url(data.url)

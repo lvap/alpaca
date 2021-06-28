@@ -138,6 +138,7 @@ def evaluate_all_caps_title(data: WebpageData) -> float:
 
     if data.headline.upper() == data.headline:
         # entire headline is capitalised (or empty)
+        stats_collector.add_result(data.url, "all_caps_title", -1)
         return 1
 
     headline_matches = {}

@@ -9,7 +9,7 @@ from parsing.webpage_parser import valid_address
 from scoring.credibility_evaluation import evaluate_webpage
 
 # toggle collection of additional signal statistics for all processed webpages
-COLLECT_STATS = True
+COLLECT_STATS = False
 
 # logging output settings per stream (set to None to disable)
 LOG_LEVEL_CONSOLE = logging.WARNING
@@ -34,8 +34,11 @@ if LOG_LEVEL_FILE:
 
 
 def alpaca_init():
-    """Initialises the program and waits for & handles console input. If a valid webpage URL is submitted, retrieves and
-    prints the webpage's credibility score."""
+    """If a valid webpage URL is submitted, retrieves and prints the webpage's credibility score.
+
+    Initialises the program and waits for & handles console input. Terminates on input **exit** or **quit**. To export
+    collected webpage signal statistics, terminate the program in this way after enabling *COLLECT_STATS* above.
+    """
 
     logger.info("[Main] Alpaca init")
     atexit.register(logger.info, "[Main] Alpaca end")
