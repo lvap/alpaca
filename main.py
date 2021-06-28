@@ -34,8 +34,8 @@ if LOG_LEVEL_FILE:
 
 
 def alpaca_init():
-    """Initialises the program and waits for & handles console input.
-    If a valid webpage URL is submitted, retrieves and prints the webpage's credibility score."""
+    """Initialises the program and waits for & handles console input. If a valid webpage URL is submitted, retrieves and
+    prints the webpage's credibility score."""
 
     logger.info("[Main] Alpaca init")
     atexit.register(logger.info, "[Main] Alpaca end")
@@ -64,7 +64,7 @@ def evaluate_datasets():
     """Evaluates credibility of and collects signal statistics for all URLs in the performance analysis datasets.
 
     The datasets are expected to be a semicolon-separated list of URLs and credibility/fake news
-    classification ratings, with the first line being column headers.
+    classification ratings, with the first line in each file being column headers.
     """
 
     logger.info("[Main] Evaluating datasets")
