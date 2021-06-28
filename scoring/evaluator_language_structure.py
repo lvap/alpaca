@@ -54,7 +54,11 @@ def evaluate_word_count_title(data: WebpageData) -> float:
     :return: Score between 0 and 1, with 0 indicating low number of words and 1 high number of words.
     """
 
+    if not data.headline:
+        return 0
+
     word_count = len(word_tokenize(data.headline))
+
     logger.info("[Lang_structure] Words in title: " + str(word_count))
     stats_collector.add_result(data.url, "word_count_title", word_count)
 
@@ -72,6 +76,7 @@ def evaluate_sentence_count(data: WebpageData) -> float:
     """
 
     sentence_count = len(data.text_sentences)
+
     logger.info("[Lang_structure] Sentences in text: " + str(sentence_count))
     stats_collector.add_result(data.url, "sentence_count", sentence_count)
 
@@ -90,6 +95,7 @@ def evaluate_ttr(data: WebpageData) -> float:
     """
 
     ttr = len(set(data.text_words)) / len(data.text_words)
+
     logger.info("[Lang_structure] Type-token-ratio: " + str(ttr))
     stats_collector.add_result(data.url, "ttr", ttr)
 
@@ -107,6 +113,7 @@ def evaluate_word_length_text(data: WebpageData) -> float:
     """
 
     word_length = sum(len(word) for word in data.text_words) / len(data.text_words)
+
     logger.info("[Lang_structure] Word length text: " + str(word_length))
     stats_collector.add_result(data.url, "word_length_text", word_length)
 
@@ -122,6 +129,9 @@ def evaluate_word_length_title(data: WebpageData) -> float:
 
     :return: Score between 0 and 1, with 0 indicating relatively short words and 1 relatively long words on average.
     """
+
+    if not data.headline:
+        return 0
 
     headline_tokens = word_tokenize(data.headline)
     word_length = sum(len(word) for word in headline_tokens) / len(headline_tokens)

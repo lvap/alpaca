@@ -9,15 +9,14 @@ from parsing.webpage_parser import valid_address
 from scoring.credibility_evaluation import evaluate_webpage
 
 # toggle collection of additional signal statistics for all processed webpages
-COLLECT_STATS = False
+COLLECT_STATS = True
 
 # logging output settings per stream (set to None to disable)
 LOG_LEVEL_CONSOLE = logging.WARNING
 LOG_LEVEL_FILE = logging.DEBUG
 
-logger = logging.getLogger("alpaca")
-
 # initialise logging
+logger = logging.getLogger("alpaca")
 logger.setLevel(logging.DEBUG)
 logger.propagate = False
 if LOG_LEVEL_CONSOLE:
@@ -35,7 +34,8 @@ if LOG_LEVEL_FILE:
 
 
 def alpaca_init():
-    """Handles console input. If a valid webpage URL is submitted, retrieves & prints the webpage's credibility score"""
+    """Initialises the program and waits for & handles console input.
+    If a valid webpage URL is submitted, retrieves and prints the webpage's credibility score."""
 
     logger.info("[Main] Alpaca init")
     atexit.register(logger.info, "[Main] Alpaca end")
@@ -61,7 +61,11 @@ def alpaca_init():
 
 
 def evaluate_datasets():
-    """Evaluates credibility of and collects statistics for all URLs contained in the performance analysis datasets."""
+    """Evaluates credibility of and collects signal statistics for all URLs in the performance analysis datasets.
+
+    The datasets are expected to be a semicolon-separated list of URLs and credibility/fake news
+    classification ratings, with the first line being column headers.
+    """
 
     logger.info("[Main] Evaluating datasets")
     stats_collector.set_stats_collection(True)
@@ -82,8 +86,8 @@ def evaluate_datasets():
 
         stats_collector.results_to_csv()
         stats_collector.clear_results()
+        print("Finished dataset " + str(dataset))
 
 
 if __name__ == "__main__":
-    # alpaca_init()
-    evaluate_datasets()
+    alpaca_init()

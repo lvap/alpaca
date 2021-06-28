@@ -74,6 +74,9 @@ def evaluate_readability_title(data: WebpageData) -> float:
 
     # TODO analyse which readability grades perform best as indicators of credibility and exclude the others
 
+    if not data.headline:
+        return 0
+
     read_metrics = readability.getmeasures(sent_tokenize(data.headline), lang="en")
 
     logger.debug("[Readability] Readability grades title: "

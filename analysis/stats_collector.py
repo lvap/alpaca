@@ -11,7 +11,7 @@ from parsing.webpage_parser import valid_address, get_real_url
 # collects signal statistics from evaluation runs
 results = defaultdict(lambda: defaultdict(float))
 
-# toggle collection of additional webpage statistics, should preferably only be changed through set_stats_collection()
+# toggle collection of webpage statistics, should preferably only be changed through set_stats_collection()
 _STATS_ENABLED = False
 
 
@@ -35,14 +35,15 @@ def add_result(url: str, field: str, value: float):
 
 
 def results_to_csv():
-    """Exports webpage stats data currently held by the module to a csv file."""
+    """Exports webpage statistics currently held by the module to a csv file."""
 
     if _STATS_ENABLED and results:
         dirpath = (Path(__file__).parent / "stats_results/").resolve()
         os.makedirs(dirpath, exist_ok=True)
         csvpath = (dirpath / ("stats_results_" + datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss") + ".csv")).resolve()
-        df = pd.DataFrame.from_dict(results, orient="index")
-        df.to_csv(path_or_buf=csvpath, sep=";")
+        results_df = pd.DataFrame.from_dict(results, orient="index")
+        results_df.index.rename("url", inplace=True)
+        results_df.to_csv(path_or_buf=csvpath, sep=";")
 
 
 def clear_results():

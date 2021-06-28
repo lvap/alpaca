@@ -3,8 +3,8 @@ import logging
 import language_tool_python as ltp
 import spacy
 
-from parsing.tokenize import word_tokenize
 from analysis import stats_collector
+from parsing.tokenize import word_tokenize
 from parsing.webpage_data import WebpageData
 
 # modify grammar/spelling error score gradient given this upper limit
@@ -13,6 +13,9 @@ ERROR_LIMIT = 0.2
 # boundary check
 if not 0 < ERROR_LIMIT < 1:
     raise ValueError("ERROR_LIMIT must be greater than 0 and lower than 1.")
+
+# languageTool server
+lang_tool = ltp.LanguageTool("en-US")
 
 logger = logging.getLogger("alpaca")
 
@@ -34,7 +37,6 @@ def evaluate_errors(data: WebpageData) -> float:
     names = set([ent.text for ent in doc.ents if ent.label_ in entities])
     logger.debug("[Errors] {} recognised named entities: {}".format(len(names), names))
 
-    lang_tool = ltp.LanguageTool("en-US")
     matches = lang_tool.check(data.headline)
     if matches and matches[-1].ruleId == "PUNCTUATION_PARAGRAPH_END":
         # ignore error for missing punctuation at title ending
