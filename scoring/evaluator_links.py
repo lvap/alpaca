@@ -39,7 +39,7 @@ def evaluate_links_external(data: WebpageData) -> float:
     links = {}
 
     for link in soup.findAll('a'):
-        link_url = link.get("href")
+        link_url = get_real_url(link.get("href"))
 
         if link.text and link_url not in links and valid_address(link_url):
             link_domain = urlparse(link_url).hostname
