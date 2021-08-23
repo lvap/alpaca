@@ -3,7 +3,7 @@ import logging
 import language_tool_python as ltp
 import spacy
 
-from analysis import stats_collector
+import stats_collector
 from parsing.tokenize import word_tokenize
 from parsing.webpage_data import WebpageData
 

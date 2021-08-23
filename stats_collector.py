@@ -8,10 +8,10 @@ import pandas as pd
 
 from parsing.webpage_parser import valid_address, get_real_url
 
-# collects signal statistics from evaluation runs
+# collects signal statistics
 results = defaultdict(lambda: defaultdict(float))
 
-# toggle collection of webpage statistics, should preferably only be changed through set_stats_collection()
+# toggle signal statistics via set_stats_collection()
 _STATS_ENABLED = False
 
 
@@ -38,9 +38,9 @@ def results_to_csv():
     """Exports webpage statistics currently held by the module to a csv file."""
 
     if _STATS_ENABLED and results:
-        dirpath = (Path(__file__).parent / "stats_results/").resolve()
+        dirpath = (Path(__file__).parent / "stats_collected/").resolve()
         os.makedirs(dirpath, exist_ok=True)
-        csvpath = (dirpath / ("stats_results_" + datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss") + ".csv")).resolve()
+        csvpath = (dirpath / ("stats_" + datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss") + ".csv")).resolve()
         results_df = pd.DataFrame.from_dict(results, orient="index")
         results_df.index.rename("url", inplace=True)
         results_df.to_csv(path_or_buf=csvpath, sep=";", float_format="%.10f")
@@ -54,9 +54,9 @@ def clear_results():
 
 
 def check_duplicate_urls():
-    """Checks whether the datasets for performance analysis contain duplicate URLs. Assumes http(s) URLs."""
+    """Checks whether the datasets for performance analysis contain duplicate http(s) URLs."""
 
-    directory = (Path(__file__).parent / "datasets").resolve()
+    directory = (Path(__file__).parent / "analysis/datasets").resolve()
     urls = set()
     check_dupl = lambda links, link: print("Duplicate URL: " + link) if link in links else None
 

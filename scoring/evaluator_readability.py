@@ -3,7 +3,7 @@ import logging
 from nltk import sent_tokenize
 
 import _readability as readability
-import analysis.stats_collector as stats
+import stats_collector as stats
 from parsing.webpage_data import WebpageData
 
 logger = logging.getLogger("alpaca")
@@ -39,7 +39,7 @@ def evaluate_readability_text(data: WebpageData) -> float:
     stats.add_result(data.url, "read_text_ari", read_metrics["readability grades"]["ARI"])
     stats.add_result(data.url, "read_text_coleman_liau", read_metrics["readability grades"]["Coleman-Liau"])
 
-    # preliminary scoring: assign highest credibility for complex text, equivalent to  11th-grade reading level
+    # preliminary scoring: assign highest credibility for complex text, equivalent to 11th-grade reading level
     # Flesch-Kincaid grade level score range 1-17, 11-17 best
     # Flesch reading ease score range 1-100, 1-50 best
     # Gunning-Fog score range 1-17, 11-17 best

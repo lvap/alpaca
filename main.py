@@ -4,14 +4,14 @@ import os
 from datetime import datetime
 from pathlib import Path
 
-from analysis import stats_collector
+import stats_collector
 from parsing.webpage_parser import valid_address
 from scoring.credibility_evaluation import evaluate_webpage
 
-# toggle collection of additional signal statistics for all processed webpages
-COLLECT_STATS = False
+# additional signal statistics for processed webpages, exported as csv file
+COLLECT_STATS = True
 
-# logging output settings per stream (set to None to disable)
+# logging output settings per stream (None = disabled)
 LOG_LEVEL_CONSOLE = logging.WARNING
 LOG_LEVEL_FILE = logging.DEBUG
 
@@ -37,7 +37,7 @@ def alpaca_init():
     """If a valid webpage URL is submitted, retrieves and prints the webpage's credibility score.
 
     Initialises the program and waits for & handles console input. Terminates on input **exit** or **quit**. To export
-    collected webpage signal statistics, terminate the program in this way after enabling *COLLECT_STATS* above.
+    collected webpage signal statistics, terminate the program in this way after enabling *COLLECT_STATS*.
     """
 
     logger.info("[Main] Alpaca init")
@@ -66,8 +66,8 @@ def alpaca_init():
 def evaluate_datasets():
     """Evaluates credibility of and collects signal statistics for all URLs in the performance analysis datasets.
 
-    The datasets are expected to be a semicolon-separated list of URLs and credibility/fake news
-    classification ratings, with the first line in each file being column headers.
+    The datasets are expected as semicolon-separated list of URLs and credibility/fake news classification ratings,
+    with the first line in each file being the column headers.
     """
 
     logger.info("[Main] Evaluating datasets")

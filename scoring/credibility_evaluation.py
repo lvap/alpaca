@@ -3,7 +3,7 @@ from typing import NamedTuple, Callable
 
 import parsing.webpage_parser as parser
 import scoring.evaluator_language_structure as ls
-from analysis import stats_collector
+import stats_collector
 from parsing.webpage_data import WebpageData
 from scoring.evaluator_authors import evaluate_authors
 from scoring.evaluator_clickbait import evaluate_clickbait

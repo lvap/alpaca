@@ -2,7 +2,7 @@ import logging
 
 from parsing.tokenize import word_tokenize
 from parsing.webpage_data import WebpageData
-from analysis import stats_collector
+import stats_collector
 
 # modify language structure score gradients given these limits
 WORDS_TEXT_LOWER = 300

@@ -3,7 +3,7 @@ from urllib.parse import urlparse
 
 from bs4 import BeautifulSoup
 
-from analysis import stats_collector
+import stats_collector
 from parsing.webpage_data import WebpageData
 from parsing.webpage_parser import valid_address, get_real_url
 

@@ -5,7 +5,8 @@ from pathlib import Path
 
 import pandas as pd
 
-from analysis import stats_collector
+import stats_collector
+from parsing.tokenize import word_tokenize
 from parsing.webpage_data import WebpageData
 
 # modify profanity score gradient given this upper limit
@@ -71,7 +72,7 @@ def evaluate_emotional_words(data: WebpageData) -> float:
     emotional_words = pd.read_csv(filepath, sep=";")
 
     df_size = len(emotional_words)
-    fulltext = data.headline.lower() + " " + data.text.lower()
+    fulltext = word_tokenize(data.headline) + data.text_words
     word_count = 0
 
     emotionality_results = {"anger":        {"count": 0, "intensity": 0},
@@ -84,8 +85,7 @@ def evaluate_emotional_words(data: WebpageData) -> float:
                             "trust":        {"count": 0, "intensity": 0}}
 
     # lookup all words from article in emotional words list
-    for article_word in data.text_words:
-        word_count += 1
+    for article_word in fulltext:
         article_word = article_word.lower()
         match = emotional_words["word"].searchsorted(article_word)
         if match < df_size and emotional_words.iat[match, 0] == article_word:
@@ -102,10 +102,10 @@ def evaluate_emotional_words(data: WebpageData) -> float:
         ["{}: {} words, {:.3f} intensity".format(emotion, emotion_stats["count"], emotion_stats["intensity"])
          for emotion, emotion_stats in emotionality_results.items()]))
     logger.debug("[Vocabulary] Emotionality overall: {} words | {:.3f} intensity | {:.3f} intensity per word".format(
-        total_emotion_count, total_emotion_intensity, total_emotion_intensity / word_count))
+        total_emotion_count, total_emotion_intensity, total_emotion_intensity / len(fulltext)))
     for emotion in emotionality_results.keys():
         stats_collector.add_result(data.url, emotion + "_word_count", emotionality_results[emotion]["count"])
         stats_collector.add_result(data.url, emotion + "_intensity", emotionality_results[emotion]["intensity"])
 
-    emotion_score = (total_emotion_intensity * EMOTION_INTENSITY_MULTIPLIER) / word_count
+    emotion_score = (total_emotion_intensity * EMOTION_INTENSITY_MULTIPLIER) / len(fulltext)
     return max(1 - emotion_score, 0)

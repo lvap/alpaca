@@ -1,10 +1,11 @@
 # project folders
 .idea/
 venv/
+.ipynb_checkpoints/
 
 # build files
 __pycache__/
 
 # folders for output files
 .log/
-analysis/stats_results/
+stats_collected/

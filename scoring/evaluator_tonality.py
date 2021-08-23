@@ -1,7 +1,7 @@
 import logging
 import re
 
-from analysis import stats_collector
+import stats_collector
 from parsing.webpage_data import WebpageData
 
 # modify punctuation scores gradient given these upper limits

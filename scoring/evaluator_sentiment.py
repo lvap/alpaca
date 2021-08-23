@@ -9,7 +9,7 @@ import spacy
 from spacytextblob.spacytextblob import SpacyTextBlob
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 
-from analysis import stats_collector
+import stats_collector
 from parsing.webpage_data import WebpageData
 
 # lower limit for polarity scores (greater than 0, lower than 1)
