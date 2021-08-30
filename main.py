@@ -9,7 +9,7 @@ from parsing.webpage_parser import valid_address
 from scoring.credibility_evaluation import evaluate_webpage
 
 # additional signal statistics for processed webpages, exported as csv file
-COLLECT_STATS = True
+COLLECT_STATS = False
 
 # logging output settings per stream (None = disabled)
 LOG_LEVEL_CONSOLE = logging.WARNING
@@ -40,8 +40,8 @@ def alpaca_init():
     collected webpage signal statistics, terminate the program in this way after enabling *COLLECT_STATS*.
     """
 
-    logger.info("[Main] Alpaca init")
-    atexit.register(logger.info, "[Main] Alpaca end")
+    logger.info("[Main] ALPACA init")
+    atexit.register(logger.info, "[Main] ALPACA end")
 
     if COLLECT_STATS:
         stats_collector.set_stats_collection(True)
@@ -56,9 +56,9 @@ def alpaca_init():
         if valid_address(user_input):
             score = evaluate_webpage(user_input)
             if 0 <= score <= 1:
-                print("Webpage score: {:.5f} for {}".format(score, user_input))
+                print("Webpage credibility score: {:.5f} for {}".format(score, user_input))
             else:
-                print("Score could not be calculated")
+                print("Credibility score could not be calculated")
         else:
             print("Invalid address")
 
@@ -90,6 +90,7 @@ def evaluate_datasets():
         stats_collector.results_to_csv()
         stats_collector.clear_results()
         print("Finished dataset " + str(dataset))
+        print()
 
 
 if __name__ == "__main__":

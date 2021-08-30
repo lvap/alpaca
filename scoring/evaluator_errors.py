@@ -8,11 +8,11 @@ from parsing.tokenize import word_tokenize
 from parsing.webpage_data import WebpageData
 
 # modify grammar/spelling error score gradient given this upper limit
-ERROR_LIMIT = 0.2
+ERROR_LIMIT = 0.02
 
 # boundary check
-if not 0 < ERROR_LIMIT < 1:
-    raise ValueError("ERROR_LIMIT must be greater than 0 and lower than 1.")
+if not 0 < ERROR_LIMIT <= 1:
+    raise ValueError("ERROR_LIMIT must be greater than 0 and lower than or equal to 1.")
 
 # languageTool server
 lang_tool = ltp.LanguageTool("en-US")
@@ -30,24 +30,25 @@ def evaluate_errors(data: WebpageData) -> float:
     :return: Value between 0 (large amount of errors) and 1 (no errors).
     """
 
-    # set up named entity recognition to avoid classifying names as spelling errors
-    nlp = spacy.load("en_core_web_sm")
-    doc = nlp(data.headline + "\n" + data.text)
-    entities = ["PERSON", "NORP", "FAC", "FACILITY", "ORG", "GPE", "LOC", "PRODUCT", "EVENT", "WORK_OF_ART", "LAW"]
-    names = set([ent.text for ent in doc.ents if ent.label_ in entities])
-    logger.debug("[Errors] {} recognised named entities: {}".format(len(names), names))
-
     matches = lang_tool.check(data.headline)
     if matches and matches[-1].ruleId == "PUNCTUATION_PARAGRAPH_END":
         # ignore error for missing punctuation at title ending
         matches.pop()
     matches += lang_tool.check(data.text)
 
+    # named entity recognition to avoid classifying names as spelling errors
+    nlp = spacy.load("en_core_web_sm")
+    doc = nlp(data.headline + "\n" + data.text)
+    entities = ["PERSON", "NORP", "FAC", "FACILITY", "ORG", "GPE", "LOC", "PRODUCT", "EVENT", "WORK_OF_ART", "LAW"]
+    names = set([ent.text.strip() for ent in doc.ents if ent.label_ in entities])
+    logger.debug("[Errors] {} recognised named entities: {}".format(len(names), names))
+
     # filter out irrelevant matches and penalise errors only once
     matches_to_ignore = 0
     unknown_words = []
     for match in matches:
-        if (match.ruleId in ["EN_QUOTES", "DASH_RULE", "EXTREME_ADJECTIVES", "MONTH_OF_XXXX"]
+        if (match.ruleId in ["EN_QUOTES", "DASH_RULE", "EXTREME_ADJECTIVES", "MONTH_OF_XXXX",
+                             "ENGLISH_WORD_REPEAT_BEGINNING_RULE"]
                 or match.category == "REDUNDANCY" or "is British English" in match.message
                 or match.matchedText in unknown_words or ("Possible spelling mistake" in match.message
                                                           and any(match.matchedText in nm.split() for nm in names))):
@@ -58,10 +59,10 @@ def evaluate_errors(data: WebpageData) -> float:
 
     error_score = len(matches) - matches_to_ignore
     word_count = len(word_tokenize(data.headline)) + len(data.text_words)
-    error_score = 1 - (error_score / (word_count * ERROR_LIMIT))
+    subscore = 1 - (error_score / (word_count * ERROR_LIMIT))
 
-    logger.info("[Errors] {} grammar or spelling errors in {} words ({} errors ignored), {:.3f} errors per word"
-                .format(len(matches) - matches_to_ignore, word_count, matches_to_ignore, error_score / word_count))
+    logger.debug("[Errors] {} grammar or spelling errors in {} words ({} errors ignored), {:.3f} errors per word"
+                 .format(len(matches) - matches_to_ignore, word_count, matches_to_ignore, error_score / word_count))
     stats_collector.add_result(data.url, "errors_grammar_spelling", error_score / word_count)
 
-    return max(error_score, 0)
+    return max(subscore, 0)

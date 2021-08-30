@@ -38,7 +38,7 @@ def results_to_csv():
     """Exports webpage statistics currently held by the module to a csv file."""
 
     if _STATS_ENABLED and results:
-        dirpath = (Path(__file__).parent / "stats_collected/").resolve()
+        dirpath = (Path(__file__).parent / ".stats/").resolve()
         os.makedirs(dirpath, exist_ok=True)
         csvpath = (dirpath / ("stats_" + datetime.now().strftime("%Y-%m-%d_%Hh%Mm%Ss") + ".csv")).resolve()
         results_df = pd.DataFrame.from_dict(results, orient="index")

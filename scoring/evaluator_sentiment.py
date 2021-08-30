@@ -59,8 +59,8 @@ def evaluate_polarity_text(data: WebpageData) -> float:
     np.set_printoptions(precision=3)
     logger.debug("[Sentiment] Text polarity raw: SpaCy {:.3f} | VADER {} | FastText {}"
                  .format(polarity_spacy, polarity_vader, sentiment_ft[0]))
-    logger.info("[Sentiment] Text polarity scores: SpaCy {:.3f} | VADER {:.3f} | FastText {:.3f}"
-                .format(score_spacy, score_vader, score_ft))
+    logger.debug("[Sentiment] Text polarity scores: SpaCy {:.3f} | VADER {:.3f} | FastText {:.3f}"
+                 .format(score_spacy, score_vader, score_ft))
     stats_collector.add_result(data.url, "sentiment_text_spacy", polarity_spacy)
     stats_collector.add_result(data.url, "sentiment_text_vader", polarity_vader["compound"])
     stats_collector.add_result(data.url, "sentiment_text_fasttext_1", sentiment_ft[0][0])
@@ -119,8 +119,8 @@ def evaluate_polarity_title(data: WebpageData) -> float:
     np.set_printoptions(precision=3)
     logger.debug("[Sentiment] Headline polarity raw: SpaCy {:.3f} | VADER {} | FastText {}"
                  .format(polarity_spacy, polarity_vader, sentiment_ft[0]))
-    logger.info("[Sentiment] Headline polarity scores: SpaCy {:.3f} | VADER {:.3f} | FastText {:.3f}"
-                .format(score_spacy, score_vader, score_ft))
+    logger.debug("[Sentiment] Headline polarity scores: SpaCy {:.3f} | VADER {:.3f} | FastText {:.3f}"
+                 .format(score_spacy, score_vader, score_ft))
     stats_collector.add_result(data.url, "sentiment_title_spacy", polarity_spacy)
     stats_collector.add_result(data.url, "sentiment_title_vader", polarity_vader["compound"])
     stats_collector.add_result(data.url, "sentiment_title_fasttext_1", sentiment_ft[0][0])

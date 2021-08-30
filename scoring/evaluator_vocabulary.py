@@ -42,9 +42,9 @@ def evaluate_profanity(data: WebpageData) -> float:
             if match := re.findall(r"\b" + line.strip() + r"\b", fulltext):
                 profanity_matches[match[0]] += len(match)
 
-    if profanity_matches:
-        logger.info("[Vocabulary] Profanity matches: {}"
-                    .format(["{} ({}x)".format(slur, occurrences) for slur, occurrences in profanity_matches.items()]))
+    logger.debug("[Vocabulary] {} profanity matches: {}"
+                 .format(len(profanity_matches),
+                         ["{} ({}x)".format(slur, occurrences) for slur, occurrences in profanity_matches.items()]))
     stats_collector.add_result(data.url, "profanity", sum(profanity_matches.values()))
 
     match_count = sum(profanity_matches.values())
@@ -58,7 +58,7 @@ def evaluate_emotional_words(data: WebpageData) -> float:
     Compares all words in the headline and text against a list of emotional words with specified emotion intensity
     values. Sums up all intensity values for any matches, scales the total sum by word count. Final score is linear
     between 0 (worst score, words have on average at least 1 / *EMOTION_INTENSITY_MULTIPLIER* emotion intensity) and 1
-    (best score, words have 0 emotion intensity on average).
+    (best score, words have 0 emotion intensity on average). TODO documentation
 
     :return: Value between 0 (high emotionality) and 1 (low emotionality).
     """
@@ -73,7 +73,6 @@ def evaluate_emotional_words(data: WebpageData) -> float:
 
     df_size = len(emotional_words)
     fulltext = word_tokenize(data.headline) + data.text_words
-    word_count = 0
 
     emotionality_results = {"anger":        {"count": 0, "intensity": 0},
                             "anticipation": {"count": 0, "intensity": 0},

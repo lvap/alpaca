@@ -24,7 +24,7 @@ def word_tokenize(text: str) -> list[str]:
     nlp = spacy.load("en_core_web_sm")
     doc = nlp(text)
     entities = ["PERSON", "NORP", "FAC", "FACILITY", "ORG", "EVENT", "LAW"]
-    names = set([ent.text for ent in doc.ents if ent.label_ in entities])
+    names = set([ent.text.strip() for ent in doc.ents if ent.label_ in entities])
     for index, token in enumerate(tokens):
         if len(token) == 1 and token.upper() == token and any(token + "." in name.split() for name in names):
             tokens[index] = token + "."

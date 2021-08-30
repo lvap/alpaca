@@ -1,6 +1,8 @@
 import logging
 import re
 
+import spacy
+
 import stats_collector
 from parsing.webpage_data import WebpageData
 
@@ -28,7 +30,7 @@ def evaluate_questions_text(data: WebpageData) -> float:
     """
 
     question_score = data.text.count("?") / len(data.text_sentences)
-    
+
     logger.debug("[Tonality] Question marks per sentence: {:.3f}".format(question_score))
     stats_collector.add_result(data.url, "questions_text_per_sentence", question_score)
 
@@ -75,25 +77,29 @@ def evaluate_exclamations_title(data: WebpageData) -> float:
 
 
 def evaluate_all_caps_text(data: WebpageData) -> float:
-    """Evaluates webpage text usage of all-capitalised words.
+    """Evaluates webpage text usage of words in all capitals.
 
     Capitalisation score is linear from 0 occurrences (best score => 1) to *ALL_CAPS_MAX_TEXT* occurrences 
-    (worst score => 0). Words that are all-capitalised and occur more than once in either title or text
+    (worst score => 0). Words that are all capitals and occur more than once in either title or text
     are assumed to be acronyms or initialisms, and ignored.
 
-    :return: 1 for low number of all-capitalised words, 0 for high number of capitalised words.
+    :return: 1 for low number of all capitals words, 0 for a high number.
     """
-
-    # TODO implement better check to avoid matching acronyms/initialisms (alternatively score text based on length)?
 
     headline_matches = {}
     text_matches = {}
     all_caps = re.compile(r"\b[A-Z]+\b")
 
+    # named entity recognition to avoid classifying initialisms/acronyms as all caps words
+    nlp = spacy.load("en_core_web_sm")
+    doc = nlp(data.headline + "\n" + data.text)
+    entity_labels = ["PERSON", "NORP", "FAC", "FACILITY", "ORG", "GPE", "LOC", "PRODUCT", "EVENT", "WORK_OF_ART", "LAW"]
+    entities = set([ent.text.strip() for ent in doc.ents if ent.label_ in entity_labels])
+
     # collect all-cap words in headline (unless empty/entirely capitalised)
     if data.headline.upper() != data.headline:
         for word in all_caps.findall(data.headline):
-            if len(word) >= 2:
+            if len(word) >= 2 and not any(word in entity.split() for entity in entities):
                 if word in headline_matches:
                     headline_matches[word] = False
                 else:
@@ -101,7 +107,7 @@ def evaluate_all_caps_text(data: WebpageData) -> float:
 
     # collect all-cap words in text
     for word in all_caps.findall(data.text):
-        if len(word) >= 2:
+        if len(word) >= 2 and not any(word in entity.split() for entity in entities):
             if word in headline_matches or word in text_matches:
                 headline_matches[word] = False
                 text_matches[word] = False
@@ -116,8 +122,7 @@ def evaluate_all_caps_text(data: WebpageData) -> float:
             all_caps_words.append(match)
             score += 1
 
-    if all_caps_words:
-        logger.info("[Tonality] All capitalised words in text: {}".format(all_caps_words))
+    logger.debug("[Tonality] {} all caps words in text: {}".format(len(all_caps_words), all_caps_words))
     stats_collector.add_result(data.url, "all_caps_text", score)
 
     score = 1 - (score / ALL_CAPS_MAX_TEXT)
@@ -125,16 +130,14 @@ def evaluate_all_caps_text(data: WebpageData) -> float:
 
 
 def evaluate_all_caps_title(data: WebpageData) -> float:
-    """Evaluates webpage headline usage of all-capitalised words.
+    """Evaluates webpage headline usage of words in all capitals.
 
-    Capitalisation score is linear from 0 occurrences (best score => 1) to *ALL_CAPS_MAX_TITLE* and *ALL_CAPS_MAX_TEXT*
-    occurrences (worst score => 0). Words that are all-capitalised and occur more than once in either title or text
+    Capitalisation score is linear from 0 occurrences (best score => 1) to *ALL_CAPS_MAX_TITLE*
+    occurrences (worst score => 0). Words that are all capitals and occur more than once in either title or text
     are assumed to be acronyms or initialisms, and ignored.
 
-    :return: 1 for low number of all-capitalised words, 0 for high number of capitalised words.
+    :return: 1 for low number of all capitals words, 0 for a high number.
     """
-
-    # TODO implement better check to avoid matching acronyms/initialisms (alternatively score text based on length)?
 
     if data.headline.upper() == data.headline:
         # entire headline is capitalised (or empty)
@@ -145,9 +148,15 @@ def evaluate_all_caps_title(data: WebpageData) -> float:
     text_matches = {}
     all_caps = re.compile(r"\b[A-Z]+\b")
 
+    # named entity recognition to avoid classifying initialisms/acronyms as all caps words
+    nlp = spacy.load("en_core_web_sm")
+    doc = nlp(data.headline + "\n" + data.text)
+    entity_labels = ["PERSON", "NORP", "FAC", "FACILITY", "ORG", "GPE", "LOC", "PRODUCT", "EVENT", "WORK_OF_ART", "LAW"]
+    entities = set([ent.text.strip() for ent in doc.ents if ent.label_ in entity_labels])
+
     # collect all-cap words in headline
     for word in all_caps.findall(data.headline):
-        if len(word) >= 2:
+        if len(word) >= 2 and not any(word in entity.split() for entity in entities):
             if word in headline_matches:
                 headline_matches[word] = False
             else:
@@ -155,7 +164,7 @@ def evaluate_all_caps_title(data: WebpageData) -> float:
 
     # collect all-cap words in text
     for word in all_caps.findall(data.text):
-        if len(word) >= 2:
+        if len(word) >= 2 and not any(word in entity.split() for entity in entities):
             if word in headline_matches or word in text_matches:
                 headline_matches[word] = False
                 text_matches[word] = False
@@ -170,8 +179,7 @@ def evaluate_all_caps_title(data: WebpageData) -> float:
             all_caps_words.append(match)
             score += 1
 
-    if all_caps_words:
-        logger.info("[Tonality] All capitalised words in title: {}".format(all_caps_words))
+    logger.debug("[Tonality] {} all caps words in title: {}".format(len(all_caps_words), all_caps_words))
     stats_collector.add_result(data.url, "all_caps_title", score)
 
     score = 1 - (score / ALL_CAPS_MAX_TITLE)

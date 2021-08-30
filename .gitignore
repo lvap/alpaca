@@ -8,4 +8,4 @@ __pycache__/
 
 # folders for output files
 .log/
-stats_collected/
+.stats/

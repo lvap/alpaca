@@ -98,7 +98,7 @@ def parse_data(url: str) -> WebpageData:
 
     logger.info("[Parsing] Title: {}".format(article.title))
     logger.info("[Parsing] Authors: {}".format(authors))
-    logger.info("[Parsing] Text length: {} symbols, {} sentences".format(len(text), len(sentences)))
+    logger.debug("[Parsing] Text length: {} symbols, {} sentences".format(len(text), len(sentences)))
     logger.info("[Parsing] Text: {}".format(text[:200] + " [...] " + text[-200:]).replace("\n", " "))
     # logger.debug("[Parsing] Full text: {}".format(text))
 
@@ -163,7 +163,6 @@ def _extract_authors(html: str) -> list[str]:
                         if (type(graph_dict) is dict and "@type" in graph_dict and graph_dict["@type"] == "Person"
                                 and "name" in graph_dict):
                             authors.append(graph_dict["name"])
-                            break
 
         except json.JSONDecodeError as err:
             logger.debug("[Parsing>json] " + str(err))
@@ -175,4 +174,5 @@ def _extract_authors(html: str) -> list[str]:
 
     if authors:
         logger.debug("[Parsing] {} additional author(s) detected: {}".format(len(authors), authors))
-    return authors
+    # return author strings of length less than 30
+    return [author for author in authors if len(author) < 30]

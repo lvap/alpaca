@@ -51,8 +51,7 @@ def evaluate_links_external(data: WebpageData) -> float:
                     and not link_domain.endswith("." + local_domain) and link.text in data.text):
                 links[link_url] = link.text
 
-    logger.info("[Links] {} external links found".format(len(links)))
-    logger.debug("[Links] External links: {}".format(links))
+    logger.debug("[Links] {} external links: {}".format(len(links), links))
     stats_collector.add_result(data.url, "links_count", len(links))
 
     score = len(links) / LINKS_EXTERNAL_THRESHOLD
