@@ -8,7 +8,8 @@ from parsing.tokenize import word_tokenize
 from parsing.webpage_data import WebpageData
 
 # modify grammar/spelling error score gradient given this upper limit
-ERROR_LIMIT = 0.02
+ERROR_LIMIT = 0.03
+# TODO scale from 0.005 (=>best score) to 0.03 (=>worst)
 
 # boundary check
 if not 0 < ERROR_LIMIT <= 1:
