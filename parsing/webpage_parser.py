@@ -41,6 +41,8 @@ def get_real_url(url: str) -> str:
     if match := re.search(r"https?://web\.archive\.org/web/\d+/", url):
         if valid_address(url[match.end():]):
             return url[match.end():]
+        if valid_address("http://" + url[match.end():]):
+            return "http://" + url[match.end():]
 
     return url
 
