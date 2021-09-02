@@ -7,14 +7,14 @@ import stats_collector
 from parsing.webpage_data import WebpageData
 from parsing.webpage_parser import valid_address, get_real_url
 
-# modify external links score gradient given this threshold
-LINKS_EXTERNAL_THRESHOLD = 3
+logger = logging.getLogger("alpaca")
+
+# upper limit for subscore (best)
+LINKS_LIMIT = 5
 
 # boundary check
-if LINKS_EXTERNAL_THRESHOLD < 1:
+if LINKS_LIMIT < 1:
     raise ValueError("LINKS_EXTRERNAL_THRESHOLD must be equal or greater than 1")
-
-logger = logging.getLogger("alpaca")
 
 
 def evaluate_links_external(data: WebpageData) -> float:
@@ -27,7 +27,7 @@ def evaluate_links_external(data: WebpageData) -> float:
     """
 
     if not valid_address(data.url) or not data.html:
-        stats_collector.add_result(data.url, "links_count", -1)
+        stats_collector.add_result(data.url, "links_count", -10)
         return 0
 
     url = get_real_url(data.url)
@@ -54,5 +54,5 @@ def evaluate_links_external(data: WebpageData) -> float:
     logger.debug("[Links] {} external links: {}".format(len(links), links))
     stats_collector.add_result(data.url, "links_count", len(links))
 
-    score = len(links) / LINKS_EXTERNAL_THRESHOLD
+    score = len(links) / LINKS_LIMIT
     return min(score, 1)

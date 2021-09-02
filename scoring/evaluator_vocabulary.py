@@ -9,6 +9,8 @@ import stats_collector
 from parsing.tokenize import word_tokenize
 from parsing.webpage_data import WebpageData
 
+logger = logging.getLogger("alpaca")
+
 # modify profanity score gradient given this upper limit
 MAX_PROFANITY = 3
 # multiplier for emotion intensity per words ratio to modify final emotionality score
@@ -17,8 +19,6 @@ EMOTION_INTENSITY_MULTIPLIER = 2
 # boundary checks
 if MAX_PROFANITY <= 0 or EMOTION_INTENSITY_MULTIPLIER <= 0:
     raise ValueError("A constant for vacabulary evaluation is set incorrectly")
-
-logger = logging.getLogger("alpaca")
 
 
 def evaluate_profanity(data: WebpageData) -> float:

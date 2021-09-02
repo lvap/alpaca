@@ -17,13 +17,13 @@ WLENGTH_TEXT_UPPER = 8
 WLENGTH_TITLE_LOWER = 4
 WLENGTH_TITLE_UPPER = 8
 
+logger = logging.getLogger("alpaca")
+
 # boundary checks
 if not (1 <= WORDS_TEXT_LOWER < WORDS_TEXT_UPPER and 1 <= WORDS_TITLE_LOWER < WORDS_TITLE_UPPER
         and 1 <= SENTENCES_LOWER < SENTENCES_UPPER and 0 < TTR_MINIMUM < 1
         and 1 <= WLENGTH_TEXT_LOWER < WLENGTH_TEXT_UPPER and 1 <= WLENGTH_TITLE_LOWER < WLENGTH_TITLE_UPPER):
     raise ValueError("A constant for language structure evaluation is set incorrectly")
-
-logger = logging.getLogger("alpaca")
 
 
 # TODO possibly add nouns text/title, stop words title
@@ -55,7 +55,7 @@ def evaluate_word_count_title(data: WebpageData) -> float:
     """
 
     if not data.headline:
-        stats_collector.add_result(data.url, "word_count_title", -1)
+        stats_collector.add_result(data.url, "word_count_title", -10)
         return 0
 
     word_count = len(word_tokenize(data.headline))
@@ -132,7 +132,7 @@ def evaluate_word_length_title(data: WebpageData) -> float:
     """
 
     if not data.headline:
-        stats_collector.add_result(data.url, "word_length_title", -1)
+        stats_collector.add_result(data.url, "word_length_title", -10)
         return 0
 
     headline_tokens = word_tokenize(data.headline)

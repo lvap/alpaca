@@ -12,14 +12,17 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import stats_collector
 from parsing.webpage_data import WebpageData
 
+logger = logging.getLogger("alpaca")
+
 # lower limit for polarity scores (greater than 0, lower than 1)
 POLARITY_MINIMUM = 0.5
 
-# boundary check
-if not 0 < POLARITY_MINIMUM < 1:
-    raise ValueError("POLARITY_MINIMUM must be greater than 0 and lower than 1.")
+# limits for subjectivity subscore
+SUBJECTIVITY_LIMITS = [0.3, 0.7]
 
-logger = logging.getLogger("alpaca")
+# boundary check
+if not 0 < POLARITY_MINIMUM < 1 or not 0 <= SUBJECTIVITY_LIMITS[0] < SUBJECTIVITY_LIMITS[1] <= 1:
+    raise ValueError("Limits for one or more sentiment evaluators set incorrectly")
 
 
 def evaluate_polarity_text(data: WebpageData) -> float:
@@ -87,11 +90,11 @@ def evaluate_polarity_title(data: WebpageData) -> float:
     if not data.headline:
         stats_collector.add_result(data.url, "sentiment_title_spacy", -10)
         stats_collector.add_result(data.url, "sentiment_title_vader", -10)
-        stats_collector.add_result(data.url, "sentiment_title_fasttext_1", -1)
-        stats_collector.add_result(data.url, "sentiment_title_fasttext_2", -1)
-        stats_collector.add_result(data.url, "sentiment_title_fasttext_3", -1)
-        stats_collector.add_result(data.url, "sentiment_title_fasttext_4", -1)
-        stats_collector.add_result(data.url, "sentiment_title_fasttext_5", -1)
+        stats_collector.add_result(data.url, "sentiment_title_fasttext_1", -10)
+        stats_collector.add_result(data.url, "sentiment_title_fasttext_2", -10)
+        stats_collector.add_result(data.url, "sentiment_title_fasttext_3", -10)
+        stats_collector.add_result(data.url, "sentiment_title_fasttext_4", -10)
+        stats_collector.add_result(data.url, "sentiment_title_fasttext_5", -10)
         return 0
 
     # sentiment analysis with spacy
@@ -145,7 +148,12 @@ def evaluate_subjectivity(data: WebpageData) -> float:
 
     logger.debug("[Sentiment] Article subjectivity: {:.3f}".format(subjectivity))
 
-    return 1 - subjectivity
+    subjectivity_score = (subjectivity - SUBJECTIVITY_LIMITS[0]) / (SUBJECTIVITY_LIMITS[1] - SUBJECTIVITY_LIMITS[0])
+    return 1 - subjectivity_score
+
+
+# fasttext classifier for sentiment analysis
+classifier = None
 
 
 def _sentiment_analyser(texts: list[str]) -> np.array([float, ...]):
@@ -155,13 +163,17 @@ def _sentiment_analyser(texts: list[str]) -> np.array([float, ...]):
         (very positive). The numbers in each of the 5 groups represents the probability of the text belonging to it.
     """
 
-    model_path = (Path(__file__).parent / "files/sst5_hyperopt.ftz").resolve()
-    # redirect external error prints to our own logger
-    with redirect_stderr(io.StringIO()) as buf:
-        classifier = fasttext.load_model(str(model_path))
-        for message in buf.getvalue().strip().split("\n"):
-            if message:
-                logger.debug("[Sentiment>FastText] " + message)
+    global classifier
+
+    if not classifier:
+        model_path = (Path(__file__).parent / "files/sst5_hyperopt.ftz").resolve()
+        # redirect external error prints to our own logger
+        with redirect_stderr(io.StringIO()) as buf:
+            # load fasttext model
+            classifier = fasttext.load_model(str(model_path))
+            for message in buf.getvalue().strip().split("\n"):
+                if message:
+                    logger.debug("[Sentiment>FastText] " + message)
 
     labels, probs = classifier.predict(texts, 5)
 

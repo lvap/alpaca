@@ -7,9 +7,10 @@ import stats_collector
 from parsing.tokenize import word_tokenize
 from parsing.webpage_data import WebpageData
 
-# modify grammar/spelling error score gradient given this upper limit
-ERROR_LIMIT = 0.03
-# TODO scale from 0.005 (=>best score) to 0.03 (=>worst)
+logger = logging.getLogger("alpaca")
+
+# upper limit for subscore (worst score for this many errors per word or more)
+ERROR_LIMIT = 0.02
 
 # boundary check
 if not 0 < ERROR_LIMIT <= 1:
@@ -17,8 +18,6 @@ if not 0 < ERROR_LIMIT <= 1:
 
 # languageTool server
 lang_tool = ltp.LanguageTool("en-US")
-
-logger = logging.getLogger("alpaca")
 
 
 def evaluate_errors(data: WebpageData) -> float:

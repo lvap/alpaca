@@ -4,7 +4,7 @@ from parsing.webpage_data import WebpageData
 from parsing.webpage_parser import valid_address
 
 
-def evaluate_authors(data: WebpageData) -> float:
+def evaluate_author(data: WebpageData) -> float:
     """Verifies whether the webpage specifies one or more authors. Returns 1 if it does, 0 otherwise."""
 
     host = urlparse(data.url).hostname if valid_address(data.url) else ""

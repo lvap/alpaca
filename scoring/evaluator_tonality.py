@@ -6,18 +6,20 @@ import spacy
 import stats_collector
 from parsing.webpage_data import WebpageData
 
-# modify punctuation scores gradient given these upper limits
-QUESTIONS_LIMIT = 0.15
-EXCLAMATIONS_LIMIT = 0.05
-# modify capitalisation score gradient given these upper limits
-ALL_CAPS_MAX_TITLE = 2
-ALL_CAPS_MAX_TEXT = 10
+logger = logging.getLogger("alpaca")
+
+# upper limits for subscores (worst score for this many per sentence or more)
+QUESTIONS_LIMIT_TEXT = 0.2
+EXCLAMATIONS_LIMIT_TEXT = 0.05
+# upper limit for subscore (worst score for this many all caps or more)
+ALL_CAPS_LIMIT_TITLE = 2
+# upper limit for subscore (worst score for this many all caps per word or more)
+ALL_CAPS_LIMIT_TEXT = 0.05
 
 # boundary checks
-if not 0 < QUESTIONS_LIMIT <= 1 or not 0 < EXCLAMATIONS_LIMIT <= 1 or ALL_CAPS_MAX_TITLE <= 0 or ALL_CAPS_MAX_TEXT <= 0:
+if not (0 < QUESTIONS_LIMIT_TEXT <= 1 and 0 < EXCLAMATIONS_LIMIT_TEXT <= 1 and 0 < ALL_CAPS_LIMIT_TITLE
+        and 0 < ALL_CAPS_LIMIT_TEXT <= 1):
     raise ValueError("A constant for tonality evaluation is set incorrectly")
-
-logger = logging.getLogger("alpaca")
 
 
 def evaluate_questions_text(data: WebpageData) -> float:
@@ -34,7 +36,7 @@ def evaluate_questions_text(data: WebpageData) -> float:
     logger.debug("[Tonality] Question marks per sentence: {:.3f}".format(question_score))
     stats_collector.add_result(data.url, "questions_text_per_sentence", question_score)
 
-    question_score = min(question_score / QUESTIONS_LIMIT, 1)
+    question_score = min(question_score / QUESTIONS_LIMIT_TEXT, 1)
     return 1 - question_score
 
 
@@ -44,7 +46,7 @@ def evaluate_questions_title(data: WebpageData) -> float:
     :return: 1 if the headline contains no questions marks, else 0.
     """
 
-    stats_collector.add_result(data.url, "questions_title", data.headline.count("?"))
+    stats_collector.add_result(data.url, "questions_title", data.headline.count("?") if data.headline else -10)
     return 0 if "?" in data.headline else 1
 
 
@@ -62,7 +64,7 @@ def evaluate_exclamations_text(data: WebpageData) -> float:
     logger.debug("[Tonality] Exclamation marks per sentence: {:.3f}".format(exclamation_score))
     stats_collector.add_result(data.url, "exclamations_text_per_sentence", exclamation_score)
 
-    exclamation_score = min(exclamation_score / EXCLAMATIONS_LIMIT, 1)
+    exclamation_score = min(exclamation_score / EXCLAMATIONS_LIMIT_TEXT, 1)
     return 1 - exclamation_score
 
 
@@ -72,7 +74,7 @@ def evaluate_exclamations_title(data: WebpageData) -> float:
     :return: 1 if the headline contains no exclamation marks, else 0.
     """
 
-    stats_collector.add_result(data.url, "exclamations_title", data.headline.count("!"))
+    stats_collector.add_result(data.url, "exclamations_title", data.headline.count("!") if data.headline else -10)
     return 0 if "!" in data.headline else 1
 
 
@@ -114,18 +116,20 @@ def evaluate_all_caps_text(data: WebpageData) -> float:
             else:
                 text_matches[word] = True
 
-    # compute score
-    score = 0
+    # compute ratio all caps per word
+    all_caps_count = 0
     all_caps_words = []
     for match, match_value in text_matches.items():
         if match_value:
             all_caps_words.append(match)
-            score += 1
+            all_caps_count += 1
+    all_caps_ratio = all_caps_count / len(data.text_words)
 
-    logger.debug("[Tonality] {} all caps words in text: {}".format(len(all_caps_words), all_caps_words))
-    stats_collector.add_result(data.url, "all_caps_text", score)
+    logger.debug("[Tonality] {} all caps words in text ({:.3f} per word): {}".format(len(all_caps_words),
+                                                                                     all_caps_ratio, all_caps_words))
+    stats_collector.add_result(data.url, "all_caps_text", all_caps_ratio)
 
-    score = 1 - (score / ALL_CAPS_MAX_TEXT)
+    score = 1 - (all_caps_ratio / ALL_CAPS_LIMIT_TEXT)
     return max(score, 0)
 
 
@@ -141,7 +145,7 @@ def evaluate_all_caps_title(data: WebpageData) -> float:
 
     if data.headline.upper() == data.headline:
         # entire headline is capitalised (or empty)
-        stats_collector.add_result(data.url, "all_caps_title", -1)
+        stats_collector.add_result(data.url, "all_caps_title", -10)
         return 1
 
     headline_matches = {}
@@ -171,16 +175,14 @@ def evaluate_all_caps_title(data: WebpageData) -> float:
             else:
                 text_matches[word] = True
 
-    # compute score
-    score = 0
+    # count all caps words
     all_caps_words = []
     for match, match_value in headline_matches.items():
         if match_value:
             all_caps_words.append(match)
-            score += 1
+    all_caps_count = len(all_caps_words)
 
-    logger.debug("[Tonality] {} all caps words in title: {}".format(len(all_caps_words), all_caps_words))
-    stats_collector.add_result(data.url, "all_caps_title", score)
+    logger.debug("[Tonality] {} all caps words in title: {}".format(all_caps_count, all_caps_words))
+    stats_collector.add_result(data.url, "all_caps_title", all_caps_count)
 
-    score = 1 - (score / ALL_CAPS_MAX_TITLE)
-    return max(score, 0)
+    return 1 - (all_caps_count / ALL_CAPS_LIMIT_TITLE)

@@ -5,7 +5,8 @@ import parsing.webpage_parser as parser
 import scoring.evaluator_language_structure as ls
 import stats_collector
 from parsing.webpage_data import WebpageData
-from scoring.evaluator_authors import evaluate_authors
+from parsing.webpage_parser import valid_address
+from scoring.evaluator_author import evaluate_author
 from scoring.evaluator_clickbait import evaluate_clickbait
 from scoring.evaluator_errors import evaluate_errors
 from scoring.evaluator_links import evaluate_links_external
@@ -32,7 +33,7 @@ class CredibilitySignal(NamedTuple):
 # TODO tweak evaluation weights
 # holds credibility signals with signal evaluator and weight functions
 evaluation_signals = {
-    "authors":                      CredibilitySignal(evaluate_authors,
+    "author":                       CredibilitySignal(evaluate_author,
                                                       lambda score, data: 0.1),
     "url_domain_ending":            CredibilitySignal(evaluate_domain_ending,
                                                       lambda score, data: 0.25 if data.url and score == 1 else 0),
@@ -71,7 +72,7 @@ evaluation_signals = {
     "clickbait":                    CredibilitySignal(evaluate_clickbait,
                                                       lambda score, data: 0.5 if data.headline else 0),
     "links_external":               CredibilitySignal(evaluate_links_external,
-                                                      lambda score, data: 0.1 if data.url and data.html else 0),
+                                                      lambda s, d: 0.1 if valid_address(d.url) and d.html else 0),
     "sentiment_polarity_text":      CredibilitySignal(evaluate_polarity_text,
                                                       lambda score, data: 0.8),
     "sentiment_polarity_title":     CredibilitySignal(evaluate_polarity_title,

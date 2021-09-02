@@ -1,8 +1,9 @@
+import io
 import logging
 import pickle
 import re
 import string
-import warnings
+from contextlib import redirect_stderr
 from pathlib import Path
 
 from scipy import sparse
@@ -18,14 +19,31 @@ def evaluate_clickbait(data: WebpageData) -> float:
     :return: 1 if the headline is not clickbait (or empty), 0 if it is.
     """
 
-    return 0 if data.headline and is_clickbait(data.headline) else 1
+    return 0 if data.headline and _is_clickbait(data.headline) else 1
 
 
-def is_clickbait(headline: str) -> bool:
+# pickled model and tfidf vectorizer for clickbait detection
+model = None
+vectorizer = None
+
+
+def _is_clickbait(headline: str) -> bool:
     """Clickbait classifier by Alison Salerno https://github.com/AlisonSalerno/clickbait_detector
 
     :return: True if submitted headline is clickbait, False otherwise.
     """
+
+    global model, vectorizer
+
+    if not model or not vectorizer:
+        # redirect external error prints to our logger
+        with redirect_stderr(io.StringIO()) as buf:
+            # load pickled model and tfidf vectorizer
+            model = pickle.load(open((Path(__file__).parent / "files/nbmodel.pkl").resolve(), "rb"))
+            vectorizer = pickle.load(open((Path(__file__).parent / "files/tfidf.pkl").resolve(), "rb"))
+            for message in buf.getvalue().strip().split("\n"):
+                if message:
+                    logger.debug("[Clickbait>External] " + str(message))
 
     cleaned_headline = clean_text(headline)
     headline_words = len(cleaned_headline.split())
@@ -33,26 +51,14 @@ def is_clickbait(headline: str) -> bool:
     exclamation = contains_exclamation(cleaned_headline)
     starts_with_num = starts_with_number(cleaned_headline)
 
-    model_path = (Path(__file__).parent / "files/nbmodel.pkl").resolve()
-    tfidf_path = (Path(__file__).parent / "files/tfidf.pkl").resolve()
+    logger.debug("[Clickbait] Cleaned headline: " + cleaned_headline)
 
-    with warnings.catch_warnings():
-        warnings.filterwarnings('ignore')
+    vectorizer_input = [cleaned_headline]
+    vectorized = vectorizer.transform(vectorizer_input)
+    final = sparse.hstack([question, exclamation, starts_with_num, headline_words, vectorized])
+    result = model.predict(final)
 
-        # loading pickled model and tfidf vectorizer
-        model = pickle.load(open(model_path, "rb"))
-        # nltk.download("stopwords")
-        # stopwords_list = stopwords.words("english")
-        vectorizer = pickle.load(open(tfidf_path, "rb"))
-
-        logger.debug("[Clickbait] Cleaned headline: " + cleaned_headline)
-
-        vectorizer_input = [cleaned_headline]
-        vectorized = vectorizer.transform(vectorizer_input)
-        final = sparse.hstack([question, exclamation, starts_with_num, headline_words, vectorized])
-        result = model.predict(final)
-
-        return result == 1
+    return result == 1
 
 
 def clean_text(text: str) -> str:
