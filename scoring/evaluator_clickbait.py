@@ -31,7 +31,7 @@ def _is_clickbait(headline: str) -> bool:
     :return: True if submitted headline is clickbait, False otherwise.
     """
 
-    # load pickled model and tfidf vectorizer, redirect external error prints to our logger
+    # load pickled model and tfidf vectorizer, redirect external error prints to logger
     with redirect_stderr(io.StringIO()) as buf:
         model = pickle.load(open((Path(__file__).parent / "files/nbmodel.pkl").resolve(), "rb"))
         vectorizer = pickle.load(open((Path(__file__).parent / "files/tfidf.pkl").resolve(), "rb"))

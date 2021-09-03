@@ -7,14 +7,14 @@ import stats_collector
 from parsing.webpage_data import WebpageData
 from parsing.webpage_parser import valid_address, get_real_url
 
-logger = logging.getLogger("alpaca")
-
 # upper limit for subscore
-LINKS_LIMIT = 5
+LINKS_LIMIT = 3
 
 # boundary check
 if LINKS_LIMIT < 1:
     raise ValueError("LINKS_EXTRERNAL_THRESHOLD must be equal or greater than 1")
+
+logger = logging.getLogger("alpaca")
 
 
 def evaluate_links_external(data: WebpageData) -> float:

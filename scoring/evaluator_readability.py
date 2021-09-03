@@ -18,7 +18,7 @@ def evaluate_readability(data: WebpageData) -> float:
     """
 
     # TODO decide on best-performing readability grades as indicators of credibility (+documentation)
-    # TODO then create constants for score scaling instead of in-method
+    # TODO probably best to create constants for score scaling instead of in-method
 
     read_metrics = readability.getmeasures(data.text_sentences, lang="en")
 

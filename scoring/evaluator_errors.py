@@ -7,16 +7,16 @@ import stats_collector
 from parsing.tokenize import word_tokenize
 from parsing.webpage_data import WebpageData
 
-logger = logging.getLogger("alpaca")
-
-lang_tool = ltp.LanguageTool("en-US")
-
 # upper limit for subscore
 ERROR_LIMIT = 0.02
 
 # boundary check
 if not 0 < ERROR_LIMIT <= 1:
     raise ValueError("ERROR_LIMIT must be greater than 0 and lower than or equal to 1.")
+
+logger = logging.getLogger("alpaca")
+
+lang_tool = ltp.LanguageTool("en-US")
 
 
 def evaluate_errors(data: WebpageData) -> float:

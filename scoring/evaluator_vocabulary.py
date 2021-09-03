@@ -9,8 +9,6 @@ import stats_collector
 from parsing.tokenize import word_tokenize
 from parsing.webpage_data import WebpageData
 
-logger = logging.getLogger("alpaca")
-
 # subscore value limits
 MAX_PROFANITY = 3
 EMOTION_INTENSITY_MULTIPLIER = 2
@@ -18,6 +16,8 @@ EMOTION_INTENSITY_MULTIPLIER = 2
 # boundary checks
 if MAX_PROFANITY <= 0 or EMOTION_INTENSITY_MULTIPLIER <= 0:
     raise ValueError("A constant for vacabulary evaluation is set incorrectly")
+
+logger = logging.getLogger("alpaca")
 
 
 def evaluate_profanity(data: WebpageData) -> float:

@@ -6,25 +6,26 @@ import spacy
 import stats_collector
 from parsing.webpage_data import WebpageData
 
-logger = logging.getLogger("alpaca")
-
 # value limits for subscores
-QUESTIONS_LIMIT_TEXT = 0.2
-EXCLAMATIONS_LIMIT_TEXT = 0.05
-ALL_CAPS_LIMIT_TITLE = 2
-ALL_CAPS_LIMIT_TEXT = 0.05
+QUESTIONS_LIMITS_TEXT = [0.05, 0.2]
+EXCLAMATIONS_LIMITS_TEXT = [0.005, 0.05]
+ALL_CAPS_LIMIT_TITLE = 1
+ALL_CAPS_LIMIT_TEXT = 0.005
 
 # boundary checks
-if not (0 < QUESTIONS_LIMIT_TEXT <= 1 and 0 < EXCLAMATIONS_LIMIT_TEXT <= 1 and 0 < ALL_CAPS_LIMIT_TITLE
-        and 0 < ALL_CAPS_LIMIT_TEXT <= 1):
+if not (0 <= QUESTIONS_LIMITS_TEXT[0] < QUESTIONS_LIMITS_TEXT[1] <= 1
+        and 0 <= EXCLAMATIONS_LIMITS_TEXT[0] < EXCLAMATIONS_LIMITS_TEXT[1] <= 1
+        and 0 < ALL_CAPS_LIMIT_TITLE and 0 < ALL_CAPS_LIMIT_TEXT <= 1):
     raise ValueError("A constant for tonality evaluation is set incorrectly")
+
+logger = logging.getLogger("alpaca")
 
 
 def evaluate_questions_text(data: WebpageData) -> float:
     """Evaluates webpage text question mark usage.
 
-    Returned score is linear from 0 question marks per sentence (no question mark usage, best score => 1) to
-    **QUESTIONS_LIMIT_TEXT** question marks per sentence (high usage, worst score => 0).
+    Returned score is linear from **QUESTIONS_LIMITS_TEXT[0]** question marks per sentence (best score => 1) to
+    **QUESTIONS_LIMITS_TEXT[1]** question marks per sentence (worst score => 0).
 
     :return: 1 for low usage of question marks, 0 for high usage of question marks.
     """
@@ -34,8 +35,8 @@ def evaluate_questions_text(data: WebpageData) -> float:
     logger.debug("[Tonality] Question marks per sentence: {:.3f}".format(question_score))
     stats_collector.add_result(data.url, "questions_text_per_sentence", question_score)
 
-    question_score = min(question_score / QUESTIONS_LIMIT_TEXT, 1)
-    return 1 - question_score
+    question_score = (question_score - QUESTIONS_LIMITS_TEXT[0]) / (QUESTIONS_LIMITS_TEXT[1] - QUESTIONS_LIMITS_TEXT[0])
+    return 1 - min(max(question_score, 0), 1)
 
 
 def evaluate_questions_title(data: WebpageData) -> float:
@@ -51,8 +52,8 @@ def evaluate_questions_title(data: WebpageData) -> float:
 def evaluate_exclamations_text(data: WebpageData) -> float:
     """Evaluates webpage text exclamation mark usage.
 
-    Returned score is linear from 0 exclamation marks per sentence (no exclamation mark usage, best score => 1) to
-    **EXCLAMATIONS_LIMIT_TEXT** exclamation marks per sentence (high usage, worst score => 0).
+    Returned score is linear from **EXCLAMATIONS_LIMITS_TEXT[0]** exclamation marks per sentence (best score => 1) to
+    **EXCLAMATIONS_LIMITS_TEXT[1]** exclamation marks per sentence (worst score => 0).
 
     :return: 1 for low usage of exclamation marks, 0 for high usage of exclamation marks.
     """
@@ -62,8 +63,9 @@ def evaluate_exclamations_text(data: WebpageData) -> float:
     logger.debug("[Tonality] Exclamation marks per sentence: {:.3f}".format(exclamation_score))
     stats_collector.add_result(data.url, "exclamations_text_per_sentence", exclamation_score)
 
-    exclamation_score = min(exclamation_score / EXCLAMATIONS_LIMIT_TEXT, 1)
-    return 1 - exclamation_score
+    exclamation_score -= EXCLAMATIONS_LIMITS_TEXT[0]
+    exclamation_score /= EXCLAMATIONS_LIMITS_TEXT[1] - EXCLAMATIONS_LIMITS_TEXT[0]
+    return 1 - min(max(exclamation_score, 0), 1)
 
 
 def evaluate_exclamations_title(data: WebpageData) -> float:
@@ -185,4 +187,4 @@ def evaluate_all_caps_title(data: WebpageData) -> float:
     logger.debug("[Tonality] {} all caps words in title: {}".format(all_caps_count, all_caps_words))
     stats_collector.add_result(data.url, "all_caps_title", all_caps_count)
 
-    return 1 - (all_caps_count / ALL_CAPS_LIMIT_TITLE)
+    return 1 - min(all_caps_count / ALL_CAPS_LIMIT_TITLE, 1)

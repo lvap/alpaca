@@ -4,15 +4,13 @@ from parsing.tokenize import word_tokenize
 from parsing.webpage_data import WebpageData
 import stats_collector
 
-logger = logging.getLogger("alpaca")
-
 # value limits for subscores
-WORDS_LIMITS_TEXT = [300, 900]
-WORDS_LIMITS_TITLE = [10, 25]
-SENTENCES_LIMITS = [5, 30]
-TTR_LIMITS = [0.5, 1]
-WORDLENGTH_LIMITS_TEXT = [4, 8]
-WORDLENGTH_LIMITS_TITLE = [4, 8]
+WORDS_LIMITS_TEXT = [300, 800]
+WORDS_LIMITS_TITLE = [10, 20]
+SENTENCES_LIMITS = [25, 35]
+TTR_LIMITS = [0.3, 0.7]
+WORDLENGTH_LIMITS_TEXT = [4.25, 5]
+WORDLENGTH_LIMITS_TITLE = [4.5, 6]
 
 # boundary checks
 if not (1 <= WORDS_LIMITS_TEXT[0] < WORDS_LIMITS_TEXT[1] and 1 <= WORDS_LIMITS_TITLE[0] < WORDS_LIMITS_TITLE[1]
@@ -20,6 +18,8 @@ if not (1 <= WORDS_LIMITS_TEXT[0] < WORDS_LIMITS_TEXT[1] and 1 <= WORDS_LIMITS_T
         and 1 <= WORDLENGTH_LIMITS_TEXT[0] < WORDLENGTH_LIMITS_TEXT[1]
         and 1 <= WORDLENGTH_LIMITS_TITLE[0] < WORDLENGTH_LIMITS_TITLE[1]):
     raise ValueError("A constant for language structure evaluation is set incorrectly")
+
+logger = logging.getLogger("alpaca")
 
 
 def evaluate_word_count_text(data: WebpageData) -> float:
@@ -42,8 +42,8 @@ def evaluate_word_count_text(data: WebpageData) -> float:
 def evaluate_word_count_title(data: WebpageData) -> float:
     """Evaluates the number of words in the headline of a webpage.
 
-    Returned score is linear between **WORDS_LIMITS_TITLE[0]** or fewer words (worst score => 0)
-    and **WORDS_LIMITS_TITLE[1]** or more words (best score => 1).
+    Returned score is linear between **WORDS_LIMITS_TITLE[0]** or fewer words (best score => 1)
+    and **WORDS_LIMITS_TITLE[1]** or more words (worst score => 0).
 
     :return: Score between 0 and 1, with 0 indicating low number of words and 1 high number of words.
     """

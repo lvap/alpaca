@@ -12,18 +12,18 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import stats_collector
 from parsing.webpage_data import WebpageData
 
-logger = logging.getLogger("alpaca")
-
-nlp = spacy.load('en_core_web_sm')
-nlp.add_pipe("spacytextblob")
-
 # value limits for subscores
 POLARITY_MINIMUM = 0.5
-SUBJECTIVITY_LIMITS = [0.3, 0.7]
+SUBJECTIVITY_LIMITS = [0.4, 0.75]
 
 # boundary check
 if not 0 < POLARITY_MINIMUM < 1 or not 0 <= SUBJECTIVITY_LIMITS[0] < SUBJECTIVITY_LIMITS[1] <= 1:
     raise ValueError("Limits for one or more sentiment evaluators set incorrectly")
+
+logger = logging.getLogger("alpaca")
+
+nlp = spacy.load('en_core_web_sm')
+nlp.add_pipe("spacytextblob")
 
 
 def evaluate_polarity_text(data: WebpageData) -> float:
@@ -143,8 +143,10 @@ def evaluate_subjectivity(data: WebpageData) -> float:
     subjectivity = doc._.subjectivity
 
     logger.debug("[Sentiment] Article subjectivity: {:.3f}".format(subjectivity))
+    stats_collector.add_result(data.url, "subjectivity", subjectivity)
 
     subjectivity_score = (subjectivity - SUBJECTIVITY_LIMITS[0]) / (SUBJECTIVITY_LIMITS[1] - SUBJECTIVITY_LIMITS[0])
+    subjectivity_score = max(min(subjectivity_score, 1), 0)
     return 1 - subjectivity_score
 
 
@@ -155,7 +157,7 @@ def _sentiment_analyser(texts: list[str]) -> np.array([float, ...]):
         (very positive). The numbers in each of the 5 groups represents the probability of the text belonging to it.
     """
 
-    # load fasttext model, redirect external error prints to our logger
+    # load fasttext model, redirect external error prints to logger
     with redirect_stderr(io.StringIO()) as buf:
         classifier = fasttext.load_model(str((Path(__file__).parent / "files/sst5_hyperopt.ftz").resolve()))
         for message in buf.getvalue().strip().split("\n"):
