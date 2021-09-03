@@ -36,8 +36,8 @@ if LOG_LEVEL_FILE:
 def alpaca_init():
     """If a valid webpage URL is submitted, retrieves and prints the webpage's credibility score.
 
-    Initialises the program and waits for & handles console input. Terminates on input **exit** or **quit**. To export
-    collected webpage signal statistics, terminate the program in this way after enabling *COLLECT_STATS*.
+    Initialises the program and waits for & handles console input. Terminates on input *exit* or *quit*. To export
+    collected webpage signal statistics, terminate the program in this way after enabling **COLLECT_STATS**.
     """
 
     logger.info("[Main] ALPACA init")

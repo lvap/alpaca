@@ -9,7 +9,7 @@ from parsing.webpage_parser import valid_address, get_real_url
 
 logger = logging.getLogger("alpaca")
 
-# upper limit for subscore (best)
+# upper limit for subscore
 LINKS_LIMIT = 5
 
 # boundary check
@@ -20,7 +20,7 @@ if LINKS_LIMIT < 1:
 def evaluate_links_external(data: WebpageData) -> float:
     """Evaluates webpage usage of external (site outbound) links.
 
-    Returned score is linear from 0 external links (worst score => 0) to at least *LINKS_EXTERNAL_THRESHOLD* links
+    Returned score is linear from 0 external links (worst score => 0) to at least **LINKS_LIMIT** external links
     (best score => 1). Returns 0 if data.url is not a valid http(s) URL or data.html is empty.
 
     :return: 1 for high and 0 for low usage of external links.

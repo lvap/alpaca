@@ -1,6 +1,7 @@
 import re
 from urllib.parse import urlparse
 
+import stats_collector
 from parsing.webpage_data import WebpageData
 from parsing.webpage_parser import valid_address, get_real_url
 
@@ -15,6 +16,7 @@ def evaluate_domain_ending(data: WebpageData) -> float:
     """
 
     if not valid_address(data.url):
+        stats_collector.add_result(data.url, "domain_ending", -10)
         return 0
 
     url = get_real_url(data.url)
@@ -22,5 +24,8 @@ def evaluate_domain_ending(data: WebpageData) -> float:
 
     for ending in ["gov", "org", "edu"]:
         if re.search(r"\." + ending + r"(?:\.[a-z]+)?$", domain):
+            stats_collector.add_result(data.url, "domain_ending", 1)
             return 1
+
+    stats_collector.add_result(data.url, "domain_ending", 0)
     return 0

@@ -8,12 +8,10 @@ from parsing.webpage_data import WebpageData
 
 logger = logging.getLogger("alpaca")
 
-# upper limits for subscores (worst score for this many per sentence or more)
+# value limits for subscores
 QUESTIONS_LIMIT_TEXT = 0.2
 EXCLAMATIONS_LIMIT_TEXT = 0.05
-# upper limit for subscore (worst score for this many all caps or more)
 ALL_CAPS_LIMIT_TITLE = 2
-# upper limit for subscore (worst score for this many all caps per word or more)
 ALL_CAPS_LIMIT_TEXT = 0.05
 
 # boundary checks
@@ -26,7 +24,7 @@ def evaluate_questions_text(data: WebpageData) -> float:
     """Evaluates webpage text question mark usage.
 
     Returned score is linear from 0 question marks per sentence (no question mark usage, best score => 1) to
-    *QUESTION_MARKS_LIMIT* question marks per sentence (high usage, worst score => 0).
+    **QUESTIONS_LIMIT_TEXT** question marks per sentence (high usage, worst score => 0).
 
     :return: 1 for low usage of question marks, 0 for high usage of question marks.
     """
@@ -54,7 +52,7 @@ def evaluate_exclamations_text(data: WebpageData) -> float:
     """Evaluates webpage text exclamation mark usage.
 
     Returned score is linear from 0 exclamation marks per sentence (no exclamation mark usage, best score => 1) to
-    *EXCLAMATION_MARKS_LIMIT* exclamation marks per sentence (high usage, worst score => 0).
+    **EXCLAMATIONS_LIMIT_TEXT** exclamation marks per sentence (high usage, worst score => 0).
 
     :return: 1 for low usage of exclamation marks, 0 for high usage of exclamation marks.
     """
@@ -81,9 +79,10 @@ def evaluate_exclamations_title(data: WebpageData) -> float:
 def evaluate_all_caps_text(data: WebpageData) -> float:
     """Evaluates webpage text usage of words in all capitals.
 
-    Capitalisation score is linear from 0 occurrences (best score => 1) to *ALL_CAPS_MAX_TEXT* occurrences 
+    Capitalisation score is linear from 0 occurrences (best score => 1) to **ALL_CAPS_LIMIT_TEXT** occurrences
     (worst score => 0). Words that are all capitals and occur more than once in either title or text
-    are assumed to be acronyms or initialisms, and ignored.
+    are assumed to be acronyms or initialisms, and ignored. We also ignore all caps words that are recognised as
+    entities.
 
     :return: 1 for low number of all capitals words, 0 for a high number.
     """
@@ -136,9 +135,10 @@ def evaluate_all_caps_text(data: WebpageData) -> float:
 def evaluate_all_caps_title(data: WebpageData) -> float:
     """Evaluates webpage headline usage of words in all capitals.
 
-    Capitalisation score is linear from 0 occurrences (best score => 1) to *ALL_CAPS_MAX_TITLE*
+    Capitalisation score is linear from 0 occurrences (best score => 1) to **ALL_CAPS_LIMIT_TITLE**
     occurrences (worst score => 0). Words that are all capitals and occur more than once in either title or text
-    are assumed to be acronyms or initialisms, and ignored.
+    are assumed to be acronyms or initialisms, and ignored. We also ignore all caps words that are recognised as
+    entities.
 
     :return: 1 for low number of all capitals words, 0 for a high number.
     """

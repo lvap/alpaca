@@ -2,6 +2,8 @@ import nltk
 import regex as re
 import spacy
 
+nlp = spacy.load("en_core_web_sm")
+
 
 def word_tokenize(text: str) -> list[str]:
     """Tokenizes text into words. Keeps full stops with abbreviations."""
@@ -21,7 +23,6 @@ def word_tokenize(text: str) -> list[str]:
     tokens = words.findall(text)
 
     # fix abbreviated names (single upper-case letters + full stop)
-    nlp = spacy.load("en_core_web_sm")
     doc = nlp(text)
     entities = ["PERSON", "NORP", "FAC", "FACILITY", "ORG", "EVENT", "LAW"]
     names = set([ent.text.strip() for ent in doc.ents if ent.label_ in entities])

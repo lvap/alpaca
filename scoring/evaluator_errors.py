@@ -9,15 +9,14 @@ from parsing.webpage_data import WebpageData
 
 logger = logging.getLogger("alpaca")
 
-# upper limit for subscore (worst score for this many errors per word or more)
+lang_tool = ltp.LanguageTool("en-US")
+
+# upper limit for subscore
 ERROR_LIMIT = 0.02
 
 # boundary check
 if not 0 < ERROR_LIMIT <= 1:
     raise ValueError("ERROR_LIMIT must be greater than 0 and lower than or equal to 1.")
-
-# languageTool server
-lang_tool = ltp.LanguageTool("en-US")
 
 
 def evaluate_errors(data: WebpageData) -> float:
@@ -25,7 +24,7 @@ def evaluate_errors(data: WebpageData) -> float:
 
     Determines how many spelling or grammar errors were encountered on the page and scales this value
     by overall word count. Specifically, the returned score is linear from 0 unique errors per word (no errors,
-    best score => 1) to *ERRORS_LIMIT* unique errors per word (large amount of errors, worst score => 0).
+    best score => 1) to **ERROR_LIMIT** unique errors per word (large amount of errors, worst score => 0).
 
     :return: Value between 0 (large amount of errors) and 1 (no errors).
     """

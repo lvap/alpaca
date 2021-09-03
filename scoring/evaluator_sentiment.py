@@ -14,10 +14,11 @@ from parsing.webpage_data import WebpageData
 
 logger = logging.getLogger("alpaca")
 
-# lower limit for polarity scores (greater than 0, lower than 1)
-POLARITY_MINIMUM = 0.5
+nlp = spacy.load('en_core_web_sm')
+nlp.add_pipe("spacytextblob")
 
-# limits for subjectivity subscore
+# value limits for subscores
+POLARITY_MINIMUM = 0.5
 SUBJECTIVITY_LIMITS = [0.3, 0.7]
 
 # boundary check
@@ -28,18 +29,15 @@ if not 0 < POLARITY_MINIMUM < 1 or not 0 <= SUBJECTIVITY_LIMITS[0] < SUBJECTIVIT
 def evaluate_polarity_text(data: WebpageData) -> float:
     """Evaluates the polarity of the webpage' text through sentiment analysis.
 
-    Performs sentiment analysis to determine a positivity/negativity score between -1 and 1, then looks at the
-    absolute value as indicator of "extremism"/"emotionality". Final score is linear from 0 (absolute polarity is 1)
-    to 1 (absolute polarity is at most *POLARITY_MINIMUM*). TODO documentation when decided on a single system
+    Currently averages the results of VADER, FastText and spaCy sentiment analysis.
+    Uses **POLARITY_MINIMUM** as polarity minimum for VADER and spaCy (best score, worst score at 1 absolute).
 
-    :return: Value between 0 (extreme polarity/sentiment) and 1 (relatively low polarity/sentiment).
+    :return: Value between 0 (extreme polarity/sentiment) and 1 (relatively moderate polarity/sentiment).
     """
 
-    # TODO decide on the better-performing sentiment analysis tool(s) as indicator of credibility
+    # TODO decide on the better-performing sentiment analysis tool(s) as indicator of credibility (+documentation)
 
     # sentiment analysis with spacy
-    nlp = spacy.load('en_core_web_sm')
-    nlp.add_pipe("spacytextblob")
     doc = nlp(data.text)
     polarity_spacy = doc._.polarity
 
@@ -78,14 +76,13 @@ def evaluate_polarity_text(data: WebpageData) -> float:
 def evaluate_polarity_title(data: WebpageData) -> float:
     """Evaluates the polarity of the webpage's headline through sentiment analysis.
 
-    Performs sentiment analysis to determine a webpage's positivity/negativity score between -1 and 1, then looks at the
-    absolute value as indicator of "extremism"/"emotionality". Final score is linear from 0 (absolute polarity is 1)
-    to 1 (absolute polarity is at most *POLARITY_MINIMUM*). TODO documentation when decided on a single system
+    Currently averages the results of VADER, FastText and spaCy sentiment analysis.
+    Uses **POLARITY_MINIMUM** as polarity minimum for VADER and spaCy (best score, worst score at 1 absolute).
 
-    :return: Value between 0 (extreme polarity/sentiment) and 1 (relatively low polarity/sentiment).
+    :return: Value between 0 (extreme polarity/sentiment) and 1 (relatively moderate polarity/sentiment).
     """
 
-    # TODO decide on the better-performing sentiment analysis tool(s) as indicator of credibility
+    # TODO decide on the better-performing sentiment analysis tool(s) as indicator of credibility (+documentation)
 
     if not data.headline:
         stats_collector.add_result(data.url, "sentiment_title_spacy", -10)
@@ -98,8 +95,6 @@ def evaluate_polarity_title(data: WebpageData) -> float:
         return 0
 
     # sentiment analysis with spacy
-    nlp = spacy.load('en_core_web_sm')
-    nlp.add_pipe("spacytextblob")
     doc = nlp(data.headline)
     polarity_spacy = doc._.polarity
 
@@ -138,11 +133,12 @@ def evaluate_polarity_title(data: WebpageData) -> float:
 def evaluate_subjectivity(data: WebpageData) -> float:
     """Evaluates the subjectivity of the webpage using spaCy.
 
-    :return: Value between 0 (very high webpage subjectivity) and 1 (very low webpage subjectivity).
+    Score is linear between **SUBJECTIVITY_LIMITS[0]** subjectivity or lower (best score => 1)
+    and **SUBJECTIVITY_LIMITS[1]** subjectivity or higher (worst score => 0).
+
+    :return: Value between 0 (high webpage subjectivity) and 1 (low webpage subjectivity).
     """
 
-    nlp = spacy.load('en_core_web_sm')
-    nlp.add_pipe("spacytextblob")
     doc = nlp(data.text)
     subjectivity = doc._.subjectivity
 
@@ -152,10 +148,6 @@ def evaluate_subjectivity(data: WebpageData) -> float:
     return 1 - subjectivity_score
 
 
-# fasttext classifier for sentiment analysis
-classifier = None
-
-
 def _sentiment_analyser(texts: list[str]) -> np.array([float, ...]):
     """Sentiment analyser by Prashanth Rao https://github.com/prrao87/fine-grained-sentiment-app
 
@@ -163,17 +155,12 @@ def _sentiment_analyser(texts: list[str]) -> np.array([float, ...]):
         (very positive). The numbers in each of the 5 groups represents the probability of the text belonging to it.
     """
 
-    global classifier
-
-    if not classifier:
-        model_path = (Path(__file__).parent / "files/sst5_hyperopt.ftz").resolve()
-        # redirect external error prints to our own logger
-        with redirect_stderr(io.StringIO()) as buf:
-            # load fasttext model
-            classifier = fasttext.load_model(str(model_path))
-            for message in buf.getvalue().strip().split("\n"):
-                if message:
-                    logger.debug("[Sentiment>FastText] " + message)
+    # load fasttext model, redirect external error prints to our logger
+    with redirect_stderr(io.StringIO()) as buf:
+        classifier = fasttext.load_model(str((Path(__file__).parent / "files/sst5_hyperopt.ftz").resolve()))
+        for message in buf.getvalue().strip().split("\n"):
+            if message:
+                logger.debug("[Sentiment>FastText] " + message)
 
     labels, probs = classifier.predict(texts, 5)
 
@@ -188,8 +175,8 @@ def _sentiment_analyser(texts: list[str]) -> np.array([float, ...]):
 def _tokenizer(text: str) -> str:
     """Tokenize input string using a spaCy pipeline"""
 
-    nlp = spacy.blank('en')
-    nlp.add_pipe("sentencizer")  # Very basic NLP pipeline in spaCy
-    doc = nlp(text)
+    _nlp = spacy.blank('en')
+    _nlp.add_pipe("sentencizer")  # Very basic NLP pipeline in spaCy
+    doc = _nlp(text)
     tokenized_text = ' '.join(token.text for token in doc)
     return tokenized_text

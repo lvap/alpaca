@@ -11,9 +11,8 @@ from parsing.webpage_data import WebpageData
 
 logger = logging.getLogger("alpaca")
 
-# modify profanity score gradient given this upper limit
+# subscore value limits
 MAX_PROFANITY = 3
-# multiplier for emotion intensity per words ratio to modify final emotionality score
 EMOTION_INTENSITY_MULTIPLIER = 2
 
 # boundary checks
@@ -25,7 +24,7 @@ def evaluate_profanity(data: WebpageData) -> float:
     """Evaluates webpage by checking for occurrences of profanity.
 
     Combines and checks webpage headline and text. Profanity score is linear from 0 occurrences (best score => 1) to
-    *MAX_PROFANITY* occurrences (worst score => 0).
+    **MAX_PROFANITY** occurrences (worst score => 0).
 
     :return: Value between 1 (low profanity) and 0 (high profanity).
     """
@@ -57,16 +56,17 @@ def evaluate_emotional_words(data: WebpageData) -> float:
 
     Compares all words in the headline and text against a list of emotional words with specified emotion intensity
     values. Sums up all intensity values for any matches, scales the total sum by word count. Final score is linear
-    between 0 (worst score, words have on average at least 1 / *EMOTION_INTENSITY_MULTIPLIER* emotion intensity) and 1
-    (best score, words have 0 emotion intensity on average). TODO documentation
+    between 0 (worst score, words have on average at least 1 / **EMOTION_INTENSITY_MULTIPLIER** emotion intensity)
+    and 1 (best score, words have 0 emotion intensity on average).
 
     :return: Value between 0 (high emotionality) and 1 (low emotionality).
     """
 
-    # TODO possibly limit scoring to some subset of emotions
+    # TODO possibly limit scoring to some subset of emotions (+documentation)
 
-    # file containing words & their degree of association with 8 emotions, one entry per line
-    # using emotion intensity lexicon by Saif M. Mohammad https://saifmohammad.com/WebPages/AffectIntensity.htm
+    # using emotion intensity lexicon by Saif M.Mohammad https://saifmohammad.com/WebPages/AffectIntensity.htm
+
+    # file containing words & their degree of association with 8 emotions, one entry per line, sorted alphabetically
     emotion_list_path = "files/emotion_intensity_list.csv"
     filepath = (Path(__file__).parent / emotion_list_path).resolve()
     emotional_words = pd.read_csv(filepath, sep=";")

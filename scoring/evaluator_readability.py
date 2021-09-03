@@ -10,15 +10,15 @@ logger = logging.getLogger("alpaca")
 def evaluate_readability(data: WebpageData) -> float:
     """Evaluates the readability of a webpage's text body by averaging several common readability grades.
 
-    Computes and combines (with equal weight) the Flesch-Kincaid grade level, Flesch reading ease,
-    Gunning-Fog, SMOG, ARI and Coleman-Liau scores of the webpage headline and main text.
-    TODO documentation
+    Computes the average of the Flesch-Kincaid grade, Flesch reading ease, Gunning-Fog, SMOG, ARI and Coleman-Liau
+    readability scores of the webpage's text.
 
     :return: Combined readability score between 0 and 1, with 0 indicating easy understandability (low text complexity)
         and 1 indicating hard understandability (high text complexity).
     """
 
-    # TODO analyse which readability grades perform best as indicators of credibility and exclude the others
+    # TODO decide on best-performing readability grades as indicators of credibility (+documentation)
+    # TODO then create constants for score scaling instead of in-method
 
     read_metrics = readability.getmeasures(data.text_sentences, lang="en")
 
@@ -56,6 +56,4 @@ def evaluate_readability(data: WebpageData) -> float:
         readability_scores[index] = 1 - max(min(score, 1), 0)
     logger.debug("[Readability] Readability scores text: {}".format([round(score, 3) for score in readability_scores]))
 
-    # median (lower)
-    readability_scores.sort()
-    return readability_scores[2]
+    return sum(readability_scores) / len(readability_scores)

@@ -85,8 +85,8 @@ evaluation_signals = {
 def evaluate_webpage(url: str) -> float:
     """Scores a webpage's credibility by combining the credibility scores of different evaluators.
 
-    Obtains the webpage data from parser, retrieves the signal sub-scores, validates the results and then generates an
-    overall webpage credibility score via linear combination of the sub-scores using the *evaluation_weights* dict.
+    Obtains the webpage data from parser, retrieves the signal sub-scores, validates the results and then computes an
+    overall webpage credibility score using the **evaluation_weights** dict.
 
     :param url: URL of the webpage to be evaluated.
     :return: A credibility score from 0 (very low credibility) to 1 (very high credibility).
