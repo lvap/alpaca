@@ -4,13 +4,13 @@ from parsing.tokenize import word_tokenize
 from parsing.webpage_data import WebpageData
 import stats_collector
 
-# value limits for subscores
+# value limits for subscore computation
 WORDS_LIMITS_TEXT = [300, 800]
 WORDS_LIMITS_TITLE = [10, 20]
 SENTENCES_LIMITS = [25, 35]
 TTR_LIMITS = [0.3, 0.7]
 WORDLENGTH_LIMITS_TEXT = [4.25, 5]
-WORDLENGTH_LIMITS_TITLE = [4.5, 6]
+WORDLENGTH_LIMITS_TITLE = [4.5, 5.5]
 
 # boundary checks
 if not (1 <= WORDS_LIMITS_TEXT[0] < WORDS_LIMITS_TEXT[1] and 1 <= WORDS_LIMITS_TITLE[0] < WORDS_LIMITS_TITLE[1]
@@ -95,7 +95,7 @@ def evaluate_ttr(data: WebpageData) -> float:
     stats_collector.add_result(data.url, "ttr", ttr)
 
     ttr_score = (ttr - TTR_LIMITS[0]) / (TTR_LIMITS[1] - TTR_LIMITS[0])
-    return max(ttr_score, 0)
+    return min(max(ttr_score, 0), 1)
 
 
 def evaluate_word_length_text(data: WebpageData) -> float:

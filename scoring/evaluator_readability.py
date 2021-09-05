@@ -6,19 +6,19 @@ from parsing.webpage_data import WebpageData
 
 logger = logging.getLogger("alpaca")
 
+# value limits to compute subscore
+READABILITY_LIMITS = [8, 12]
+
 
 def evaluate_readability(data: WebpageData) -> float:
-    """Evaluates the readability of a webpage's text body by averaging several common readability grades.
+    """Evaluates the readability of a webpage's text body.
 
-    Computes the average of the Flesch-Kincaid grade, Flesch reading ease, Gunning-Fog, SMOG, ARI and Coleman-Liau
-    readability scores of the webpage's text.
+    Computes the Coleman-Liau readability grade and scales linearly between a grade of **READABILITY_LIMITS[0]** or
+    less (worst score => 0) and **READABILITY_LIMITS[1]** or more (best score => 1).
 
-    :return: Combined readability score between 0 and 1, with 0 indicating easy understandability (low text complexity)
+    :return: Readability score between 0 and 1, with 0 indicating easy understandability (low text complexity)
         and 1 indicating hard understandability (high text complexity).
     """
-
-    # TODO decide on best-performing readability grades as indicators of credibility (+documentation)
-    # TODO probably best to create constants for score scaling instead of in-method
 
     read_metrics = readability.getmeasures(data.text_sentences, lang="en")
 
@@ -38,22 +38,6 @@ def evaluate_readability(data: WebpageData) -> float:
     stats.add_result(data.url, "read_text_ari", read_metrics["readability grades"]["ARI"])
     stats.add_result(data.url, "read_text_coleman_liau", read_metrics["readability grades"]["Coleman-Liau"])
 
-    # preliminary scoring: assign highest credibility for complex text, equivalent to 11th-grade reading level
-    # Flesch-Kincaid grade level score range 1-17, 11-17 best
-    # Flesch reading ease score range 1-100, 1-50 best
-    # Gunning-Fog score range 1-17, 11-17 best
-    # SMOG score range 5-22, 16-22 best
-    # ARI score range 1-14, 11-14 best
-    # Coleman-Liau score range 1-17, 11-17 best
-    readability_scores = [(11 - read_metrics["readability grades"]["Kincaid"]) / 10,
-                          1 - ((100 - read_metrics["readability grades"]["FleschReadingEase"]) / 50),
-                          (11 - read_metrics["readability grades"]["GunningFogIndex"]) / 10,
-                          (16 - read_metrics["readability grades"]["SMOGIndex"]) / 11,
-                          (11 - read_metrics["readability grades"]["ARI"]) / 10,
-                          (11 - read_metrics["readability grades"]["Coleman-Liau"]) / 10]
-
-    for index, score in enumerate(readability_scores):
-        readability_scores[index] = 1 - max(min(score, 1), 0)
-    logger.debug("[Readability] Readability scores text: {}".format([round(score, 3) for score in readability_scores]))
-
-    return sum(readability_scores) / len(readability_scores)
+    coleman_liau = read_metrics["readability grades"]["Coleman-Liau"]
+    read_score = (coleman_liau - READABILITY_LIMITS[0]) / (READABILITY_LIMITS[1] - READABILITY_LIMITS[0])
+    return min(max(read_score, 0), 1)

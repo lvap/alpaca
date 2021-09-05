@@ -31,6 +31,7 @@ class CredibilitySignal(NamedTuple):
 
 
 # TODO tweak evaluation weights
+# TODO run readability & individual signal notebooks again
 # holds credibility signals with signal evaluator and weight functions
 evaluation_signals = {
     "author":                       CredibilitySignal(evaluate_author,

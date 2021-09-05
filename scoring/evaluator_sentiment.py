@@ -12,12 +12,15 @@ from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
 import stats_collector
 from parsing.webpage_data import WebpageData
 
-# value limits for subscores
-POLARITY_MINIMUM = 0.5
-SUBJECTIVITY_LIMITS = [0.4, 0.75]
+# value limits for subscore computation
+POLARITY_LIMITS_TEXT = [-0.5, 0.75]
+POLARITY_LIMITS_TITLE = [0, 1]
+SUBJECTIVITY_LIMITS = [0.4, 0.7]
 
 # boundary check
-if not 0 < POLARITY_MINIMUM < 1 or not 0 <= SUBJECTIVITY_LIMITS[0] < SUBJECTIVITY_LIMITS[1] <= 1:
+if not (-1 <= POLARITY_LIMITS_TEXT[0] < POLARITY_LIMITS_TEXT[1] <= 1
+        and 0 <= POLARITY_LIMITS_TITLE[0] < POLARITY_LIMITS_TITLE[1] <= 1
+        and 0 <= SUBJECTIVITY_LIMITS[0] < SUBJECTIVITY_LIMITS[1] <= 1):
     raise ValueError("Limits for one or more sentiment evaluators set incorrectly")
 
 logger = logging.getLogger("alpaca")
@@ -44,13 +47,6 @@ def evaluate_polarity_text(data: WebpageData) -> float:
     # sentiment analysis with vader
     polarity_vader = SentimentIntensityAnalyzer().polarity_scores(data.text)
 
-    # for now we are only interested in the degree of polarity, not the direction
-    score_spacy = abs(polarity_spacy)
-    score_vader = abs(polarity_vader["compound"])
-    # scale polarity scores from interval [POLARITY_MINIMUM, 1]
-    score_spacy = 1 - max((score_spacy - POLARITY_MINIMUM) / POLARITY_MINIMUM, 0)
-    score_vader = 1 - max((score_vader - POLARITY_MINIMUM) / POLARITY_MINIMUM, 0)
-
     # sentiment analysis using fasttext
     text_ft = _tokenizer(data.text.replace("\n", " ")).lower()
     sentiment_ft = _sentiment_analyser([text_ft])
@@ -60,17 +56,19 @@ def evaluate_polarity_text(data: WebpageData) -> float:
     np.set_printoptions(precision=3)
     logger.debug("[Sentiment] Text polarity raw: SpaCy {:.3f} | VADER {} | FastText {}"
                  .format(polarity_spacy, polarity_vader, sentiment_ft[0]))
-    logger.debug("[Sentiment] Text polarity scores: SpaCy {:.3f} | VADER {:.3f} | FastText {:.3f}"
-                 .format(score_spacy, score_vader, score_ft))
     stats_collector.add_result(data.url, "sentiment_text_spacy", polarity_spacy)
     stats_collector.add_result(data.url, "sentiment_text_vader", polarity_vader["compound"])
+    stats_collector.add_result(data.url, "positivity_text_vader", polarity_vader["pos"])
+    stats_collector.add_result(data.url, "negativity_text_vader", polarity_vader["neg"])
     stats_collector.add_result(data.url, "sentiment_text_fasttext_1", sentiment_ft[0][0])
     stats_collector.add_result(data.url, "sentiment_text_fasttext_2", sentiment_ft[0][1])
     stats_collector.add_result(data.url, "sentiment_text_fasttext_3", sentiment_ft[0][2])
     stats_collector.add_result(data.url, "sentiment_text_fasttext_4", sentiment_ft[0][3])
     stats_collector.add_result(data.url, "sentiment_text_fasttext_5", sentiment_ft[0][4])
 
-    return (score_spacy + score_vader + score_ft) / 3
+    sentiment = polarity_vader["compound"] - POLARITY_LIMITS_TEXT[0]
+    sentiment /= POLARITY_LIMITS_TEXT[1] - POLARITY_LIMITS_TEXT[0]
+    return min(max(sentiment, 0), 1)
 
 
 def evaluate_polarity_title(data: WebpageData) -> float:
@@ -87,6 +85,8 @@ def evaluate_polarity_title(data: WebpageData) -> float:
     if not data.headline:
         stats_collector.add_result(data.url, "sentiment_title_spacy", -10)
         stats_collector.add_result(data.url, "sentiment_title_vader", -10)
+        stats_collector.add_result(data.url, "positivity_title_vader", -10)
+        stats_collector.add_result(data.url, "negativity_title_vader", -10)
         stats_collector.add_result(data.url, "sentiment_title_fasttext_1", -10)
         stats_collector.add_result(data.url, "sentiment_title_fasttext_2", -10)
         stats_collector.add_result(data.url, "sentiment_title_fasttext_3", -10)
@@ -101,13 +101,6 @@ def evaluate_polarity_title(data: WebpageData) -> float:
     # sentiment analysis with vader
     polarity_vader = SentimentIntensityAnalyzer().polarity_scores(data.headline)
 
-    # for now we are only interested in the degree of polarity, not the direction
-    score_spacy = abs(polarity_spacy)
-    score_vader = abs(polarity_vader["compound"])
-    # scale polarity scores from interval [POLARITY_MINIMUM, 1]
-    score_spacy = 1 - max((score_spacy - POLARITY_MINIMUM) / POLARITY_MINIMUM, 0)
-    score_vader = 1 - max((score_vader - POLARITY_MINIMUM) / POLARITY_MINIMUM, 0)
-
     # sentiment analysis using fasttext
     text_ft = _tokenizer(data.headline.replace("\n", " ")).lower()
     sentiment_ft = _sentiment_analyser([text_ft])
@@ -117,17 +110,19 @@ def evaluate_polarity_title(data: WebpageData) -> float:
     np.set_printoptions(precision=3)
     logger.debug("[Sentiment] Headline polarity raw: SpaCy {:.3f} | VADER {} | FastText {}"
                  .format(polarity_spacy, polarity_vader, sentiment_ft[0]))
-    logger.debug("[Sentiment] Headline polarity scores: SpaCy {:.3f} | VADER {:.3f} | FastText {:.3f}"
-                 .format(score_spacy, score_vader, score_ft))
     stats_collector.add_result(data.url, "sentiment_title_spacy", polarity_spacy)
     stats_collector.add_result(data.url, "sentiment_title_vader", polarity_vader["compound"])
+    stats_collector.add_result(data.url, "positivity_title_vader", polarity_vader["pos"])
+    stats_collector.add_result(data.url, "negativity_title_vader", polarity_vader["neg"])
     stats_collector.add_result(data.url, "sentiment_title_fasttext_1", sentiment_ft[0][0])
     stats_collector.add_result(data.url, "sentiment_title_fasttext_2", sentiment_ft[0][1])
     stats_collector.add_result(data.url, "sentiment_title_fasttext_3", sentiment_ft[0][2])
     stats_collector.add_result(data.url, "sentiment_title_fasttext_4", sentiment_ft[0][3])
     stats_collector.add_result(data.url, "sentiment_title_fasttext_5", sentiment_ft[0][4])
 
-    return (score_spacy + score_vader + score_ft) / 3
+    negativity = polarity_vader["neg"] - POLARITY_LIMITS_TITLE[0]
+    negativity /= POLARITY_LIMITS_TITLE[1] - POLARITY_LIMITS_TITLE[0]
+    return 1 - max(min(negativity, 1), 0)
 
 
 def evaluate_subjectivity(data: WebpageData) -> float:

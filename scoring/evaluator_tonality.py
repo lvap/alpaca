@@ -6,7 +6,7 @@ import spacy
 import stats_collector
 from parsing.webpage_data import WebpageData
 
-# value limits for subscores
+# value limits for subscore computation
 QUESTIONS_LIMITS_TEXT = [0.05, 0.2]
 EXCLAMATIONS_LIMITS_TEXT = [0.005, 0.05]
 ALL_CAPS_LIMIT_TITLE = 1
