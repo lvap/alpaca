@@ -126,4 +126,5 @@ def evaluate_webpage(url: str) -> float:
 
     final_score = final_score / weight_sum
     logger.info("[Evaluation] Overall webpage score: {:.5f} for {}".format(final_score, url))
+    stats_collector.add_result(url, "credibility_score", final_score)
     return final_score

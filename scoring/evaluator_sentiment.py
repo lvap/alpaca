@@ -36,36 +36,17 @@ def evaluate_polarity_text(data: WebpageData) -> float:
     **POLARITY_LIMITS_TEXT[0]** or lower (worst score => 0) and **POLARITY_LIMITS_TEXT[1]** or higher
     (best score => 1).
 
-    Computes several sentiment assessments by different tools for comparison purposes.
+    Computes positive, negative and compound sentiment for comparison purposes.
 
     :return: Value between 0 (relatively negative sentiment) and 1 (relatively positive sentiment).
     """
 
-    # sentiment analysis with spacy
-    doc = nlp(data.text)
-    polarity_spacy = doc._.polarity
-
-    # sentiment analysis with vader
     polarity_vader = SentimentIntensityAnalyzer().polarity_scores(data.text)
 
-    # sentiment analysis using fasttext
-    text_ft = _tokenizer(data.text.replace("\n", " ")).lower()
-    sentiment_ft = _sentiment_analyser([text_ft])
-    score_ft = sentiment_ft[0][0] + sentiment_ft[0][4]  # sum of extreme sentiments
-    score_ft = 1 - score_ft
-
-    np.set_printoptions(precision=3)
-    logger.debug("[Sentiment] Text polarity raw: SpaCy {:.3f} | VADER {} | FastText {}"
-                 .format(polarity_spacy, polarity_vader, sentiment_ft[0]))
-    stats_collector.add_result(data.url, "sentiment_text_spacy", polarity_spacy)
+    logger.debug("[Sentiment] Text polarity (VADER): {}".format(polarity_vader))
     stats_collector.add_result(data.url, "sentiment_text_vader", polarity_vader["compound"])
     stats_collector.add_result(data.url, "positivity_text_vader", polarity_vader["pos"])
     stats_collector.add_result(data.url, "negativity_text_vader", polarity_vader["neg"])
-    stats_collector.add_result(data.url, "sentiment_text_fasttext_1", sentiment_ft[0][0])
-    stats_collector.add_result(data.url, "sentiment_text_fasttext_2", sentiment_ft[0][1])
-    stats_collector.add_result(data.url, "sentiment_text_fasttext_3", sentiment_ft[0][2])
-    stats_collector.add_result(data.url, "sentiment_text_fasttext_4", sentiment_ft[0][3])
-    stats_collector.add_result(data.url, "sentiment_text_fasttext_5", sentiment_ft[0][4])
 
     polarity = polarity_vader["compound"] - POLARITY_LIMITS_TEXT[0]
     polarity /= POLARITY_LIMITS_TEXT[1] - POLARITY_LIMITS_TEXT[0]
@@ -79,47 +60,23 @@ def evaluate_polarity_title(data: WebpageData) -> float:
     **POLARITY_LIMITS_TITLE[0]** or lower (best score => 1) and **POLARITY_LIMITS_TITLE[1]** or higher
     (worst score => 0).
 
-    Computes several sentiment assessments by different tools for comparison purposes.
+    Computes positive, negative and compound sentiment for comparison purposes.
 
     :return: Value between 0 (low negative sentiment) and 1 (high negative sentiment).
     """
+
     if not data.headline:
-        stats_collector.add_result(data.url, "sentiment_title_spacy", -10)
         stats_collector.add_result(data.url, "sentiment_title_vader", -10)
         stats_collector.add_result(data.url, "positivity_title_vader", -10)
         stats_collector.add_result(data.url, "negativity_title_vader", -10)
-        stats_collector.add_result(data.url, "sentiment_title_fasttext_1", -10)
-        stats_collector.add_result(data.url, "sentiment_title_fasttext_2", -10)
-        stats_collector.add_result(data.url, "sentiment_title_fasttext_3", -10)
-        stats_collector.add_result(data.url, "sentiment_title_fasttext_4", -10)
-        stats_collector.add_result(data.url, "sentiment_title_fasttext_5", -10)
         return 0
 
-    # sentiment analysis with spacy
-    doc = nlp(data.headline)
-    polarity_spacy = doc._.polarity
-
-    # sentiment analysis with vader
     polarity_vader = SentimentIntensityAnalyzer().polarity_scores(data.headline)
 
-    # sentiment analysis using fasttext
-    text_ft = _tokenizer(data.headline.replace("\n", " ")).lower()
-    sentiment_ft = _sentiment_analyser([text_ft])
-    score_ft = sentiment_ft[0][0] + sentiment_ft[0][4]  # sum of extreme sentiments
-    score_ft = 1 - score_ft
-
-    np.set_printoptions(precision=3)
-    logger.debug("[Sentiment] Headline polarity raw: SpaCy {:.3f} | VADER {} | FastText {}"
-                 .format(polarity_spacy, polarity_vader, sentiment_ft[0]))
-    stats_collector.add_result(data.url, "sentiment_title_spacy", polarity_spacy)
+    logger.debug("[Sentiment] Headline polarity (VADER): {}".format(polarity_vader))
     stats_collector.add_result(data.url, "sentiment_title_vader", polarity_vader["compound"])
     stats_collector.add_result(data.url, "positivity_title_vader", polarity_vader["pos"])
     stats_collector.add_result(data.url, "negativity_title_vader", polarity_vader["neg"])
-    stats_collector.add_result(data.url, "sentiment_title_fasttext_1", sentiment_ft[0][0])
-    stats_collector.add_result(data.url, "sentiment_title_fasttext_2", sentiment_ft[0][1])
-    stats_collector.add_result(data.url, "sentiment_title_fasttext_3", sentiment_ft[0][2])
-    stats_collector.add_result(data.url, "sentiment_title_fasttext_4", sentiment_ft[0][3])
-    stats_collector.add_result(data.url, "sentiment_title_fasttext_5", sentiment_ft[0][4])
 
     polarity = polarity_vader["neg"] - POLARITY_LIMITS_TITLE[0]
     polarity /= POLARITY_LIMITS_TITLE[1] - POLARITY_LIMITS_TITLE[0]
@@ -127,10 +84,10 @@ def evaluate_polarity_title(data: WebpageData) -> float:
 
 
 def evaluate_subjectivity(data: WebpageData) -> float:
-    """Evaluates the subjectivity of the webpage using spaCy.
+    """Evaluates the subjectivity of the webpage.
 
-    Score is linear between **SUBJECTIVITY_LIMITS[0]** subjectivity or lower (best score => 1)
-    and **SUBJECTIVITY_LIMITS[1]** subjectivity or higher (worst score => 0).
+    Uses spaCy to compute the text's subjectivity. Score is linear between **SUBJECTIVITY_LIMITS[0]** subjectivity
+    or lower (best score => 1) and **SUBJECTIVITY_LIMITS[1]** subjectivity or higher (worst score => 0).
 
     :return: Value between 0 (high webpage subjectivity) and 1 (low webpage subjectivity).
     """
@@ -144,37 +101,3 @@ def evaluate_subjectivity(data: WebpageData) -> float:
     subjectivity_score = (subjectivity - SUBJECTIVITY_LIMITS[0]) / (SUBJECTIVITY_LIMITS[1] - SUBJECTIVITY_LIMITS[0])
     subjectivity_score = max(min(subjectivity_score, 1), 0)
     return 1 - subjectivity_score
-
-
-def _sentiment_analyser(texts: list[str]) -> np.array([float, ...]):
-    """Sentiment analyser by Prashanth Rao https://github.com/prrao87/fine-grained-sentiment-app
-
-    :return: Sentiment analysis of the input texts, classifying each into 5 groups from 0 (very negative) to 5
-        (very positive). The numbers in each of the 5 groups represents the probability of the text belonging to it.
-    """
-
-    # load fasttext model, redirect external error prints to logger
-    with redirect_stderr(io.StringIO()) as buf:
-        classifier = fasttext.load_model(str((Path(__file__).parent / "files/sst5_hyperopt.ftz").resolve()))
-        for message in buf.getvalue().strip().split("\n"):
-            if message:
-                logger.debug("[Sentiment>FastText] " + message)
-
-    labels, probs = classifier.predict(texts, 5)
-
-    # For each prediction, sort the probability scores in the same order for all texts
-    result = []
-    for label, prob, text in zip(labels, probs, texts):
-        order = np.argsort(np.array(label))
-        result.append(prob[order])
-    return np.array(result)
-
-
-def _tokenizer(text: str) -> str:
-    """Tokenize input string using a spaCy pipeline"""
-
-    _nlp = spacy.blank('en')
-    _nlp.add_pipe("sentencizer")  # Very basic NLP pipeline in spaCy
-    doc = _nlp(text)
-    tokenized_text = ' '.join(token.text for token in doc)
-    return tokenized_text
