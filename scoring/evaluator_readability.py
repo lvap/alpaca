@@ -16,6 +16,8 @@ def evaluate_readability(data: WebpageData) -> float:
     Computes the Coleman-Liau readability grade and scales linearly between a grade of **READABILITY_LIMITS[0]** or
     less (worst score => 0) and **READABILITY_LIMITS[1]** or more (best score => 1).
 
+    Computes a range of additional readability grades for comparison purposes.
+
     :return: Readability score between 0 and 1, with 0 indicating easy understandability (low text complexity)
         and 1 indicating hard understandability (high text complexity).
     """

@@ -58,6 +58,9 @@ def evaluate_emotional_words(data: WebpageData) -> float:
     between **EMOTION_LIMITS[0]** total emotion intensity per word (best score => 1) and **EMOTION_LIMITS[1]** total
     emotion intensity per word (worst score => 0).
 
+    Computes individual and overall emotion values (# words/total words and intensity per word) for comparison
+    purposes.
+
     :return: Value between 0 (high emotionality) and 1 (low emotionality).
     """
 

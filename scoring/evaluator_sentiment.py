@@ -14,7 +14,7 @@ from parsing.webpage_data import WebpageData
 
 # value limits for subscore computation
 POLARITY_LIMITS_TEXT = [-0.5, 0.75]
-POLARITY_LIMITS_TITLE = [0, 1]
+POLARITY_LIMITS_TITLE = [0, 0.2]
 SUBJECTIVITY_LIMITS = [0.4, 0.7]
 
 # boundary check
@@ -32,13 +32,14 @@ nlp.add_pipe("spacytextblob")
 def evaluate_polarity_text(data: WebpageData) -> float:
     """Evaluates the polarity of the webpage' text through sentiment analysis.
 
-    Currently averages the results of VADER, FastText and spaCy sentiment analysis.
-    Uses **POLARITY_MINIMUM** as polarity minimum for VADER and spaCy (best score, worst score at 1 absolute).
+    Uses VADER sentiment analysis to compute the text's sentiment. Score is linear between a sentiment of
+    **POLARITY_LIMITS_TEXT[0]** or lower (worst score => 0) and **POLARITY_LIMITS_TEXT[1]** or higher
+    (best score => 1).
 
-    :return: Value between 0 (extreme polarity/sentiment) and 1 (relatively moderate polarity/sentiment).
+    Computes several sentiment assessments by different tools for comparison purposes.
+
+    :return: Value between 0 (relatively negative sentiment) and 1 (relatively positive sentiment).
     """
-
-    # TODO decide on the better-performing sentiment analysis tool(s) as indicator of credibility (+documentation)
 
     # sentiment analysis with spacy
     doc = nlp(data.text)
@@ -66,22 +67,22 @@ def evaluate_polarity_text(data: WebpageData) -> float:
     stats_collector.add_result(data.url, "sentiment_text_fasttext_4", sentiment_ft[0][3])
     stats_collector.add_result(data.url, "sentiment_text_fasttext_5", sentiment_ft[0][4])
 
-    sentiment = polarity_vader["compound"] - POLARITY_LIMITS_TEXT[0]
-    sentiment /= POLARITY_LIMITS_TEXT[1] - POLARITY_LIMITS_TEXT[0]
-    return min(max(sentiment, 0), 1)
+    polarity = polarity_vader["compound"] - POLARITY_LIMITS_TEXT[0]
+    polarity /= POLARITY_LIMITS_TEXT[1] - POLARITY_LIMITS_TEXT[0]
+    return min(max(polarity, 0), 1)
 
 
 def evaluate_polarity_title(data: WebpageData) -> float:
-    """Evaluates the polarity of the webpage's headline through sentiment analysis.
+    """Evaluates the negativity of the webpage's headline through sentiment analysis.
 
-    Currently averages the results of VADER, FastText and spaCy sentiment analysis.
-    Uses **POLARITY_MINIMUM** as polarity minimum for VADER and spaCy (best score, worst score at 1 absolute).
+     Uses VADER sentiment analysis to compute the text's negativity. Score is linear between a negativity of
+    **POLARITY_LIMITS_TITLE[0]** or lower (best score => 1) and **POLARITY_LIMITS_TITLE[1]** or higher
+    (worst score => 0).
 
-    :return: Value between 0 (extreme polarity/sentiment) and 1 (relatively moderate polarity/sentiment).
+    Computes several sentiment assessments by different tools for comparison purposes.
+
+    :return: Value between 0 (low negative sentiment) and 1 (high negative sentiment).
     """
-
-    # TODO decide on the better-performing sentiment analysis tool(s) as indicator of credibility (+documentation)
-
     if not data.headline:
         stats_collector.add_result(data.url, "sentiment_title_spacy", -10)
         stats_collector.add_result(data.url, "sentiment_title_vader", -10)
@@ -120,9 +121,9 @@ def evaluate_polarity_title(data: WebpageData) -> float:
     stats_collector.add_result(data.url, "sentiment_title_fasttext_4", sentiment_ft[0][3])
     stats_collector.add_result(data.url, "sentiment_title_fasttext_5", sentiment_ft[0][4])
 
-    negativity = polarity_vader["neg"] - POLARITY_LIMITS_TITLE[0]
-    negativity /= POLARITY_LIMITS_TITLE[1] - POLARITY_LIMITS_TITLE[0]
-    return 1 - max(min(negativity, 1), 0)
+    polarity = polarity_vader["neg"] - POLARITY_LIMITS_TITLE[0]
+    polarity /= POLARITY_LIMITS_TITLE[1] - POLARITY_LIMITS_TITLE[0]
+    return 1 - max(min(polarity, 1), 0)
 
 
 def evaluate_subjectivity(data: WebpageData) -> float:
