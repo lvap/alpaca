@@ -17,6 +17,7 @@ if not 0 < ERROR_LIMIT <= 1:
 logger = logging.getLogger("alpaca")
 
 lang_tool = ltp.LanguageTool("en-US")
+nlp = spacy.load("en_core_web_sm")
 
 
 def evaluate_errors(data: WebpageData) -> float:
@@ -36,7 +37,6 @@ def evaluate_errors(data: WebpageData) -> float:
     matches += lang_tool.check(data.text)
 
     # named entity recognition to avoid classifying names as spelling errors
-    nlp = spacy.load("en_core_web_sm")
     doc = nlp(data.headline + "\n" + data.text)
     entities = ["PERSON", "NORP", "FAC", "FACILITY", "ORG", "GPE", "LOC", "PRODUCT", "EVENT", "WORK_OF_ART", "LAW"]
     names = set([ent.text.strip() for ent in doc.ents if ent.label_ in entities])

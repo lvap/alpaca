@@ -11,7 +11,7 @@ from parsing.webpage_data import WebpageData
 
 # value limits for subscore computation
 PROFANITY_LIMIT = 0.0000000001
-EMOTION_LIMITS = [0.075, 0.125]
+EMOTION_LIMITS = [0.07, 0.125]
 
 # boundary checks
 if PROFANITY_LIMIT <= 0 or not 0 <= EMOTION_LIMITS[0] < EMOTION_LIMITS[1] <= 1:

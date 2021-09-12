@@ -20,6 +20,8 @@ if not (0 <= QUESTIONS_LIMITS_TEXT[0] < QUESTIONS_LIMITS_TEXT[1] <= 1
 
 logger = logging.getLogger("alpaca")
 
+nlp = spacy.load("en_core_web_sm")
+
 
 def evaluate_questions_text(data: WebpageData) -> float:
     """Evaluates webpage text question mark usage.
@@ -94,7 +96,6 @@ def evaluate_all_caps_text(data: WebpageData) -> float:
     all_caps = re.compile(r"\b[A-Z]+\b")
 
     # named entity recognition to avoid classifying initialisms/acronyms as all caps words
-    nlp = spacy.load("en_core_web_sm")
     doc = nlp(data.headline + "\n" + data.text)
     entity_labels = ["PERSON", "NORP", "FAC", "FACILITY", "ORG", "GPE", "LOC", "PRODUCT", "EVENT", "WORK_OF_ART", "LAW"]
     entities = set([ent.text.strip() for ent in doc.ents if ent.label_ in entity_labels])
@@ -155,7 +156,6 @@ def evaluate_all_caps_title(data: WebpageData) -> float:
     all_caps = re.compile(r"\b[A-Z]+\b")
 
     # named entity recognition to avoid classifying initialisms/acronyms as all caps words
-    nlp = spacy.load("en_core_web_sm")
     doc = nlp(data.headline + "\n" + data.text)
     entity_labels = ["PERSON", "NORP", "FAC", "FACILITY", "ORG", "GPE", "LOC", "PRODUCT", "EVENT", "WORK_OF_ART", "LAW"]
     entities = set([ent.text.strip() for ent in doc.ents if ent.label_ in entity_labels])

@@ -13,8 +13,8 @@ import stats_collector
 from parsing.webpage_data import WebpageData
 
 # value limits for subscore computation
-POLARITY_LIMITS_TEXT = [-0.5, 0.75]
-POLARITY_LIMITS_TITLE = [0, 0.2]
+POLARITY_LIMITS_TEXT = [-0.5, 1]
+POLARITY_LIMITS_TITLE = [0, 0.3]
 SUBJECTIVITY_LIMITS = [0.4, 0.7]
 
 # boundary check
@@ -86,8 +86,8 @@ def evaluate_polarity_title(data: WebpageData) -> float:
 def evaluate_subjectivity(data: WebpageData) -> float:
     """Evaluates the subjectivity of the webpage.
 
-    Uses spaCy to compute the text's subjectivity. Score is linear between **SUBJECTIVITY_LIMITS[0]** subjectivity
-    or lower (best score => 1) and **SUBJECTIVITY_LIMITS[1]** subjectivity or higher (worst score => 0).
+    Uses TextBlob (through spaCy) to compute the text's subjectivity. Score is linear between **SUBJECTIVITY_LIMITS[0]**
+     subjectivity or lower (best score => 1) and **SUBJECTIVITY_LIMITS[1]** subjectivity or higher (worst score => 0).
 
     :return: Value between 0 (high webpage subjectivity) and 1 (low webpage subjectivity).
     """

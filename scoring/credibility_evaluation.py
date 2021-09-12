@@ -3,6 +3,7 @@ from typing import NamedTuple, Callable
 
 import parsing.webpage_parser as parser
 import scoring.evaluator_language_structure as ls
+import scoring.evaluator_tonality as tonality
 import stats_collector
 from parsing.webpage_data import WebpageData
 from parsing.webpage_parser import valid_address
@@ -12,7 +13,6 @@ from scoring.evaluator_errors import evaluate_errors
 from scoring.evaluator_links import evaluate_links_external
 from scoring.evaluator_readability import evaluate_readability
 from scoring.evaluator_sentiment import evaluate_polarity_title, evaluate_polarity_text, evaluate_subjectivity
-import scoring.evaluator_tonality as tonality
 from scoring.evaluator_url import evaluate_domain_ending
 from scoring.evaluator_vocabulary import evaluate_profanity, evaluate_emotional_words
 
@@ -35,19 +35,19 @@ evaluation_signals = {
     "author":                       CredibilitySignal(evaluate_author,
                                                       lambda score, data: 0.1),
     "url_domain_ending":            CredibilitySignal(evaluate_domain_ending,
-                                                      lambda score, data: 0.4 if data.url and score == 1 else 0),
+                                                      lambda score, data: 0.5 if data.url and score == 1 else 0),
     "errors":                       CredibilitySignal(evaluate_errors,
                                                       lambda score, data: 0.35),
     "tonality_questions_text":      CredibilitySignal(tonality.evaluate_questions_text,
-                                                      lambda score, data: 0),
+                                                      lambda score, data: 0.1),
     "tonality_questions_title":     CredibilitySignal(tonality.evaluate_questions_title,
                                                       lambda score, data: 0.1 if data.headline else 0),
     "tonality_exclamations_text":   CredibilitySignal(tonality.evaluate_exclamations_text,
-                                                      lambda score, data: 0.35),
+                                                      lambda score, data: 0.4),
     "tonality_exclamations_title":  CredibilitySignal(tonality.evaluate_exclamations_title,
-                                                      lambda score, data: 0.2 if data.headline else 0),
+                                                      lambda score, data: 0.25 if data.headline else 0),
     "tonality_all_caps_text":       CredibilitySignal(tonality.evaluate_all_caps_text,
-                                                      lambda score, data: 0),
+                                                      lambda score, data: 0.1),
     "tonality_all_caps_title":      CredibilitySignal(tonality.evaluate_all_caps_title,
                                                       lambda s, d: 0.4 if d.headline.upper() != d.headline else 0),
     "readability":                  CredibilitySignal(evaluate_readability,
@@ -55,13 +55,13 @@ evaluation_signals = {
     "ls_word_count_text":           CredibilitySignal(ls.evaluate_word_count_text,
                                                       lambda score, data: 0.3),
     "ls_word_count_title":          CredibilitySignal(ls.evaluate_word_count_title,
-                                                      lambda score, data: 0.3 if data.headline else 0),
+                                                      lambda score, data: 0.35 if data.headline else 0),
     "ls_sentence_count":            CredibilitySignal(ls.evaluate_sentence_count,
-                                                      lambda score, data: 0.3),
+                                                      lambda score, data: 0.4),
     "ls_type_token_ratio":          CredibilitySignal(ls.evaluate_ttr,
-                                                      lambda score, data: 0.1),
+                                                      lambda score, data: 0),
     "ls_word_length_text":          CredibilitySignal(ls.evaluate_word_length_text,
-                                                      lambda score, data: 0.25),
+                                                      lambda score, data: 0.3),
     "ls_word_length_title":         CredibilitySignal(ls.evaluate_word_length_title,
                                                       lambda score, data: 0.2 if data.headline else 0),
     "vocabulary_profanity":         CredibilitySignal(evaluate_profanity,
@@ -73,9 +73,9 @@ evaluation_signals = {
     "links_external":               CredibilitySignal(evaluate_links_external,
                                                       lambda s, d: 0.1 if valid_address(d.url) and d.html else 0),
     "sentiment_polarity_text":      CredibilitySignal(evaluate_polarity_text,
-                                                      lambda score, data: 0.3),
+                                                      lambda score, data: 0.35),
     "sentiment_polarity_title":     CredibilitySignal(evaluate_polarity_title,
-                                                      lambda score, data: 0.25 if data.headline else 0),
+                                                      lambda score, data: 0.35 if data.headline else 0),
     "sentiment_subjectivity":       CredibilitySignal(evaluate_subjectivity,
                                                       lambda score, data: 0.25),
 }
