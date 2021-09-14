@@ -1,10 +1,5 @@
-import io
 import logging
-from contextlib import redirect_stderr
-from pathlib import Path
 
-import fasttext
-import numpy as np
 import spacy
 from spacytextblob.spacytextblob import SpacyTextBlob
 from vaderSentiment.vaderSentiment import SentimentIntensityAnalyzer
