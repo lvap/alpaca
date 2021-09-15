@@ -19,7 +19,6 @@ Jinja2==2.11.3
 joblib==0.17.0
 jusText==2.2.0
 language-tool-python==2.5.4
-logging==0.4.9.6
 lxml==4.6.2
 MarkupSafe==1.1.1
 murmurhash==1.0.5
